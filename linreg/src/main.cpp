@@ -16,6 +16,7 @@ int main()
     SDL_Event evt;
 
     Graph g("graph");
+    g.set_line(1.f, 10.f);
 
     while (running)
     {

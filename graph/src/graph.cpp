@@ -63,8 +63,10 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r)
     }
 
     // Line
-    /* SDL_SetRenderDrawColor(rend, 0, 0, 255, 255); */
-    /* SDL_RenderDrawLine(rend, 0, (1.f - m_b / m_ymax) * (r.h - 40) - 20, */ 
+    SDL_SetRenderDrawColor(rend, 0, 0, 255, 255);
+    int b = (1.f - m_b / m_ymax) * (r.h - 40) + 20;
+    int y2 = b + (-m_w * m_xmax / m_ymax) * (r.h - 40);
+    SDL_RenderDrawLine(rend, r.x + 20, b, r.x + r.w - 20, y2);
 }
 
 void Graph::set_line(float w, float b)
