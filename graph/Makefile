@@ -21,5 +21,5 @@ dirs:
 	mkdir -p obj/src
 
 clean:
-	-rm -rf obj/
+	-rm -rf obj/ ../lib/libgraph.a
 
