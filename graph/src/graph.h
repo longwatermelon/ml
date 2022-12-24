@@ -10,11 +10,14 @@ public:
     ~Graph();
 
     void render(SDL_Renderer *rend, SDL_Rect r);
+    void set_line(float w, float b);
 
 private:
     std::string m_xlabel, m_ylabel;
-    int m_xmax{ -1 }, m_ymax{ -1 };
-    int m_xstep{ -1 }, m_ystep{ -1 };
-    std::vector<SDL_Point> m_data;
+    float m_xmax{ -1.f }, m_ymax{ -1.f };
+    float m_xstep{ -1.f }, m_ystep{ -1.f };
+    std::vector<SDL_FPoint> m_data;
+
+    float m_w{ 0.f }, m_b{ 0.f };
 };
 
