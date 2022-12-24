@@ -18,7 +18,7 @@ obj/src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 dirs:
-	mkdir -p obj/src
+	mkdir -p obj/src ../lib
 
 clean:
 	-rm -rf obj/ ../lib/libgraph.a
