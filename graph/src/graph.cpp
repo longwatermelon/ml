@@ -32,7 +32,7 @@ Graph::~Graph()
 {
 }
 
-void Graph::render(SDL_Renderer *rend, SDL_Rect r)
+void Graph::render(SDL_Renderer *rend, SDL_Rect r) const
 {
     // White bg
     SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);

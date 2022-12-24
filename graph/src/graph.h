@@ -9,8 +9,10 @@ public:
     Graph(const std::string &data_fp);
     ~Graph();
 
-    void render(SDL_Renderer *rend, SDL_Rect r);
+    void render(SDL_Renderer *rend, SDL_Rect r) const;
     void set_line(float w, float b);
+
+    const std::vector<SDL_FPoint> &data() const { return m_data; }
 
 private:
     std::string m_xlabel, m_ylabel;
