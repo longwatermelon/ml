@@ -7,7 +7,7 @@ SRC=$(wildcard src/*.cpp)
 OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
 
 .PHONY: dirs clean graph
-all: dirs graph target
+all: dirs target
 
 target: $(OBJS)
 	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS)

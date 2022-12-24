@@ -42,5 +42,14 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r)
     SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
     SDL_RenderDrawLine(rend, r.x + 20, r.y + 20, r.x + 20, r.y + r.h - 20);
     SDL_RenderDrawLine(rend, r.x + 20, r.y + r.h - 20, r.x + r.w - 20, r.y + r.h - 20);
+
+    // Ticks
+    float xstep = (r.w - 20) / ((float)m_xmax / m_xstep);
+    for (float x = r.x + 20 + xstep; x < r.x + r.w - 20; x += xstep)
+        SDL_RenderDrawLine(rend, (int)x, r.y + r.h - 25, (int)x, r.y + r.h - 15);
+
+    float ystep = (r.h - 20) / ((float)m_ymax / m_ystep);
+    for (float y = r.y + 20 + ystep; y < r.y + r.h - 20; y += ystep)
+        SDL_RenderDrawLine(rend, r.x + 15, (int)y, r.x + 25, (int)y);
 }
 
