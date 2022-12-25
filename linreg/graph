@@ -1,12 +1,12 @@
-xlabel x
-ylabel y
 xmax 100
 ymax 100
 xstep 20
 ystep 20
-data 10 20
-data 30 40
+data 10 80
+data 30 60
 data 50 40
-data 70 60
-data 80 80
+data 60 20
+data 65 15
+data 70 30
+data 80 10
 

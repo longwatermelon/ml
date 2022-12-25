@@ -1,22 +1,25 @@
 #include <iostream>
 #include <graph.h>
+#include <graph3.h>
 #include <SDL2/SDL.h>
 
 void descend(float &w, float &b, const std::vector<SDL_FPoint> &data)
 {
-    float dw_j = 0.f;
+    float dw_j = 0.f,
+          db_j = 0.f;
     for (const auto &p : data)
+    {
         dw_j += (w * p.x + b - p.y) * p.x;
-    dw_j *= 1.f / data.size();
-
-    float db_j = 0.f;
-    for (const auto &p : data)
         db_j += w * p.x + b - p.y;
+    }
+
+    dw_j *= 1.f / data.size();
     db_j *= 1.f / data.size();
 
     float a = .0001f;
     w = w - a * dw_j;
-    b = b - a * db_j;
+    b = b - db_j;
+    printf("%f %f\n", dw_j, db_j);
 }
 
 int main()
@@ -37,6 +40,10 @@ int main()
           b = 0.f;
     g.set_line(w, b);
 
+    Graph3 g3("graph3");
+
+    bool mouse_down = false;
+
     while (running)
     {
         while (SDL_PollEvent(&evt))
@@ -54,12 +61,24 @@ int main()
                     g.set_line(w, b);
                     break;
                 }
+                break;
+            case SDL_MOUSEBUTTONDOWN:
+                mouse_down = true;
+                break;
+            case SDL_MOUSEBUTTONUP:
+                mouse_down = false;
+                break;
+            case SDL_MOUSEMOTION:
+                if (mouse_down)
+                    g3.rot({ evt.motion.xrel / 200.f, evt.motion.yrel / 200.f, 0.f });
+                break;
             }
         }
 
         SDL_RenderClear(rend);
 
-        g.render(rend, { 0, 0, 600, 600 });
+        /* g.render(rend, { 0, 0, 600, 600 }); */
+        g3.render(rend, { 0, 0, 600, 600 }, [](float x, float z){ return x + z; });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);
