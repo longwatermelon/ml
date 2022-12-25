@@ -15,6 +15,6 @@ public:
 
 private:
     glm::vec3 m_max{ 0.f }, m_step{ 0.f };
-    glm::vec3 m_angle{ 0.f };
+    glm::vec3 m_angle{ 0.f, 0.f, M_PI };
 };
 

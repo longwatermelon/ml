@@ -24,10 +24,20 @@ Graph3::~Graph3()
 
 static glm::ivec2 project(glm::vec3 p, SDL_Rect rect)
 {
-    return {
-        ((p.x / p.z) + .5f) * 600.f,
-        ((-p.y / p.z) + .5f) * 600.f
+    float min = rect.w < rect.h ? rect.w : rect.h;
+    float max = rect.w < rect.h ? rect.h : rect.w;
+
+    glm::ivec2 proj = {
+        rect.x + ((p.x / p.z) + .5f) * min,
+        rect.y + ((-p.y / p.z) + .5f) * min
     };
+
+    if (rect.w > rect.h)
+        proj.x += (max - rect.h) / 2;
+    else
+        proj.y += (max - rect.w) / 2;
+
+    return proj;
 }
 
 static glm::vec3 rotate(glm::vec3 p, glm::vec3 orig, glm::vec3 angle)
@@ -54,16 +64,17 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect, const std::function<float
     SDL_RenderFillRect(rend, &rect);
 
     // Draw axes
+    float axis_len = 100.f;
+    glm::vec3 orig = { 0.f, 0.f, 200.f };
+    glm::vec3 graph_orig = orig - glm::vec3(axis_len / 2.f);
     glm::ivec2 oproj, xproj, yproj, zproj;
     {
-        glm::vec3 orig = { 0.f, 0.f, 200.f };
-        glm::vec3 graph_orig = glm::vec3(0.f, 0.f, 200.f) + glm::vec3(-m_max.x / 2.f, -m_max.y / 2.f, m_max.z / 2.f);
         glm::vec3 x = graph_orig,
                   y = graph_orig,
                   z = graph_orig;
-        x.x += m_max.x;
-        y.y += m_max.y;
-        z.z -= m_max.z;
+        x.x += axis_len;
+        y.y += axis_len;
+        z.z += axis_len;
 
         graph_orig = rotate(graph_orig, orig, m_angle);
         x = rotate(x, orig, m_angle);
@@ -86,6 +97,12 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect, const std::function<float
     {
         for (float z = 0.f; z < m_max.z; z += m_step.z)
         {
+            float y = (func(x, z) / m_max.y) * axis_len;
+            SDL_SetRenderDrawColor(rend, y > axis_len ? 0 : (1.f - y / axis_len) * 255.f, 0, 0, 255);
+            glm::vec3 p((x / m_max.x) * axis_len, y, (z / m_max.z) * axis_len);
+            p = graph_orig + rotate(p, glm::vec3{ 0.f }, m_angle);
+            glm::ivec2 proj = project(p, rect);
+            SDL_RenderDrawPoint(rend, proj.x, proj.y);
         }
     }
 }

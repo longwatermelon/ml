@@ -3,6 +3,14 @@
 #include <graph3.h>
 #include <SDL2/SDL.h>
 
+float cost(float w, float b, const std::vector<SDL_FPoint> &data)
+{
+    float sum = 0.f;
+    for (const auto &p : data)
+        sum += std::pow(w * p.x + b - p.y, 2);
+    return (sum * (1.f / (2.f * data.size())));
+}
+
 void descend(float &w, float &b, const std::vector<SDL_FPoint> &data)
 {
     float dw_j = 0.f,
@@ -19,7 +27,7 @@ void descend(float &w, float &b, const std::vector<SDL_FPoint> &data)
     float a = .0001f;
     w = w - a * dw_j;
     b = b - db_j;
-    printf("%f %f\n", dw_j, db_j);
+    /* printf("%f %f %f %f %f\n", w, b, dw_j, db_j, cost(w, b, data)); */
 }
 
 int main()
@@ -77,8 +85,13 @@ int main()
 
         SDL_RenderClear(rend);
 
-        /* g.render(rend, { 0, 0, 600, 600 }); */
-        g3.render(rend, { 0, 0, 600, 600 }, [](float x, float z){ return x + z; });
+        g.render(rend, { 0, 0, 600, 300 });
+        g3.render(rend, { 0, 300, 600, 300 }, [&](float x, float z){
+            float sum = 0.f;
+            for (const auto &p : g.data())
+                sum += std::pow((x - 3.f) * p.x + z - p.y, 2);
+            return (sum * (1.f / (2.f * g.data().size())));
+        });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);
