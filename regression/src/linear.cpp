@@ -30,11 +30,11 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph g("graph");
+    Graph g("data-linear/graph");
     float w = 0.f,
           b = 0.f;
 
-    Graph3 g3("graph3", [&](float x, float z){
+    Graph3 g3("data-linear/graph3", [&](float x, float z){
         float sum = 0.f;
         for (const auto &p : g.data())
             sum += std::pow(x * p.x + z - p.y, 2);
