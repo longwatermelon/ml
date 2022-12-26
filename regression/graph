@@ -1,20 +1,11 @@
-xmax 100
-ymax 100
-xstep 20
-ystep 20
-data 10 80
-data 15 75
-data 20 68
-data 20 60
-data 30 60
-data 35 55
-data 40 53
-data 53 43
-data 50 40
-data 55 34
-data 60 20
-data 65 15
-data 70 30
-data 75 19
-data 80 10
+xmax 4
+ymax 800
+xstep .5
+ystep 100
+data 1 250
+data 1.7 300
+data 2 480
+data 2.5 430
+data 3 630
+data 3.2 730
 

@@ -5,14 +5,6 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
-float cost(float w, float b, const std::vector<glm::vec2> &data)
-{
-    float sum = 0.f;
-    for (const auto &p : data)
-        sum += std::pow(w * p.x + b - p.y, 2);
-    return (sum * (1.f / (2.f * data.size())));
-}
-
 void descend(float &w, float &b, const std::vector<glm::vec2> &data)
 {
     float dw_j = 0.f,
@@ -26,10 +18,9 @@ void descend(float &w, float &b, const std::vector<glm::vec2> &data)
     dw_j *= 1.f / data.size();
     db_j *= 1.f / data.size();
 
-    float a = .0001f;
+    float a = .01f;
     w = w - a * dw_j;
-    b = b - db_j;
-    /* printf("%f %f %f %f %f\n", w, b, dw_j, db_j, cost(w, b, data)); */
+    b = b - a * db_j;
 }
 
 int main()
@@ -87,7 +78,7 @@ int main()
         g3.render(rend, { 0, 300, 600, 300 }, [&](float x, float z){
             float sum = 0.f;
             for (const auto &p : g.data())
-                sum += std::pow((x - 3.f) * p.x + z - p.y, 2);
+                sum += std::pow((x - 100.f) * p.x + (z - 200.f) - p.y, 2);
             return (sum * (1.f / (2.f * g.data().size())));
         });
 
