@@ -35,9 +35,13 @@ int main()
     Graph g("graph");
     float w = 0.f,
           b = 0.f;
-    g.set_line(w, b);
 
-    Graph3 g3("graph3");
+    Graph3 g3("graph3", [&](float x, float z){
+        float sum = 0.f;
+        for (const auto &p : g.data())
+            sum += std::pow(x * p.x + z - p.y, 2);
+        return (sum * (1.f / (2.f * g.data().size())));
+    });
 
     bool mouse_down = false;
 
@@ -55,7 +59,6 @@ int main()
                 {
                 case SDLK_SPACE:
                     descend(w, b, g.data());
-                    g.set_line(w, b);
                     break;
                 }
                 break;
@@ -72,15 +75,12 @@ int main()
             }
         }
 
+        g3.set_point(w, b);
+
         SDL_RenderClear(rend);
 
         g.render(rend, { 0, 0, 600, 300 }, [w, b](float x){ return w * x + b; });
-        g3.render(rend, { 0, 300, 600, 300 }, [&](float x, float z){
-            float sum = 0.f;
-            for (const auto &p : g.data())
-                sum += std::pow((x - 100.f) * p.x + (z - 200.f) - p.y, 2);
-            return (sum * (1.f / (2.f * g.data().size())));
-        });
+        g3.render(rend, { 0, 300, 600, 300 });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);

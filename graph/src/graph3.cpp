@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 
-Graph3::Graph3(const std::string &data_fp)
+Graph3::Graph3(const std::string &data_fp, const std::function<float(float, float)> &func)
 {
     std::ifstream ifs(data_fp);
     std::string buf;
@@ -13,9 +13,13 @@ Graph3::Graph3(const std::string &data_fp)
         std::string field;
         ss >> field;
 
-        if (field == "max") ss >> m_max.x >> m_max.y >> m_max.z;
-        if (field == "step") ss >> m_step.x >> m_step.y >> m_step.z;
+        if (field == "min") ss >> m_min.x >> m_min.z;
+        if (field == "max") ss >> m_max.x >> m_max.z;
+        if (field == "step") ss >> m_step.x >> m_step.z;
     }
+
+    m_func = func;
+    find_y_minmax();
 }
 
 Graph3::~Graph3()
@@ -57,7 +61,7 @@ static glm::vec3 rotate(glm::vec3 p, glm::vec3 orig, glm::vec3 angle)
     return orig + (rotx * roty * (p - orig));
 }
 
-void Graph3::render(SDL_Renderer *rend, SDL_Rect rect, const std::function<float(float, float)> &func)
+void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 {
     // Black bg
     SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
@@ -93,16 +97,46 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect, const std::function<float
     SDL_RenderDrawLine(rend, oproj.x, oproj.y, zproj.x, zproj.y);
 
     // Draw points
-    for (float x = 0.f; x < m_max.x; x += m_step.x)
+    for (float x = m_min.x; x < m_max.x; x += m_step.x)
     {
-        for (float z = 0.f; z < m_max.z; z += m_step.z)
+        for (float z = m_min.z; z < m_max.z; z += m_step.z)
         {
-            float y = (func(x, z) / m_max.y) * axis_len;
+            float y = ((m_func(x, z) - m_min.y) / (m_max.y - m_min.y)) * axis_len;
             SDL_SetRenderDrawColor(rend, y > axis_len ? 0 : (1.f - y / axis_len) * 255.f, 0, 0, 255);
-            glm::vec3 p((x / m_max.x) * axis_len, y, (z / m_max.z) * axis_len);
+            glm::vec3 p(((x - m_min.x) / (m_max.x - m_min.x)) * axis_len, y, ((z - m_min.z) / (m_max.z - m_min.z)) * axis_len);
             p = graph_orig + rotate(p, glm::vec3{ 0.f }, m_angle);
             glm::ivec2 proj = project(p, rect);
             SDL_RenderDrawPoint(rend, proj.x, proj.y);
+        }
+    }
+
+    // Draw point at m_px, m_pz
+    float ax = (m_px - m_min.x) / (m_max.x - m_min.x) * axis_len;
+    float az = (m_pz - m_min.z) / (m_max.z - m_min.z) * axis_len;
+    glm::vec2 ptop = project(graph_orig + rotate({ ax, axis_len, az }, glm::vec3{ 0.f }, m_angle), rect),
+              pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
+    SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
+    SDL_RenderDrawLine(rend, ptop.x, ptop.y, pbot.x, pbot.y);
+}
+
+void Graph3::set_point(float x, float z)
+{
+    m_px = x;
+    m_pz = z;
+}
+
+void Graph3::find_y_minmax()
+{
+    m_min.y = std::numeric_limits<float>::max();
+    m_max.y = std::numeric_limits<float>::min();
+
+    for (float x = m_min.x; x < m_max.x; x += m_step.x)
+    {
+        for (float z = m_min.z; z < m_max.z; z += m_step.z)
+        {
+            float y = m_func(x, z);
+            if (y < m_min.y) m_min.y = y;
+            if (y > m_max.y) m_max.y = y;
         }
     }
 }

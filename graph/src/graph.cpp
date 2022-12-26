@@ -75,9 +75,3 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(flo
     /* SDL_RenderDrawLine(rend, r.x + 20, b, r.x + r.w - 20, y2); */
 }
 
-void Graph::set_line(float w, float b)
-{
-    m_w = w;
-    m_b = b;
-}
-
