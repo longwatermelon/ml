@@ -1,9 +1,11 @@
+#include "common.h"
 #include <iostream>
 #include <graph.h>
 #include <graph3.h>
 #include <SDL2/SDL.h>
+#include <glm/glm.hpp>
 
-float cost(float w, float b, const std::vector<SDL_FPoint> &data)
+float cost(float w, float b, const std::vector<glm::vec2> &data)
 {
     float sum = 0.f;
     for (const auto &p : data)
@@ -11,7 +13,7 @@ float cost(float w, float b, const std::vector<SDL_FPoint> &data)
     return (sum * (1.f / (2.f * data.size())));
 }
 
-void descend(float &w, float &b, const std::vector<SDL_FPoint> &data)
+void descend(float &w, float &b, const std::vector<glm::vec2> &data)
 {
     float dw_j = 0.f,
           db_j = 0.f;
@@ -32,13 +34,9 @@ void descend(float &w, float &b, const std::vector<SDL_FPoint> &data)
 
 int main()
 {
-    SDL_Init(SDL_INIT_VIDEO);
-    SDL_Window *win = SDL_CreateWindow("Linear regression",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        600, 600,
-        SDL_WINDOW_SHOWN);
-    SDL_Renderer *rend = SDL_CreateRenderer(win, -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    SDL_Window *win;
+    SDL_Renderer *rend;
+    common::init_sdl(&win, &rend);
 
     bool running = true;
     SDL_Event evt;
@@ -97,9 +95,7 @@ int main()
         SDL_RenderPresent(rend);
     }
 
-    SDL_DestroyRenderer(rend);
-    SDL_DestroyWindow(win);
-    SDL_Quit();
+    common::quit_sdl(win, rend);
     return 0;
 }
 

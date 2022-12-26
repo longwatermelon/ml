@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <SDL2/SDL.h>
+#include <glm/glm.hpp>
 
 class Graph
 {
@@ -12,13 +13,13 @@ public:
     void render(SDL_Renderer *rend, SDL_Rect r) const;
     void set_line(float w, float b);
 
-    const std::vector<SDL_FPoint> &data() const { return m_data; }
+    const std::vector<glm::vec2> &data() const { return m_data; }
 
 private:
     std::string m_xlabel, m_ylabel;
     float m_xmax{ -1.f }, m_ymax{ -1.f };
     float m_xstep{ -1.f }, m_ystep{ -1.f };
-    std::vector<SDL_FPoint> m_data;
+    std::vector<glm::vec2> m_data;
 
     float m_w{ 0.f }, m_b{ 0.f };
 };

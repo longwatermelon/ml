@@ -21,7 +21,7 @@ Graph::Graph(const std::string &data_fp)
         if (field == "ystep") ss >> m_ystep;
         if (field == "data")
         {
-            SDL_FPoint p;
+            glm::vec2 p;
             ss >> p.x >> p.y;
             m_data.emplace_back(p);
         }

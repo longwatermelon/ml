@@ -3,25 +3,18 @@ CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=-I../graph/src/
 LDFLAGS=-L../lib -lSDL2 -lgraph
 
-SRC=$(wildcard src/*.cpp)
-OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
+.PHONY: graph
 
-.PHONY: dirs clean graph
-all: dirs target
+all: poly
 
-target: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS)
-
-obj/src/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+%: src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/common.cpp
+	$(CXX) $(CXXFLAGS) $(INC) $@.o common.o $(LDFLAGS)
 
 graph:
 	$(MAKE) -C ../graph
 
-dirs:
-	mkdir -p obj/src
-
 clean:
-	-rm -rf obj/ a.out
+	-rm *.o a.out
 	$(MAKE) clean -C ../graph
 
