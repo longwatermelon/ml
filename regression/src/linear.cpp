@@ -83,13 +83,13 @@ int main()
 
         SDL_RenderClear(rend);
 
-        g.render(rend, { 0, 0, 600, 300 });
-        g3.render(rend, { 0, 300, 600, 300 }, [&](float x, float z){
-            float sum = 0.f;
-            for (const auto &p : g.data())
-                sum += std::pow((x - 3.f) * p.x + z - p.y, 2);
-            return (sum * (1.f / (2.f * g.data().size())));
-        });
+        g.render(rend, { 150, 150, 300, 300 }, [w, b](float x){ return w * x + b; });
+        /* g3.render(rend, { 0, 300, 600, 300 }, [&](float x, float z){ */
+        /*     float sum = 0.f; */
+        /*     for (const auto &p : g.data()) */
+        /*         sum += std::pow((x - 3.f) * p.x + z - p.y, 2); */
+        /*     return (sum * (1.f / (2.f * g.data().size()))); */
+        /* }); */
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);
