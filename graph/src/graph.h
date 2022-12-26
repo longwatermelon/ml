@@ -18,8 +18,8 @@ public:
     const std::vector<glm::vec2> &data() const { return m_data; }
 
 private:
-    float m_xmax{ -1.f }, m_ymax{ -1.f };
-    float m_xstep{ -1.f }, m_ystep{ -1.f };
+    glm::vec2 m_min{ 0.f }, m_max{ 0.f };
+    glm::vec2 m_step{ 0.f };
     std::vector<glm::vec2> m_data;
 
     float m_w{ 0.f }, m_b{ 0.f };

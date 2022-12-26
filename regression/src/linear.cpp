@@ -18,7 +18,7 @@ void descend(float &w, float &b, const std::vector<glm::vec2> &data)
     dw_j *= 1.f / data.size();
     db_j *= 1.f / data.size();
 
-    float a = .1f;
+    float a = .2f;
     w = w - a * dw_j;
     b = b - a * db_j;
 }

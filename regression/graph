@@ -1,7 +1,7 @@
-xmax 4
-ymax 1000
-xstep .5
-ystep 100
+min 0 0
+max 4 1000
+step .5 100
+
 data 1 630
 data 1.7 530
 data 2 330
