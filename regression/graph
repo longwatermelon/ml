@@ -1,11 +1,11 @@
 xmax 4
-ymax 800
+ymax 1000
 xstep .5
 ystep 100
-data 1 250
-data 1.7 300
-data 2 480
-data 2.5 430
-data 3 630
-data 3.2 730
+data 1 630
+data 1.7 530
+data 2 330
+data 2.5 380
+data 3 200
+data 3.2 150
 
