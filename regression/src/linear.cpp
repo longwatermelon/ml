@@ -25,9 +25,7 @@ void descend(float &w, float &b, const std::vector<glm::vec2> &data)
 
 int main(int argc, char **argv)
 {
-    SDL_Window *win;
-    SDL_Renderer *rend;
-    common::init_sdl(&win, &rend);
+    INIT_SDL("Linear regression")
 
     bool running = true;
     SDL_Event evt;
@@ -86,7 +84,7 @@ int main(int argc, char **argv)
         SDL_RenderPresent(rend);
     }
 
-    common::quit_sdl(win, rend);
+    QUIT_SDL
     return 0;
 }
 
