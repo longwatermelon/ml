@@ -23,7 +23,7 @@ void descend(float &w, float &b, const std::vector<glm::vec2> &data)
     b = b - a * db_j;
 }
 
-int main()
+int main(int argc, char **argv)
 {
     SDL_Window *win;
     SDL_Renderer *rend;

@@ -1,6 +1,6 @@
 #include "common.h"
 
-int main()
+int main(int argc, char **argv)
 {
     SDL_Window *win;
     SDL_Renderer *rend;
