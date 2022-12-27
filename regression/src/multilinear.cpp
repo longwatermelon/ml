@@ -93,17 +93,6 @@ int main(int argc, char **argv)
     for (int i = 0; i < 4; ++i)
         feature_scale(scaled_graphs[i], data_paths[i] + "-scaled");
 
-    float min = std::numeric_limits<float>::max();
-    float max = std::numeric_limits<float>::min();
-    for (size_t i = 0; i < graphs[3].data().size(); ++i)
-    {
-        float x = graphs[3].data()[i].x;
-        if (x < min) min = x;
-        if (x > max) max = x;
-    }
-
-    printf("%f %f\n", min, max);
-
     bool flag = false;
     while (running)
     {
