@@ -38,40 +38,47 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(flo
 
     // Axes
     SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
-    SDL_RenderDrawLine(rend, r.x + 20, r.y + 20, r.x + 20, r.y + r.h - 20);
-    SDL_RenderDrawLine(rend, r.x + 20, r.y + r.h - 20, r.x + r.w - 20, r.y + r.h - 20);
+    SDL_RenderDrawLine(rend, r.x + m_espace, r.y + m_espace, r.x + m_espace, r.y + r.h - m_espace);
+    SDL_RenderDrawLine(rend, r.x + m_espace, r.y + r.h - m_espace, r.x + r.w - m_espace, r.y + r.h - m_espace);
 
     // Ticks
-    float xstep = (r.w - 40) / ((m_max.x - m_min.x) / m_step.x);
-    for (float x = r.x + 20 + xstep; x <= r.x + r.w - 20; x += xstep)
-        SDL_RenderDrawLine(rend, (int)x, r.y + r.h - 25, (int)x, r.y + r.h - 15);
+    float xstep = (r.w - (m_espace * 2.f)) / ((m_max.x - m_min.x) / m_step.x);
+    for (float x = r.x + m_espace + xstep; x <= r.x + r.w - m_espace; x += xstep)
+        SDL_RenderDrawLine(rend, (int)x, r.y + r.h - m_espace - 5, (int)x, r.y + r.h - m_espace + 5);
 
-    float ystep = (r.h - 40) / ((m_max.y - m_min.y) / m_step.y);
-    for (float y = r.y + 20; y < r.y + r.h - 20; y += ystep)
-        SDL_RenderDrawLine(rend, r.x + 15, (int)y, r.x + 25, (int)y);
+    float ystep = (r.h - (m_espace * 2.f)) / ((m_max.y - m_min.y) / m_step.y);
+    for (float y = r.y + m_espace; y < r.y + r.h - m_espace; y += ystep)
+        SDL_RenderDrawLine(rend, r.x + m_espace - 5, (int)y, r.x + m_espace + 5, (int)y);
 
     // Data points
     SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
     for (const auto &p : m_data)
     {
-        float x = r.x + 20 + ((p.x - m_min.x) / (m_max.x - m_min.x)) * (r.w - 40);
-        float y = r.y + 20 + (1.f - (p.y - m_min.y) / (m_max.y - m_min.y)) * (r.h - 40);
+        float x = gx2scr(p.x, r);
+        float y = r.h - gy2scr(p.y, r);
         SDL_RenderDrawLineF(rend, x - 3.f, y - 3.f, x + 3.f, y + 3.f);
         SDL_RenderDrawLineF(rend, x - 3.f, y + 3.f, x + 3.f, y - 3.f);
     }
 
     // Line
     SDL_SetRenderDrawColor(rend, 0, 0, 255, 255);
-    for (int x = r.x + 20; x < r.x + r.w - 20; ++x)
+    for (int x = r.x + m_espace; x < r.x + r.w - m_espace; ++x)
     {
-        float x1 = (float)(x - (r.x + 20)) / (r.w - 40) * (m_max.x - m_min.x) + m_min.x;
-        float x2 = (float)(x + 1 - (r.x + 20)) / (r.w - 40) * (m_max.x - m_min.x) + m_min.x;
-        float y1 = r.y + r.h - 20 - (((func(x1) - m_min.y) / (m_max.y - m_min.y) + m_min.y) * (r.h - 40));
-        float y2 = r.y + r.h - 20 - (((func(x2) - m_min.y) / (m_max.y - m_min.y) + m_min.y) * (r.h - 40));
+        float x1 = (float)(x - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
+        float x2 = (float)(x + 1 - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
+        float y1 = r.y + r.h - gy2scr(func(x1), r);
+        float y2 = r.y + r.h - gy2scr(func(x2), r);
         SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
     }
-    /* int b = (1.f - m_b / m_ymax) * (r.h - 40) + 20; */
-    /* int y2 = b + (-m_w * m_xmax / m_ymax) * (r.h - 40); */
-    /* SDL_RenderDrawLine(rend, r.x + 20, b, r.x + r.w - 20, y2); */
+}
+
+float Graph::gx2scr(float x, SDL_Rect r) const
+{
+    return (x - m_min.x) / (m_max.x - m_min.x) * (r.w - (m_espace * 2.f)) + r.x + m_espace;
+}
+
+float Graph::gy2scr(float y, SDL_Rect r) const
+{
+    return (y - m_min.y) / (m_max.y - m_min.y) * (r.h - (m_espace * 2.f)) + r.y + m_espace;
 }
 

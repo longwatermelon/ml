@@ -31,8 +31,8 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     Graph g("data-linear/graph");
-    float w = 0.f,
-          b = 0.f;
+    float w = -500.f,
+          b = -200.f;
 
     Graph3 g3("data-linear/graph3", [&](float x, float z){
         float sum = 0.f;
