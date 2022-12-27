@@ -7,6 +7,7 @@
 class Graph3
 {
 public:
+    Graph3() = default;
     Graph3(const std::string &data_fp, const std::function<float(float, float)> &func = [](float, float){ return 0.f; });
     ~Graph3();
 

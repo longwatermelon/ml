@@ -5,25 +5,7 @@
 
 Graph2::Graph2(const std::string &data_fp)
 {
-    std::ifstream ifs(data_fp);
-    std::string buf;
-
-    while (std::getline(ifs, buf))
-    {
-        std::stringstream ss(buf);
-        std::string field;
-        ss >> field;
-
-        if (field == "min") ss >> m_min.x >> m_min.y;
-        if (field == "max") ss >> m_max.x >> m_max.y;
-        if (field == "step") ss >> m_step.x >> m_step.y;
-        if (field == "data")
-        {
-            glm::vec2 p;
-            ss >> p.x >> p.y;
-            m_data.emplace_back(p);
-        }
-    }
+    load(data_fp);
 }
 
 Graph2::~Graph2()
@@ -69,6 +51,30 @@ void Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(fl
         float y1 = r.y + (r.h - (gy2scr(func(x1), r) - r.y));
         float y2 = r.y + (r.h - (gy2scr(func(x2), r) - r.y));
         SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
+    }
+}
+
+void Graph2::load(const std::string &data_fp)
+{
+    m_data.clear();
+    std::ifstream ifs(data_fp);
+    std::string buf;
+
+    while (std::getline(ifs, buf))
+    {
+        std::stringstream ss(buf);
+        std::string field;
+        ss >> field;
+
+        if (field == "min") ss >> m_min.x >> m_min.y;
+        if (field == "max") ss >> m_max.x >> m_max.y;
+        if (field == "step") ss >> m_step.x >> m_step.y;
+        if (field == "data")
+        {
+            glm::vec2 p;
+            ss >> p.x >> p.y;
+            m_data.emplace_back(p);
+        }
     }
 }
 
