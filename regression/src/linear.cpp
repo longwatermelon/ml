@@ -6,22 +6,6 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
-void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (w * p.x + b - p.y) * p.x;
-        db_j += w * p.x + b - p.y;
-    }
-
-    dw_j *= 1.f / data.size();
-    db_j *= 1.f / data.size();
-
-    w = w - a * dw_j;
-    b = b - a * db_j;
-}
 
 int main(int argc, char **argv)
 {
@@ -54,15 +38,6 @@ int main(int argc, char **argv)
             case SDL_QUIT:
                 running = false;
                 break;
-            case SDL_KEYDOWN:
-                switch (evt.key.keysym.sym)
-                {
-                case SDLK_SPACE:
-                    linear::descend(w, b, .2f, g.data());
-                    g3.add_point(w, b);
-                    break;
-                }
-                break;
             case SDL_MOUSEBUTTONDOWN:
                 mouse_down = true;
                 break;
@@ -74,6 +49,13 @@ int main(int argc, char **argv)
                     g3.rot({ evt.motion.xrel / 200.f, evt.motion.yrel / 200.f, 0.f });
                 break;
             }
+        }
+
+        const Uint8 *keystates = SDL_GetKeyboardState(0);
+        if (keystates[SDL_SCANCODE_SPACE])
+        {
+            linear::descend(w, b, .2f, g.data());
+            g3.add_point(w, b);
         }
 
         SDL_RenderClear(rend);
