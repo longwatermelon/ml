@@ -1,10 +1,14 @@
-#include "linear.h"
 #include "common.h"
 #include <iostream>
 #include <graph2.h>
 #include <graph3.h>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
+
+namespace linear
+{
+    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
+}
 
 void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
 {
