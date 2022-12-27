@@ -24,25 +24,24 @@ float multilinear::calc_sd(const std::vector<float> &values)
     return std::sqrt(sd / values.size());
 }
 
-std::vector<float> multilinear::zscore_normalize(std::vector<float> features)
+void multilinear::zscore_normalize(std::vector<float> &features, float &sd, float &mean)
 {
-    float mean = calc_mean(features);
-    float sd = calc_sd(features);
+    mean = calc_mean(features);
+    sd = calc_sd(features);
 
     std::string data;
     for (size_t i = 0; i < features.size(); ++i)
         features[i] = (features[i] - mean) / sd;
-
-    return features;
 }
 
-void multilinear::feature_scale(Graph2 &g, const std::string &out_fp)
+void multilinear::feature_scale(Graph2 &g, const std::string &out_fp,
+            float &sd, float &mean)
 {
     std::vector<float> features;
     for (const auto &e : g.data())
         features.emplace_back(e.x);
 
-    features = zscore_normalize(features);
+    zscore_normalize(features, mean, sd);
 
     std::string data;
     float min = std::numeric_limits<float>::max(),
@@ -95,8 +94,9 @@ int main(int argc, char **argv)
 
     std::array<Graph2, 4> scaled_graphs = graphs;
 
+    std::array<float, 4> vsd, vmean;
     for (int i = 0; i < 4; ++i)
-        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled");
+        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled", vsd[i], vmean[i]);
 
     bool flag = false;
     while (running)
