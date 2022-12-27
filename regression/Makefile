@@ -8,8 +8,7 @@ LDFLAGS=-L../lib -lSDL2 -lgraph
 all: multilinear
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/common.cpp
-	$(CXX) $(CXXFLAGS) $(INC) $@.o common.o $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) $^ $(LDFLAGS)
 
 graph:
 	$(MAKE) -C ../graph

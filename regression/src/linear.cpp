@@ -1,3 +1,4 @@
+#include "linear.h"
 #include "common.h"
 #include <iostream>
 #include <graph2.h>
@@ -5,7 +6,7 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
-void descend(float &w, float &b, const std::vector<glm::vec2> &data)
+void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
 {
     float dw_j = 0.f,
           db_j = 0.f;
@@ -18,7 +19,6 @@ void descend(float &w, float &b, const std::vector<glm::vec2> &data)
     dw_j *= 1.f / data.size();
     db_j *= 1.f / data.size();
 
-    float a = .2f;
     w = w - a * dw_j;
     b = b - a * db_j;
 }
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
                 switch (evt.key.keysym.sym)
                 {
                 case SDLK_SPACE:
-                    descend(w, b, g.data());
+                    linear::descend(w, b, .2f, g.data());
                     g3.add_point(w, b);
                     break;
                 }

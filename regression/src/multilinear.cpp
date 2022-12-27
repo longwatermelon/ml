@@ -1,8 +1,9 @@
+#include "multilinear.h"
 #include "common.h"
 #include <fstream>
 #include <graph2.h>
 
-float calc_mean(const std::vector<float> &values)
+float multilinear::calc_mean(const std::vector<float> &values)
 {
     float sum = 0.f;
     for (const auto &e : values)
@@ -11,7 +12,7 @@ float calc_mean(const std::vector<float> &values)
     return sum / values.size();
 }
 
-float calc_sd(const std::vector<float> &values)
+float multilinear::calc_sd(const std::vector<float> &values)
 {
     float mean = calc_mean(values);
     float sd = 0.f;
@@ -22,7 +23,7 @@ float calc_sd(const std::vector<float> &values)
     return std::sqrt(sd / values.size());
 }
 
-std::vector<float> zscore_normalize(std::vector<float> features)
+std::vector<float> multilinear::zscore_normalize(std::vector<float> features)
 {
     float mean = calc_mean(features);
     float sd = calc_sd(features);
@@ -34,7 +35,7 @@ std::vector<float> zscore_normalize(std::vector<float> features)
     return features;
 }
 
-void feature_scale(Graph2 &g, const std::string &out_fp)
+void multilinear::feature_scale(Graph2 &g, const std::string &out_fp)
 {
     std::vector<float> features;
     for (const auto &e : g.data())
@@ -88,10 +89,13 @@ int main(int argc, char **argv)
         { 300, 300, 300, 300 }
     };
 
+    std::array<std::pair<float, float>, 4> wb;
+    wb.fill({ 0.f, 0.f });
+
     std::array<Graph2, 4> scaled_graphs = graphs;
 
     for (int i = 0; i < 4; ++i)
-        feature_scale(scaled_graphs[i], data_paths[i] + "-scaled");
+        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled");
 
     bool flag = false;
     while (running)
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
             case SDL_KEYDOWN:
                 switch (evt.key.keysym.sym)
                 {
-                case SDLK_SPACE:
+                case SDLK_s:
                     flag = !flag;
                     break;
                 }
@@ -116,7 +120,13 @@ int main(int argc, char **argv)
         SDL_RenderClear(rend);
 
         for (int i = 0; i < 4; ++i)
-            (flag ? graphs[i] : scaled_graphs[i]).render(rend, rects[i], [](float x){ return 0.f; });
+        {
+            if (flag)
+                scaled_graphs[i].render(rend, rects[i],
+                    [wb, i](float x){ return wb[i].first * x + wb[i].second; });
+            else
+                graphs[i].render(rend, rects[i], [](float x){ return 0.f; });
+        }
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);
