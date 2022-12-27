@@ -1,9 +1,9 @@
-#include "graph.h"
+#include "graph2.h"
 #include <fstream>
 #include <sstream>
 #include <iostream>
 
-Graph::Graph(const std::string &data_fp)
+Graph2::Graph2(const std::string &data_fp)
 {
     std::ifstream ifs(data_fp);
     std::string buf;
@@ -26,11 +26,11 @@ Graph::Graph(const std::string &data_fp)
     }
 }
 
-Graph::~Graph()
+Graph2::~Graph2()
 {
 }
 
-void Graph::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const
+void Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const
 {
     // White bg
     SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
@@ -55,7 +55,7 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(flo
     for (const auto &p : m_data)
     {
         float x = gx2scr(p.x, r);
-        float y = r.h - gy2scr(p.y, r);
+        float y = r.y + (r.h - (gy2scr(p.y, r) - r.y));
         SDL_RenderDrawLineF(rend, x - 3.f, y - 3.f, x + 3.f, y + 3.f);
         SDL_RenderDrawLineF(rend, x - 3.f, y + 3.f, x + 3.f, y - 3.f);
     }
@@ -66,18 +66,18 @@ void Graph::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(flo
     {
         float x1 = (float)(x - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
         float x2 = (float)(x + 1 - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
-        float y1 = r.y + r.h - gy2scr(func(x1), r);
-        float y2 = r.y + r.h - gy2scr(func(x2), r);
+        float y1 = r.y + (r.h - (gy2scr(func(x1), r) - r.y));
+        float y2 = r.y + (r.h - (gy2scr(func(x2), r) - r.y));
         SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
     }
 }
 
-float Graph::gx2scr(float x, SDL_Rect r) const
+float Graph2::gx2scr(float x, SDL_Rect r) const
 {
     return (x - m_min.x) / (m_max.x - m_min.x) * (r.w - (m_espace * 2.f)) + r.x + m_espace;
 }
 
-float Graph::gy2scr(float y, SDL_Rect r) const
+float Graph2::gy2scr(float y, SDL_Rect r) const
 {
     return (y - m_min.y) / (m_max.y - m_min.y) * (r.h - (m_espace * 2.f)) + r.y + m_espace;
 }

@@ -1,5 +1,5 @@
 #include "common.h"
-#include "graph.h"
+#include <graph2.h>
 
 int main(int argc, char **argv)
 {
@@ -8,11 +8,11 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph graphs[4] = {
-        Graph("data-multilinear/age-graph"),
-        Graph("data-multilinear/bedrooms-graph"),
-        Graph("data-multilinear/floors-graph"),
-        Graph("data-multilinear/size-graph")
+    Graph2 graphs[4] = {
+        Graph2("data-multilinear/age-graph"),
+        Graph2("data-multilinear/bedrooms-graph"),
+        Graph2("data-multilinear/floors-graph"),
+        Graph2("data-multilinear/size-graph")
     };
 
     SDL_Rect rects[4] = {

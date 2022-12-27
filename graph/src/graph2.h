@@ -5,11 +5,11 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
-class Graph
+class Graph2
 {
 public:
-    Graph(const std::string &data_fp);
-    ~Graph();
+    Graph2(const std::string &data_fp);
+    ~Graph2();
 
     void render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const;
 

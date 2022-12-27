@@ -1,6 +1,6 @@
 #include "common.h"
 #include <iostream>
-#include <graph.h>
+#include <graph2.h>
 #include <graph3.h>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
@@ -30,7 +30,7 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph g("data-linear/graph");
+    Graph2 g("data-linear/graph");
     float w = -500.f,
           b = -200.f;
 
