@@ -109,8 +109,9 @@ int main(int argc, char **argv)
 
     std::array<Graph2, 4> scaled_graphs = graphs;
 
-    std::array<std::pair<float, float>, 4> wb;
-    wb.fill({ 0.f, 0.f });
+    std::array<float, 4> vw;
+    vw.fill(0.f);
+    float b = 0.f;
 
     std::array<float, 4> vsd, vmean;
     for (int i = 0; i < 4; ++i)
