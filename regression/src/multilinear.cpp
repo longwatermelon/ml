@@ -9,6 +9,45 @@ namespace multilinear
     void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
     void feature_scale(Graph2 &g, const std::string &out_fp,
             float &sd, float &mean);
+
+    template <size_t N>
+    float f_wb(const std::array<float, N>& vw, const std::array<float, N> &vx,
+               float b)
+    {
+        // w \dot x + b
+        float res = b;
+        for (size_t i = 0; i < N; ++i)
+            res += vw[i] * vx[i];
+        return res;
+    }
+
+    template <size_t N>
+    void descend(std::array<float, N> &vw, float &b, float a,
+                 const std::vector<std::array<float, N>> mx,
+                 const std::vector<float> vy)
+    {
+        // Calculate new b
+        float db_j = 0.f;
+        for (size_t i = 0; i < mx.size(); ++i)
+            db_j += f_wb(vw, mx[i], b) - vy[i];
+        db_j /= mx.size();
+        float b_new = b - a * db_j;
+
+        // Calculate new vw
+        std::array<float, N> vw_new;
+        for (size_t j = 0; j < N; ++j)
+        {
+            float dw_j = 0.f;
+            for (size_t i = 0; i < mx.size(); ++i)
+                dw_j += (f_wb(vw, mx[i], b) - vy[i]) * mx[i][j];
+            dw_j /= mx.size();
+
+            vw_new[j] = vw[j] - a * dw_j;
+        }
+
+        b = b_new;
+        vw = vw_new;
+    }
 }
 
 float multilinear::calc_mean(const std::vector<float> &values)
@@ -108,14 +147,49 @@ int main(int argc, char **argv)
     };
 
     std::array<Graph2, 4> scaled_graphs = graphs;
+    std::array<float, 4> vsd, vmean;
+    for (int i = 0; i < 4; ++i)
+        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled", vsd[i], vmean[i]);
 
     std::array<float, 4> vw;
     vw.fill(0.f);
     float b = 0.f;
 
-    std::array<float, 4> vsd, vmean;
+    std::vector<std::array<float, 4>> mx;
+    std::vector<float> vy;
+    for (size_t i = 0; i < scaled_graphs[0].data().size(); ++i)
+    {
+        std::array<float, 4> arr;
+        for (size_t j = 0; j < 4; ++j)
+            arr[j] = scaled_graphs[j].data()[i].x;
+        mx.emplace_back(arr);
+        // y is same between all data points at index i
+        vy.emplace_back(scaled_graphs[0].data()[i].y);
+    }
+
+    for (int i = 0; i < 500; ++i)
+    {
+        multilinear::descend(vw, b, .1f, mx, vy);
+        if (i == 0 || (i + 1) % 50 == 0)
+            printf("Iteration %d: vw = [%f, %f, %f, %f], b = %f\n",
+                    i + 1, vw[0], vw[1], vw[2], vw[3], b);
+    }
+
+    float input[4] = {
+        40, // age
+        3, // bedrooms
+        1, // floors
+        1200 // size (sqft)
+    };
+
+    float prediction = b;
     for (int i = 0; i < 4; ++i)
-        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled", vsd[i], vmean[i]);
+    {
+        input[i] = (input[i] - vmean[i]) / vsd[i];
+        prediction += input[i] * vw[i];
+    }
+
+    printf("Price prediction of house with age = 40, bedrooms = 3, floors = 1, size = 1200: $%.2f\n", prediction * 1000.f);
 
     if (graphics)
     {
