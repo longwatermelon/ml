@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 
+#define g2w(var, memb) ((var) - m_min.#memb) / (m_max.#memb - m_min.#memb) * m_axis_len
+
 Graph3::Graph3(const std::string &data_fp, const std::function<float(float, float)> &func)
 {
     std::ifstream ifs(data_fp);
@@ -68,17 +70,16 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
     SDL_RenderFillRect(rend, &rect);
 
     // Draw axes
-    float axis_len = 100.f;
     glm::vec3 orig = { 0.f, 0.f, 200.f };
-    glm::vec3 graph_orig = orig - glm::vec3(axis_len / 2.f);
+    glm::vec3 graph_orig = orig - glm::vec3(m_axis_len / 2.f);
     glm::ivec2 oproj, xproj, yproj, zproj;
     {
         glm::vec3 x = graph_orig,
                   y = graph_orig,
                   z = graph_orig;
-        x.x += axis_len;
-        y.y += axis_len;
-        z.z += axis_len;
+        x.x += m_axis_len;
+        y.y += m_axis_len;
+        z.z += m_axis_len;
 
         graph_orig = rotate(graph_orig, orig, m_angle);
         x = rotate(x, orig, m_angle);
@@ -101,10 +102,13 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
     {
         for (float z = m_min.z; z < m_max.z; z += m_step.z)
         {
-            float y = ((m_func(x, z) - m_min.y) / (m_max.y - m_min.y)) * axis_len;
-            SDL_SetRenderDrawColor(rend, y > axis_len ? 0 : (1.f - y / axis_len) * 255.f, 0, 0, 255);
-            glm::vec3 p(((x - m_min.x) / (m_max.x - m_min.x)) * axis_len, y, ((z - m_min.z) / (m_max.z - m_min.z)) * axis_len);
+            /* float y = ((m_func(x, z) - m_min.y) / (m_max.y - m_min.y)) * m_axis_len; */
+            float y = gy2world(m_func(x, z));
+            SDL_SetRenderDrawColor(rend, y > m_axis_len ? 0 : (1.f - y / m_axis_len) * 255.f, 0, 0, 255);
+
+            glm::vec3 p(gx2world(x), y, gz2world(z));
             p = graph_orig + rotate(p, glm::vec3{ 0.f }, m_angle);
+
             glm::ivec2 proj = project(p, rect);
             SDL_RenderDrawPoint(rend, proj.x, proj.y);
         }
@@ -117,20 +121,20 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
         float x = m_points[i].first;
         float z = m_points[i].second;
 
-        float ax = (x - m_min.x) / (m_max.x - m_min.x) * axis_len;
-        float az = (z - m_min.z) / (m_max.z - m_min.z) * axis_len;
+        float ax = gx2world(x);
+        float az = gz2world(z);
 
         glm::vec2 pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
         if (i == 0 || i == m_points.size() - 1)
         {
-            glm::vec2 ptop = project(graph_orig + rotate({ ax, axis_len, az }, glm::vec3{ 0.f }, m_angle), rect);
+            glm::vec2 ptop = project(graph_orig + rotate({ ax, m_axis_len, az }, glm::vec3{ 0.f }, m_angle), rect);
             SDL_RenderDrawLine(rend, ptop.x, ptop.y, pbot.x, pbot.y);
         }
 
         if (i != m_points.size() - 1)
         {
-            float nax = (m_points[i + 1].first - m_min.x) / (m_max.x - m_min.x) * axis_len;
-            float naz = (m_points[i + 1].second - m_min.z) / (m_max.z - m_min.z) * axis_len;
+            float nax = gx2world(m_points[i + 1].first);
+            float naz = gz2world(m_points[i + 1].second);
             glm::vec2 npbot = project(graph_orig + rotate({ nax, 0.f, naz }, glm::vec3{ 0.f }, m_angle), rect);
             SDL_RenderDrawLine(rend, pbot.x, pbot.y, npbot.x, npbot.y);
         }
@@ -158,4 +162,18 @@ void Graph3::find_y_minmax()
     }
 }
 
+float Graph3::gx2world(float x) const
+{
+    return (x - m_min.x) / (m_max.x - m_min.x) * m_axis_len;
+}
+
+float Graph3::gy2world(float y) const
+{
+    return (y - m_min.y) / (m_max.y - m_min.y) * m_axis_len;
+}
+
+float Graph3::gz2world(float z) const
+{
+    return (z - m_min.z) / (m_max.z - m_min.z) * m_axis_len;
+}
 

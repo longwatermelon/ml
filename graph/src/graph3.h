@@ -18,11 +18,17 @@ public:
 private:
     void find_y_minmax();
 
+    float gx2world(float x) const;
+    float gy2world(float y) const;
+    float gz2world(float z) const;
+
 private:
     glm::vec3 m_min{ 0.f }, m_max{ 0.f }, m_step{ 0.f };
     glm::vec3 m_angle{ 0.f, 0.f, 0.f };
 
     std::function<float(float, float)> m_func{};
     std::vector<std::pair<int, int>> m_points;
+
+    float m_axis_len{ 100.f };
 };
 
