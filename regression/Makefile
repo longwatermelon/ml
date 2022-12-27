@@ -5,7 +5,7 @@ LDFLAGS=-L../lib -lSDL2 -lgraph
 
 .PHONY: graph
 
-all: multilinear
+all: linear
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/common.cpp

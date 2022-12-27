@@ -41,6 +41,8 @@ int main(int argc, char **argv)
         return (sum * (1.f / (2.f * g.data().size())));
     });
 
+    g3.add_point(w, b);
+
     bool mouse_down = false;
 
     while (running)
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
                 {
                 case SDLK_SPACE:
                     descend(w, b, g.data());
+                    g3.add_point(w, b);
                     break;
                 }
                 break;
@@ -72,8 +75,6 @@ int main(int argc, char **argv)
                 break;
             }
         }
-
-        g3.set_point(w, b);
 
         SDL_RenderClear(rend);
 

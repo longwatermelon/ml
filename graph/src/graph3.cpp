@@ -110,19 +110,36 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
         }
     }
 
-    // Draw point at m_px, m_pz
-    float ax = (m_px - m_min.x) / (m_max.x - m_min.x) * axis_len;
-    float az = (m_pz - m_min.z) / (m_max.z - m_min.z) * axis_len;
-    glm::vec2 ptop = project(graph_orig + rotate({ ax, axis_len, az }, glm::vec3{ 0.f }, m_angle), rect),
-              pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
+    // Draw point history
     SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
-    SDL_RenderDrawLine(rend, ptop.x, ptop.y, pbot.x, pbot.y);
+    for (size_t i = 0; i < m_points.size(); ++i)
+    {
+        float x = m_points[i].first;
+        float z = m_points[i].second;
+
+        float ax = (x - m_min.x) / (m_max.x - m_min.x) * axis_len;
+        float az = (z - m_min.z) / (m_max.z - m_min.z) * axis_len;
+
+        glm::vec2 pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
+        if (i == 0 || i == m_points.size() - 1)
+        {
+            glm::vec2 ptop = project(graph_orig + rotate({ ax, axis_len, az }, glm::vec3{ 0.f }, m_angle), rect);
+            SDL_RenderDrawLine(rend, ptop.x, ptop.y, pbot.x, pbot.y);
+        }
+
+        if (i != m_points.size() - 1)
+        {
+            float nax = (m_points[i + 1].first - m_min.x) / (m_max.x - m_min.x) * axis_len;
+            float naz = (m_points[i + 1].second - m_min.z) / (m_max.z - m_min.z) * axis_len;
+            glm::vec2 npbot = project(graph_orig + rotate({ nax, 0.f, naz }, glm::vec3{ 0.f }, m_angle), rect);
+            SDL_RenderDrawLine(rend, pbot.x, pbot.y, npbot.x, npbot.y);
+        }
+    }
 }
 
-void Graph3::set_point(float x, float z)
+void Graph3::add_point(float x, float z)
 {
-    m_px = x;
-    m_pz = z;
+    m_points.emplace_back(x, z);
 }
 
 void Graph3::find_y_minmax()
@@ -140,4 +157,5 @@ void Graph3::find_y_minmax()
         }
     }
 }
+
 

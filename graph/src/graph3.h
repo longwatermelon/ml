@@ -13,7 +13,7 @@ public:
     void render(SDL_Renderer *rend, SDL_Rect rect) const;
     void rot(glm::vec3 rotation) { m_angle += rotation; }
 
-    void set_point(float x, float z);
+    void add_point(float x, float z);
 
 private:
     void find_y_minmax();
@@ -23,6 +23,6 @@ private:
     glm::vec3 m_angle{ 0.f, 0.f, 0.f };
 
     std::function<float(float, float)> m_func{};
-    float m_px{ 0.f }, m_pz{ 0.f };
+    std::vector<std::pair<int, int>> m_points;
 };
 
