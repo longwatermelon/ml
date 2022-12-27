@@ -1,4 +1,3 @@
-#include "common.h"
 #include <iostream>
 #include <graph2.h>
 #include <graph3.h>
@@ -29,7 +28,12 @@ void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &
 
 int main(int argc, char **argv)
 {
-    INIT_SDL("Linear regression")
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window *win = SDL_CreateWindow("Linear regression",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            600, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer *rend = SDL_CreateRenderer(win, -1,
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     bool running = true;
     SDL_Event evt;
@@ -87,7 +91,9 @@ int main(int argc, char **argv)
         SDL_RenderPresent(rend);
     }
 
-    QUIT_SDL
+    SDL_DestroyRenderer(rend);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
     return 0;
 }
 

@@ -1,4 +1,3 @@
-#include "common.h"
 #include <fstream>
 #include <vector>
 #include <graph2.h>
@@ -74,7 +73,18 @@ void multilinear::feature_scale(Graph2 &g, const std::string &out_fp,
 
 int main(int argc, char **argv)
 {
-    INIT_SDL("Multiple linear regression")
+    bool graphics = (argc == 2 && strcmp(argv[1], "render") == 0);
+    SDL_Window *win;
+    SDL_Renderer *rend;
+
+    if (graphics)
+    {
+        SDL_Init(SDL_INIT_VIDEO);
+        win = SDL_CreateWindow("Multiple linear regression",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            600, 600, SDL_WINDOW_SHOWN);
+        rend = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    }
 
     bool running = true;
     SDL_Event evt;
@@ -97,51 +107,55 @@ int main(int argc, char **argv)
         { 300, 300, 300, 300 }
     };
 
+    std::array<Graph2, 4> scaled_graphs = graphs;
+
     std::array<std::pair<float, float>, 4> wb;
     wb.fill({ 0.f, 0.f });
-
-    std::array<Graph2, 4> scaled_graphs = graphs;
 
     std::array<float, 4> vsd, vmean;
     for (int i = 0; i < 4; ++i)
         multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled", vsd[i], vmean[i]);
 
-    bool flag = false;
-    while (running)
+    if (graphics)
     {
-        while (SDL_PollEvent(&evt))
+        bool flag = false;
+        while (running)
         {
-            switch (evt.type)
+            while (SDL_PollEvent(&evt))
             {
-            case SDL_QUIT:
-                running = false;
-                break;
-            case SDL_KEYDOWN:
-                switch (evt.key.keysym.sym)
+                switch (evt.type)
                 {
-                case SDLK_s:
-                    flag = !flag;
+                case SDL_QUIT:
+                    running = false;
                     break;
+                case SDL_KEYDOWN:
+                    switch (evt.key.keysym.sym)
+                    {
+                    case SDLK_s:
+                        flag = !flag;
+                        break;
+                    }
                 }
             }
+
+            SDL_RenderClear(rend);
+
+            for (int i = 0; i < 4; ++i)
+            {
+                if (flag)
+                    scaled_graphs[i].render(rend, rects[i], [](float x){ return 0.f; });
+                else
+                    graphs[i].render(rend, rects[i], [](float x){ return 0.f; });
+            }
+
+            SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
+            SDL_RenderPresent(rend);
         }
 
-        SDL_RenderClear(rend);
-
-        for (int i = 0; i < 4; ++i)
-        {
-            if (flag)
-                scaled_graphs[i].render(rend, rects[i],
-                    [wb, i](float x){ return wb[i].first * x + wb[i].second; });
-            else
-                graphs[i].render(rend, rects[i], [](float x){ return 0.f; });
-        }
-
-        SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
-        SDL_RenderPresent(rend);
+        SDL_DestroyRenderer(rend);
+        SDL_DestroyWindow(win);
+        SDL_Quit();
     }
-
-    QUIT_SDL
     return 0;
 }
 

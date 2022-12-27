@@ -1,8 +1,13 @@
-#include "common.h"
+#include <SDL2/SDL.h>
 
 int main(int argc, char **argv)
 {
-    INIT_SDL("Polynomial regression")
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window *win = SDL_CreateWindow("Linear regression",
+            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            600, 600, SDL_WINDOW_SHOWN);
+    SDL_Renderer *rend = SDL_CreateRenderer(win, -1,
+            SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     bool running = true;
     SDL_Event evt;
@@ -25,7 +30,9 @@ int main(int argc, char **argv)
         SDL_RenderPresent(rend);
     }
 
-    QUIT_SDL
+    SDL_DestroyRenderer(rend);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
     return 0;
 }
 
