@@ -104,7 +104,7 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
         {
             /* float y = ((m_func(x, z) - m_min.y) / (m_max.y - m_min.y)) * m_axis_len; */
             float y = gy2world(m_func(x, z));
-            SDL_SetRenderDrawColor(rend, y > m_axis_len ? 0 : (1.f - y / m_axis_len) * 255.f, 0, 0, 255);
+            SDL_SetRenderDrawColor(rend, (1.f - y / m_axis_len) * 255.f, 0, 0, 255);
 
             glm::vec3 p(gx2world(x), y, gz2world(z));
             p = graph_orig + rotate(p, glm::vec3{ 0.f }, m_angle);
@@ -116,15 +116,12 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 
     // Draw point history
     SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
+    float ax = gx2world(m_points[0].first);
+    float az = gz2world(m_points[0].second);
+    glm::vec2 pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
+
     for (size_t i = 0; i < m_points.size(); ++i)
     {
-        float x = m_points[i].first;
-        float z = m_points[i].second;
-
-        float ax = gx2world(x);
-        float az = gz2world(z);
-
-        glm::vec2 pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
         if (i == 0 || i == m_points.size() - 1)
         {
             glm::vec2 ptop = project(graph_orig + rotate({ ax, m_axis_len, az }, glm::vec3{ 0.f }, m_angle), rect);
@@ -133,10 +130,11 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 
         if (i != m_points.size() - 1)
         {
-            float nax = gx2world(m_points[i + 1].first);
-            float naz = gz2world(m_points[i + 1].second);
-            glm::vec2 npbot = project(graph_orig + rotate({ nax, 0.f, naz }, glm::vec3{ 0.f }, m_angle), rect);
-            SDL_RenderDrawLine(rend, pbot.x, pbot.y, npbot.x, npbot.y);
+            glm::vec2 prev = pbot;
+            ax = gx2world(m_points[i + 1].first);
+            az = gz2world(m_points[i + 1].second);
+            pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
+            SDL_RenderDrawLine(rend, prev.x, prev.y, pbot.x, pbot.y);
         }
     }
 }
