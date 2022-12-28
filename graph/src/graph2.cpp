@@ -5,7 +5,14 @@
 
 Graph2::Graph2(const std::string &data_fp)
 {
-    load(data_fp);
+    std::ifstream ifs(data_fp);
+    std::stringstream ss;
+    std::string buf;
+
+    while (std::getline(ifs, buf))
+        ss << buf << "\n";
+
+    load(ss.str());
 }
 
 Graph2::~Graph2()
@@ -54,13 +61,13 @@ void Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(fl
     }
 }
 
-void Graph2::load(const std::string &data_fp)
+void Graph2::load(const std::string &config)
 {
     m_data.clear();
-    std::ifstream ifs(data_fp);
+    std::istringstream ss(config);
     std::string buf;
 
-    while (std::getline(ifs, buf))
+    while (std::getline(ss, buf))
     {
         std::stringstream ss(buf);
         std::string field;

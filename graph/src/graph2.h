@@ -14,7 +14,7 @@ public:
 
     void render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const;
 
-    void load(const std::string &data_fp);
+    void load(const std::string &config);
 
     const std::vector<glm::vec2> &data() const { return m_data; }
     glm::vec2 min() const { return m_min; }

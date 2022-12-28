@@ -16,6 +16,8 @@ public:
 
     void add_point(float x, float z);
 
+    void load(const std::string &config);
+
 private:
     void find_y_minmax();
 

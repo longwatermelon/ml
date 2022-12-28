@@ -2,24 +2,16 @@
 #include <fstream>
 #include <sstream>
 
-#define g2w(var, memb) ((var) - m_min.#memb) / (m_max.#memb - m_min.#memb) * m_axis_len
-
 Graph3::Graph3(const std::string &data_fp, const std::function<float(float, float)> &func)
 {
     std::ifstream ifs(data_fp);
+    std::stringstream ss;
     std::string buf;
 
     while (std::getline(ifs, buf))
-    {
-        std::stringstream ss(buf);
-        std::string field;
-        ss >> field;
+        ss << buf << "\n";
 
-        if (field == "min") ss >> m_min.x >> m_min.z;
-        if (field == "max") ss >> m_max.x >> m_max.z;
-        if (field == "step") ss >> m_step.x >> m_step.z;
-    }
-
+    load(ss.str());
     m_func = func;
     find_y_minmax();
 }
@@ -142,6 +134,23 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 void Graph3::add_point(float x, float z)
 {
     m_points.emplace_back(x, z);
+}
+
+void Graph3::load(const std::string &config)
+{
+    std::istringstream ss(config);
+    std::string buf;
+
+    while (std::getline(ss, buf))
+    {
+        std::stringstream ss(buf);
+        std::string field;
+        ss >> field;
+
+        if (field == "min") ss >> m_min.x >> m_min.z;
+        if (field == "max") ss >> m_max.x >> m_max.z;
+        if (field == "step") ss >> m_step.x >> m_step.z;
+    }
 }
 
 void Graph3::find_y_minmax()
