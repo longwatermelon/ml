@@ -17,12 +17,6 @@ int main(int argc, char **argv)
 
     Graph2 graph("data/logistic/graph");
 
-    Graph3 graph3("data/logistic/graph3", [graph](float x, float z){
-        return general::cost(x, z, graph.data(), [x, z](glm::vec2 datap){
-            return logistic::loss(x, z, logistic::f_wb({ x },{ datap.x }, z), datap.y);
-        });
-    });
-
     std::vector<DataPoint<1>> data;
     data.reserve(graph.data().size());
     for (const auto &p : graph.data())
@@ -30,6 +24,12 @@ int main(int argc, char **argv)
 
     std::array<float, 1> vw = { 0.f };
     float b = 0.f;
+
+    Graph3 graph3("data/logistic/graph3", [&](float x, float z){
+        return general::cost<1>(data, [x, z](const DataPoint<1> &p){
+            return logistic::loss(x, z, logistic::f_wb({ x }, p.features, z), p.y);
+        });
+    });
 
     graph3.add_point(vw[0], b);
 
