@@ -42,15 +42,15 @@ float general::cost(float w, float b, const std::vector<glm::vec2> &data,
 }
 
 //// LINEAR
-float linear::f_wb(const std::array<float, 1> &w, const DataPoint<1> &p, float b)
+float linear::f_wb(const std::array<float, 1> &w, const std::array<float, 1> &features, float b)
 {
-    return w[0] * p.features[0] + b;
+    return w[0] * features[0] + b;
 }
 
 //// LOGISTIC
-float logistic::f_wb(const std::array<float, 1> w, const DataPoint<1> &p, float b)
+float logistic::f_wb(const std::array<float, 1> w, const std::array<float, 1> &features, float b)
 {
-    return 1.f / (1.f + std::exp(-(w[0] * p.features[0] + b)));
+    return 1.f / (1.f + std::exp(-(w[0] * features[0] + b)));
 }
 
 float logistic::loss(float w, float b, float prediction, float data_y)

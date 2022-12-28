@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 
     Graph3 graph3("data/logistic/graph3", [graph](float x, float z){
         return general::cost(x, z, graph.data(), [x, z](glm::vec2 datap){
-            return logistic::loss(x, z, logistic::f_wb({ x }, DataPoint<1>({ datap.x }, datap.y), z), datap.y);
+            return logistic::loss(x, z, logistic::f_wb({ x },{ datap.x }, z), datap.y);
         });
     });
 
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         SDL_RenderClear(rend);
 
         graph.render(rend, { 0, 0, 600, 300 }, [vw, b](float x){
-            return logistic::f_wb(vw, DataPoint<1>({ x }, 0.f), b);
+            return logistic::f_wb(vw, { x }, b);
         });
 
         graph3.render(rend, { 0, 300, 600, 300 });

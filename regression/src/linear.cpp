@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
     Graph3 g3("data/linear/graph3", [&](float x, float z){
         return general::cost(x, z, g.data(), [x, z](glm::vec2 datap){
-            return std::pow(linear::f_wb({ x }, DataPoint<1>({ datap.x }, datap.y), z) - datap.y, 2);
+            return std::pow(linear::f_wb({ x }, { datap.x }, z) - datap.y, 2);
         });
     });
 
