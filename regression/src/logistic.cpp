@@ -20,7 +20,9 @@ int main(int argc, char **argv)
           b = 0.f;
 
     Graph3 graph3("data/logistic/graph3", [graph](float x, float z){
-        return logistic::cost(x, z, graph.data());
+        return general::cost(x, z, graph.data(), [x, z](glm::vec2 datap){
+            return logistic::loss(x, z, logistic::f_wb(x, z, datap.x), datap.y);
+        });
     });
     graph3.add_point(w, b);
 

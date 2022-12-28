@@ -69,6 +69,5 @@ namespace logistic
     void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
 
     float loss(float w, float b, float prediction, float data_y);
-    float cost(float w, float b, const std::vector<glm::vec2> &data);
 }
 

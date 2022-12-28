@@ -120,12 +120,3 @@ float logistic::loss(float w, float b, float prediction, float data_y)
     return ((int)data_y == 1 ? -data_y * std::log(prediction) : -(1.f - data_y) * std::log(1.f - prediction));
 }
 
-float logistic::cost(float w, float b, const std::vector<glm::vec2> &data)
-{
-    float cost = 0.f;
-    for (const auto &p : data)
-        cost += loss(w, b, f_wb(w, b, p.x), p.y);
-    cost /= data.size();
-    return cost;
-}
-
