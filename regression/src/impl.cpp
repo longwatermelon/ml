@@ -1,26 +1,8 @@
 #include "impl.h"
 #include <sstream>
 
-//// LINEAR
-void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (w * p.x + b - p.y) * p.x;
-        db_j += w * p.x + b - p.y;
-    }
-
-    dw_j *= 1.f / data.size();
-    db_j *= 1.f / data.size();
-
-    w = w - a * dw_j;
-    b = b - a * db_j;
-}
-
-//// MULTILINEAR
-float multilinear::calc_mean(const std::vector<float> &values)
+//// GENERAL
+float general::calc_mean(const std::vector<float> &values)
 {
     float sum = 0.f;
     for (const auto &e : values)
@@ -29,7 +11,7 @@ float multilinear::calc_mean(const std::vector<float> &values)
     return sum / values.size();
 }
 
-float multilinear::calc_sd(const std::vector<float> &values)
+float general::calc_sd(const std::vector<float> &values)
 {
     float mean = calc_mean(values);
     float sd = 0.f;
@@ -40,7 +22,7 @@ float multilinear::calc_sd(const std::vector<float> &values)
     return std::sqrt(sd / values.size());
 }
 
-void multilinear::zscore_normalize(std::vector<float> &features, float &sd, float &mean)
+void general::zscore_normalize(std::vector<float> &features, float &sd, float &mean)
 {
     mean = calc_mean(features);
     sd = calc_sd(features);
@@ -50,7 +32,7 @@ void multilinear::zscore_normalize(std::vector<float> &features, float &sd, floa
         features[i] = (features[i] - mean) / sd;
 }
 
-void multilinear::feature_scale(Graph2 &g, float &sd, float &mean)
+void general::feature_scale(Graph2 &g, float &sd, float &mean)
 {
     std::vector<float> features;
     for (const auto &e : g.data())
@@ -76,6 +58,38 @@ void multilinear::feature_scale(Graph2 &g, float &sd, float &mean)
        << data;
 
     g.load(ss.str());
+}
+
+float general::cost(float w, float b, const std::vector<glm::vec2> &data,
+        const std::function<float(glm::vec2)> &err)
+{
+    float cost = 0.f;
+    for (const auto &p : data)
+        cost += err(p);
+    return cost / data.size();
+}
+
+//// LINEAR
+float linear::f_wb(float w, float b, float x)
+{
+    return w * x + b;
+}
+
+void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
+{
+    float dw_j = 0.f,
+          db_j = 0.f;
+    for (const auto &p : data)
+    {
+        dw_j += (f_wb(w, b, p.x) - p.y) * p.x;
+        db_j += f_wb(w, b, p.x) - p.y;
+    }
+
+    dw_j *= 1.f / data.size();
+    db_j *= 1.f / data.size();
+
+    w = w - a * dw_j;
+    b = b - a * db_j;
 }
 
 //// LOGISTIC

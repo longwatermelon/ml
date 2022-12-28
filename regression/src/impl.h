@@ -4,18 +4,25 @@
 #include <glm/glm.hpp>
 #include <graph2.h>
 
-namespace linear
-{
-    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
-}
-
-namespace multilinear
+namespace general
 {
     float calc_mean(const std::vector<float> &values);
     float calc_sd(const std::vector<float> &values);
     void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
     void feature_scale(Graph2 &g, float &sd, float &mean);
 
+    float cost(float w, float b, const std::vector<glm::vec2> &data,
+            const std::function<float(glm::vec2)> &err);
+}
+
+namespace linear
+{
+    float f_wb(float w, float b, float x);
+    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
+}
+
+namespace multilinear
+{
     template <size_t N>
     float f_wb(const std::array<float, N>& vw, const std::array<float, N> &vx,
                float b)

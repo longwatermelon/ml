@@ -22,10 +22,9 @@ int main(int argc, char **argv)
           b = -200.f;
 
     Graph3 g3("data/linear/graph3", [&](float x, float z){
-        float sum = 0.f;
-        for (const auto &p : g.data())
-            sum += std::pow(x * p.x + z - p.y, 2);
-        return (sum * (1.f / (2.f * g.data().size())));
+        return general::cost(x, z, g.data(), [x, z](glm::vec2 datap){
+            return std::pow(linear::f_wb(x, z, datap.x) - datap.y, 2);
+        });
     });
 
     g3.add_point(w, b);

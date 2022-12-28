@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     std::array<Graph2, NFEATURES> scaled_graphs = graphs;
     std::array<float, NFEATURES> vsd, vmean;
     for (int i = 0; i < NFEATURES; ++i)
-        multilinear::feature_scale(scaled_graphs[i], vsd[i], vmean[i]);
+        general::feature_scale(scaled_graphs[i], vsd[i], vmean[i]);
 
     std::array<float, NFEATURES> vw;
     vw.fill(0.f);
