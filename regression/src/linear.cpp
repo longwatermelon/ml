@@ -17,13 +17,8 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph2 g("data/linear/graph");
 
-    Graph3 g3("data/linear/graph3", [&](float x, float z){
-        return general::cost(x, z, g.data(), [x, z](glm::vec2 datap){
-            return std::pow(linear::f_wb({ x }, { datap.x }, z) - datap.y, 2);
-        });
-    });
+    Graph2 g("data/linear/graph");
 
     std::vector<DataPoint<1>> data;
     data.reserve(g.data().size());
@@ -32,6 +27,12 @@ int main(int argc, char **argv)
 
     std::array<float, 1> vw = { -500.f };
     float b = -200.f;
+
+    Graph3 g3("data/linear/graph3", [&](float x, float z){
+        return general::cost<1>(data, [x, z](const DataPoint<1> &p){
+            return std::pow(linear::f_wb({ x }, p.features, z) - p.y, 2);
+        });
+    });
 
     g3.add_point(vw[0], b);
 

@@ -32,15 +32,6 @@ void general::zscore_normalize(std::vector<float> &features, float &sd, float &m
         features[i] = (features[i] - mean) / sd;
 }
 
-float general::cost(float w, float b, const std::vector<glm::vec2> &data,
-        const std::function<float(glm::vec2)> &err)
-{
-    float cost = 0.f;
-    for (const auto &p : data)
-        cost += err(p);
-    return cost / data.size();
-}
-
 //// LINEAR
 float linear::f_wb(const std::array<float, 1> &w, const std::array<float, 1> &features, float b)
 {

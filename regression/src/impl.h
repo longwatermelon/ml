@@ -25,9 +25,6 @@ namespace general
     float calc_sd(const std::vector<float> &values);
     void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
 
-    float cost(float w, float b, const std::vector<glm::vec2> &data,
-            const std::function<float(glm::vec2)> &err);
-
     template <size_t N>
     void feature_scale(std::vector<DataPoint<N>> &data, std::array<float, N> &sd, std::array<float, N> &mean)
     {
@@ -44,6 +41,16 @@ namespace general
             for (size_t r = 0; r < data.size(); ++r)
                 data[r].features[c] = features[r];
         }
+    }
+
+    template <size_t N>
+    float cost(const std::vector<DataPoint<N>> &data,
+               const std::function<float(const DataPoint<N>&)> &err_f)
+    {
+        float cost = 0.f;
+        for (const auto &p : data)
+            cost += err_f(p);
+        return cost / (2.f * data.size());
     }
 
     // func parameters: vw, vx, b
