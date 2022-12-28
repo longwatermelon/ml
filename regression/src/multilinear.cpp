@@ -3,13 +3,14 @@
 #include <sstream>
 #include <graph2.h>
 
+#define NFEATURES 4
+
 namespace multilinear
 {
     float calc_mean(const std::vector<float> &values);
     float calc_sd(const std::vector<float> &values);
     void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
-    void feature_scale(Graph2 &g, const std::string &out_fp,
-            float &sd, float &mean);
+    void feature_scale(Graph2 &g, float &sd, float &mean);
 
     template <size_t N>
     float f_wb(const std::array<float, N>& vw, const std::array<float, N> &vx,
@@ -81,8 +82,7 @@ void multilinear::zscore_normalize(std::vector<float> &features, float &sd, floa
         features[i] = (features[i] - mean) / sd;
 }
 
-void multilinear::feature_scale(Graph2 &g, const std::string &out_fp,
-            float &sd, float &mean)
+void multilinear::feature_scale(Graph2 &g, float &sd, float &mean)
 {
     std::vector<float> features;
     for (const auto &e : g.data())
@@ -128,39 +128,39 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    std::array<std::string, 4> data_paths = {
+    std::array<std::string, NFEATURES> data_paths = {
         "data-multilinear/age-graph",
         "data-multilinear/bedrooms-graph",
         "data-multilinear/floors-graph",
         "data-multilinear/size-graph"
     };
 
-    std::array<Graph2, 4> graphs;
-    for (int i = 0; i < 4; ++i)
+    std::array<Graph2, NFEATURES> graphs;
+    for (int i = 0; i < NFEATURES; ++i)
         graphs[i] = Graph2(data_paths[i]);
 
-    std::array<SDL_Rect, 4> rects = {
+    std::array<SDL_Rect, NFEATURES> rects = {
         SDL_Rect{ 0, 0, 300, 300 },
         { 300, 0, 300, 300 },
         { 0, 300, 300, 300 },
         { 300, 300, 300, 300 }
     };
 
-    std::array<Graph2, 4> scaled_graphs = graphs;
-    std::array<float, 4> vsd, vmean;
-    for (int i = 0; i < 4; ++i)
-        multilinear::feature_scale(scaled_graphs[i], data_paths[i] + "-scaled", vsd[i], vmean[i]);
+    std::array<Graph2, NFEATURES> scaled_graphs = graphs;
+    std::array<float, NFEATURES> vsd, vmean;
+    for (int i = 0; i < NFEATURES; ++i)
+        multilinear::feature_scale(scaled_graphs[i], vsd[i], vmean[i]);
 
-    std::array<float, 4> vw;
+    std::array<float, NFEATURES> vw;
     vw.fill(0.f);
     float b = 0.f;
 
-    std::vector<std::array<float, 4>> mx;
+    std::vector<std::array<float, NFEATURES>> mx;
     std::vector<float> vy;
     for (size_t i = 0; i < scaled_graphs[0].data().size(); ++i)
     {
-        std::array<float, 4> arr;
-        for (size_t j = 0; j < 4; ++j)
+        std::array<float, NFEATURES> arr;
+        for (size_t j = 0; j < NFEATURES; ++j)
             arr[j] = scaled_graphs[j].data()[i].x;
         mx.emplace_back(arr);
         // y is same between all data points at index i
@@ -175,7 +175,7 @@ int main(int argc, char **argv)
                     i + 1, vw[0], vw[1], vw[2], vw[3], b);
     }
 
-    float input[4] = {
+    float input[NFEATURES] = {
         40, // age
         3, // bedrooms
         1, // floors
@@ -183,7 +183,7 @@ int main(int argc, char **argv)
     };
 
     float prediction = b;
-    for (int i = 0; i < 4; ++i)
+    for (int i = 0; i < NFEATURES; ++i)
     {
         input[i] = (input[i] - vmean[i]) / vsd[i];
         prediction += input[i] * vw[i];
@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 
             SDL_RenderClear(rend);
 
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < NFEATURES; ++i)
             {
                 if (flag)
                     scaled_graphs[i].render(rend, rects[i], [](float x){ return 0.f; });
