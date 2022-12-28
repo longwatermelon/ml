@@ -30,7 +30,7 @@ private:
     glm::vec3 m_angle{ 0.f, 0.f, 0.f };
 
     std::function<float(float, float)> m_func{};
-    std::vector<std::pair<int, int>> m_points;
+    std::vector<std::pair<float, float>> m_points;
 
     float m_axis_len{ 100.f };
 };
