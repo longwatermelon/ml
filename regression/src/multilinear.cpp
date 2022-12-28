@@ -1,5 +1,6 @@
 #include <fstream>
 #include <vector>
+#include <sstream>
 #include <graph2.h>
 
 namespace multilinear
@@ -100,14 +101,13 @@ void multilinear::feature_scale(Graph2 &g, const std::string &out_fp,
         data += "data " + std::to_string(x) + " " + std::to_string(g.data()[i].y) + "\n";
     }
 
-    std::ofstream ofs(out_fp);
-    ofs << "min " << min << ' ' << g.min().y << "\n"
-        << "max " << max << ' ' << g.max().y << "\n"
-        << "step " << std::abs(max - min) / 5.f << ' ' << g.step().y << "\n"
-        << data;
-    ofs.close();
+    std::stringstream ss;
+    ss << "min " << min << ' ' << g.min().y << "\n"
+       << "max " << max << ' ' << g.max().y << "\n"
+       << "step " << std::abs(max - min) / 5.f << ' ' << g.step().y << "\n"
+       << data;
 
-    g.load(out_fp);
+    g.load(ss.str());
 }
 
 int main(int argc, char **argv)
