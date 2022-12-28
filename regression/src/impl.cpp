@@ -47,22 +47,22 @@ float linear::f_wb(float w, float b, float x)
     return w * x + b;
 }
 
-void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (f_wb(w, b, p.x) - p.y) * p.x;
-        db_j += f_wb(w, b, p.x) - p.y;
-    }
+/* void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data) */
+/* { */
+/*     float dw_j = 0.f, */
+/*           db_j = 0.f; */
+/*     for (const auto &p : data) */
+/*     { */
+/*         dw_j += (f_wb(w, b, p.x) - p.y) * p.x; */
+/*         db_j += f_wb(w, b, p.x) - p.y; */
+/*     } */
 
-    dw_j *= 1.f / data.size();
-    db_j *= 1.f / data.size();
+/*     dw_j *= 1.f / data.size(); */
+/*     db_j *= 1.f / data.size(); */
 
-    w = w - a * dw_j;
-    b = b - a * db_j;
-}
+/*     w = w - a * dw_j; */
+/*     b = b - a * db_j; */
+/* } */
 
 //// LOGISTIC
 float logistic::f_wb(float w, float b, float x)
@@ -70,22 +70,22 @@ float logistic::f_wb(float w, float b, float x)
     return 1.f / (1.f + std::exp(-(w * x + b)));
 }
 
-void logistic::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (f_wb(w, b, p.x) - p.y) * p.x;
-        db_j += f_wb(w, b, p.x) - p.y;
-    }
+/* void logistic::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data) */
+/* { */
+/*     float dw_j = 0.f, */
+/*           db_j = 0.f; */
+/*     for (const auto &p : data) */
+/*     { */
+/*         dw_j += (f_wb(w, b, p.x) - p.y) * p.x; */
+/*         db_j += f_wb(w, b, p.x) - p.y; */
+/*     } */
 
-    dw_j /= data.size();
-    db_j /= data.size();
+/*     dw_j /= data.size(); */
+/*     db_j /= data.size(); */
 
-    w -= a * dw_j;
-    b -= a * db_j;
-}
+/*     w -= a * dw_j; */
+/*     b -= a * db_j; */
+/* } */
 
 float logistic::loss(float w, float b, float prediction, float data_y)
 {

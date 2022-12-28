@@ -80,7 +80,6 @@ namespace general
 namespace linear
 {
     float f_wb(float w, float b, float x);
-    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
 }
 
 namespace multilinear
@@ -100,8 +99,6 @@ namespace multilinear
 namespace logistic
 {
     float f_wb(float w, float b, float x);
-    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
-
     float loss(float w, float b, float prediction, float data_y);
 }
 

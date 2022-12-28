@@ -18,8 +18,6 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     Graph2 g("data/linear/graph");
-    float w = -500.f,
-          b = -200.f;
 
     Graph3 g3("data/linear/graph3", [&](float x, float z){
         return general::cost(x, z, g.data(), [x, z](glm::vec2 datap){
@@ -27,7 +25,15 @@ int main(int argc, char **argv)
         });
     });
 
-    g3.add_point(w, b);
+    std::vector<DataPoint<1>> data;
+    data.reserve(g.data().size());
+    for (const auto &p : g.data())
+        data.emplace_back(DataPoint<1>({ p.x }, p.y));
+
+    std::array<float, 1> vw = { -500.f };
+    float b = -200.f;
+
+    g3.add_point(vw[0], b);
 
     bool mouse_down = false;
 
@@ -56,13 +62,17 @@ int main(int argc, char **argv)
         const Uint8 *keystates = SDL_GetKeyboardState(0);
         if (keystates[SDL_SCANCODE_SPACE])
         {
-            linear::descend(w, b, .2f, g.data());
-            g3.add_point(w, b);
+            general::descend<1>(vw, b, .2f, data, [](const std::array<float, 1> &w,
+                                                  const DataPoint<1> &p,
+                                                  float b) {
+                return w[0] * p.features[0] + b;
+            });
+            g3.add_point(vw[0], b);
         }
 
         SDL_RenderClear(rend);
 
-        g.render(rend, { 0, 0, 600, 300 }, [w, b](float x){ return w * x + b; });
+        g.render(rend, { 0, 0, 600, 300 }, [vw, b](float x){ return vw[0] * x + b; });
         g3.render(rend, { 0, 300, 600, 300 });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
