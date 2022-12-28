@@ -32,34 +32,6 @@ void general::zscore_normalize(std::vector<float> &features, float &sd, float &m
         features[i] = (features[i] - mean) / sd;
 }
 
-void general::feature_scale(Graph2 &g, float &sd, float &mean)
-{
-    std::vector<float> features;
-    for (const auto &e : g.data())
-        features.emplace_back(e.x);
-
-    zscore_normalize(features, sd, mean);
-
-    std::string data;
-    float min = std::numeric_limits<float>::max(),
-          max = std::numeric_limits<float>::min();
-    for (size_t i = 0; i < features.size(); ++i)
-    {
-        float x = features[i];
-        if (x < min) min = x;
-        if (x > max) max = x;
-        data += "data " + std::to_string(x) + " " + std::to_string(g.data()[i].y) + "\n";
-    }
-
-    std::stringstream ss;
-    ss << "min " << min << ' ' << g.min().y << "\n"
-       << "max " << max << ' ' << g.max().y << "\n"
-       << "step " << std::abs(max - min) / 5.f << ' ' << g.step().y << "\n"
-       << data;
-
-    g.load(ss.str());
-}
-
 float general::cost(float w, float b, const std::vector<glm::vec2> &data,
         const std::function<float(glm::vec2)> &err)
 {
