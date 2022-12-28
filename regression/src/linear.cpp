@@ -1,30 +1,9 @@
+#include "impl.h"
 #include <iostream>
 #include <graph2.h>
 #include <graph3.h>
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
-
-namespace linear
-{
-    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
-}
-
-void linear::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (w * p.x + b - p.y) * p.x;
-        db_j += w * p.x + b - p.y;
-    }
-
-    dw_j *= 1.f / data.size();
-    db_j *= 1.f / data.size();
-
-    w = w - a * dw_j;
-    b = b - a * db_j;
-}
 
 int main(int argc, char **argv)
 {

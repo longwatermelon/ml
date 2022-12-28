@@ -8,7 +8,8 @@ LDFLAGS=-L../lib -lSDL2 -lgraph
 all: logistic
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) $^ $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp
+	$(CXX) $(CXXFLAGS) $@.o impl.o $(LDFLAGS)
 
 graph:
 	$(MAKE) -C ../graph

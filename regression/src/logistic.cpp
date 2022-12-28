@@ -1,51 +1,7 @@
+#include "impl.h"
 #include <SDL2/SDL.h>
 #include <graph2.h>
 #include <graph3.h>
-
-namespace logistic
-{
-    float f_wb(float w, float b, float x);
-    void descend(float &w, float &b, float a, const std::vector<glm::vec2> &data);
-
-    float loss(float w, float b, float prediction, float data_y);
-    float cost(float w, float b, const std::vector<glm::vec2> &data);
-}
-
-float logistic::f_wb(float w, float b, float x)
-{
-    return 1.f / (1.f + std::exp(-(w * x + b)));
-}
-
-void logistic::descend(float &w, float &b, float a, const std::vector<glm::vec2> &data)
-{
-    float dw_j = 0.f,
-          db_j = 0.f;
-    for (const auto &p : data)
-    {
-        dw_j += (f_wb(w, b, p.x) - p.y) * p.x;
-        db_j += f_wb(w, b, p.x) - p.y;
-    }
-
-    dw_j /= data.size();
-    db_j /= data.size();
-
-    w -= a * dw_j;
-    b -= a * db_j;
-}
-
-float logistic::loss(float w, float b, float prediction, float data_y)
-{
-    return ((int)data_y == 1 ? -data_y * std::log(prediction) : -(1.f - data_y) * std::log(1.f - prediction));
-}
-
-float logistic::cost(float w, float b, const std::vector<glm::vec2> &data)
-{
-    float cost = 0.f;
-    for (const auto &p : data)
-        cost += loss(w, b, f_wb(w, b, p.x), p.y);
-    cost /= data.size();
-    return cost;
-}
 
 int main(int argc, char **argv)
 {
@@ -68,15 +24,7 @@ int main(int argc, char **argv)
     });
     graph3.add_point(w, b);
 
-    printf("%f\n", logistic::cost(7.f, 0.f, graph.data()));
-
     bool mouse_down = false;
-
-    /* for (int i = 0; i < 8000; ++i) */
-    /* { */
-    /*     logistic::descend(w, b, .1f, graph.data()); */
-    /*     graph3.add_point(w, b); */
-    /* } */
 
     while (running)
     {
