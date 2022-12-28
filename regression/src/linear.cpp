@@ -21,7 +21,7 @@ int main(int argc, char **argv)
 
     Graph3 g3("data/linear/graph3", [&](float x, float z){
         return general::cost(x, z, g.data(), [x, z](glm::vec2 datap){
-            return std::pow(linear::f_wb(x, z, datap.x) - datap.y, 2);
+            return std::pow(linear::f_wb({ x }, DataPoint<1>({ datap.x }, datap.y), z) - datap.y, 2);
         });
     });
 
@@ -62,11 +62,7 @@ int main(int argc, char **argv)
         const Uint8 *keystates = SDL_GetKeyboardState(0);
         if (keystates[SDL_SCANCODE_SPACE])
         {
-            general::descend<1>(vw, b, .2f, data, [](const std::array<float, 1> &w,
-                                                  const DataPoint<1> &p,
-                                                  float b) {
-                return w[0] * p.features[0] + b;
-            });
+            general::descend<1>(vw, b, .2f, data, linear::f_wb);
             g3.add_point(vw[0], b);
         }
 

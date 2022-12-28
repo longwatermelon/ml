@@ -79,7 +79,7 @@ namespace general
 
 namespace linear
 {
-    float f_wb(float w, float b, float x);
+    float f_wb(const std::array<float, 1> &w, const DataPoint<1> &p, float b);
 }
 
 namespace multilinear
@@ -98,7 +98,7 @@ namespace multilinear
 
 namespace logistic
 {
-    float f_wb(float w, float b, float x);
+    float f_wb(const std::array<float, 1> w, const DataPoint<1> &p, float b);
     float loss(float w, float b, float prediction, float data_y);
 }
 
