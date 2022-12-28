@@ -88,7 +88,7 @@ void multilinear::feature_scale(Graph2 &g, float &sd, float &mean)
     for (const auto &e : g.data())
         features.emplace_back(e.x);
 
-    zscore_normalize(features, mean, sd);
+    zscore_normalize(features, sd, mean);
 
     std::string data;
     float min = std::numeric_limits<float>::max(),
