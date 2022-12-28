@@ -1,0 +1,2 @@
+Polynomial regression is the same as linear regression, just with the graph x and data point x values modified the same.
+For example, to fit a quadratic curve, the curve will have an equation of wx^2 + b, and each data point x will be squared.
