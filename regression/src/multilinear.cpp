@@ -41,7 +41,7 @@ int main(int argc, char **argv)
         if ((i + 1) % 100 == 0)
             printf("Iteration %d: w = [%f, %f, %f, %f], b = %f\n",
                     i + 1, vw[0], vw[1], vw[2], vw[3], b);
-        multilinear::descend(vw, b, .1f, data);
+        general::descend<NF>(vw, b, .1f, data, multilinear::f_wb<NF>);
     }
 
     // Predict

@@ -45,6 +45,36 @@ namespace general
                 data[r].features[c] = features[r];
         }
     }
+
+    template <size_t N>
+    void descend(std::array<float, N> &vw, float &b, float a,
+                 const std::vector<DataPoint<N>> &data,
+                 const std::function<float(const std::array<float, N>&,
+                                           const DataPoint<N>&,
+                                           float)> &func)
+    {
+        // Calculate new b
+        float db_j = 0.f;
+        for (size_t i = 0; i < data.size(); ++i)
+            db_j += func(vw, data[i], b) - data[i].y;
+        db_j /= data.size();
+        float b_new = b - a * db_j;
+
+        // Calculate new vw
+        std::array<float, N> vw_new;
+        for (size_t j = 0; j < N; ++j)
+        {
+            float dw_j = 0.f;
+            for (size_t i = 0; i < data.size(); ++i)
+                dw_j += (func(vw, data[i], b) - data[i].y) * data[i].features[j];
+            dw_j /= data.size();
+
+            vw_new[j] = vw[j] - a * dw_j;
+        }
+
+        b = b_new;
+        vw = vw_new;
+    }
 }
 
 namespace linear
@@ -64,33 +94,6 @@ namespace multilinear
         for (size_t i = 0; i < N; ++i)
             res += vw[i] * vx.features[i];
         return res;
-    }
-
-    template <size_t N>
-    void descend(std::array<float, N> &vw, float &b, float a,
-                 const std::vector<DataPoint<N>> data)
-    {
-        // Calculate new b
-        float db_j = 0.f;
-        for (size_t i = 0; i < data.size(); ++i)
-            db_j += f_wb<N>(vw, data[i], b) - data[i].y;
-        db_j /= data.size();
-        float b_new = b - a * db_j;
-
-        // Calculate new vw
-        std::array<float, N> vw_new;
-        for (size_t j = 0; j < N; ++j)
-        {
-            float dw_j = 0.f;
-            for (size_t i = 0; i < data.size(); ++i)
-                dw_j += (f_wb<N>(vw, data[i], b) - data[i].y) * data[i].features[j];
-            dw_j /= data.size();
-
-            vw_new[j] = vw[j] - a * dw_j;
-        }
-
-        b = b_new;
-        vw = vw_new;
     }
 }
 
