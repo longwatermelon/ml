@@ -16,15 +16,22 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     Graph2 graph("data/logistic/graph");
-    float w = 0.f,
-          b = 0.f;
 
     Graph3 graph3("data/logistic/graph3", [graph](float x, float z){
         return general::cost(x, z, graph.data(), [x, z](glm::vec2 datap){
-            return logistic::loss(x, z, logistic::f_wb(x, z, datap.x), datap.y);
+            return logistic::loss(x, z, logistic::f_wb({ x }, DataPoint<1>({ datap.x }, datap.y), z), datap.y);
         });
     });
-    graph3.add_point(w, b);
+
+    std::vector<DataPoint<1>> data;
+    data.reserve(graph.data().size());
+    for (const auto &p : graph.data())
+        data.emplace_back(DataPoint<1>({ p.x }, p.y));
+
+    std::array<float, 1> vw = { 0.f };
+    float b = 0.f;
+
+    graph3.add_point(vw[0], b);
 
     bool mouse_down = false;
 
@@ -41,7 +48,7 @@ int main(int argc, char **argv)
                 switch (evt.key.keysym.sym)
                 {
                 case SDLK_p:
-                    printf("%fx + %f\n", w, b);
+                    printf("%fx + %f\n", vw[0], b);
                     break;
                 }
                 break;
@@ -61,14 +68,14 @@ int main(int argc, char **argv)
         const Uint8 *keystates = SDL_GetKeyboardState(0);
         if (keystates[SDL_SCANCODE_SPACE])
         {
-            logistic::descend(w, b, 1.f, graph.data());
-            graph3.add_point(w, b);
+            general::descend<1>(vw, b, 1.f, data, logistic::f_wb);
+            graph3.add_point(vw[0], b);
         }
 
         SDL_RenderClear(rend);
 
-        graph.render(rend, { 0, 0, 600, 300 }, [w, b](float x){
-            return 1.f / (1 + std::exp(-(w * x + b)));
+        graph.render(rend, { 0, 0, 600, 300 }, [vw, b](float x){
+            return logistic::f_wb(vw, DataPoint<1>({ x }, 0.f), b);
         });
 
         graph3.render(rend, { 0, 300, 600, 300 });
