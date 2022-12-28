@@ -129,10 +129,10 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     std::array<std::string, NFEATURES> data_paths = {
-        "data-multilinear/age-graph",
-        "data-multilinear/bedrooms-graph",
-        "data-multilinear/floors-graph",
-        "data-multilinear/size-graph"
+        "data/multilinear/age-graph",
+        "data/multilinear/bedrooms-graph",
+        "data/multilinear/floors-graph",
+        "data/multilinear/size-graph"
     };
 
     std::array<Graph2, NFEATURES> graphs;

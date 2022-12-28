@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph2 graph("data-logistic/graph");
+    Graph2 graph("data/logistic/graph");
     float w = 0.f,
           b = 0.f;
 
