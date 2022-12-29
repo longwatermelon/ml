@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <array>
+#include <functional>
 #include <glm/glm.hpp>
-#include <graph2.h>
 
 template <size_t N>
 struct DataPoint
