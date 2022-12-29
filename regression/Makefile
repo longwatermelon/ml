@@ -12,7 +12,7 @@ all: multilinear
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp
-	$(CXX) $(CXXFLAGS) $@.o impl.o $(LDFLAGS)
+	$(CXX) $@.o impl.o $(LDFLAGS)
 
 lib:
 	$(CXX) $(CXXFLAGS) -c src/impl.cpp
