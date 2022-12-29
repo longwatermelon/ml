@@ -1,0 +1,12 @@
+\contentsline {section}{Table of contents}{1}{section*.1}%
+\contentsline {section}{\numberline {1}Regression}{2}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Linear regression}{2}{subsection.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Squared error cost function}{2}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.2}Gradient descent}{2}{subsubsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.2}Multiple linear regression}{2}{subsection.1.2}%
+\contentsline {subsection}{\numberline {1.3}Logistic regression}{3}{subsection.1.3}%
+\contentsline {subsection}{\numberline {1.4}Feature scaling: z-score normalization}{3}{subsection.1.4}%
+\contentsline {subsection}{\numberline {1.5}Over / underfitting}{3}{subsection.1.5}%
+\contentsline {subsubsection}{\numberline {1.5.1}Regularization}{3}{subsubsection.1.5.1}%
+\contentsline {section}{\numberline {2}Neural networks}{5}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Choosing an activation function}{5}{subsection.2.1}%
