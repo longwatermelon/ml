@@ -108,32 +108,32 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 
     // Draw point history
     SDL_SetRenderDrawColor(rend, 0, 255, 0, 255);
-    float ax = gx2world(m_points[0].first);
-    float az = gz2world(m_points[0].second);
+    float ax = gx2world(m_history[0].first);
+    float az = gz2world(m_history[0].second);
     glm::vec2 pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
 
-    for (size_t i = 0; i < m_points.size(); ++i)
+    for (size_t i = 0; i < m_history.size(); ++i)
     {
-        if (i == 0 || i == m_points.size() - 1)
+        if (i == 0 || i == m_history.size() - 1)
         {
             glm::vec2 ptop = project(graph_orig + rotate({ ax, m_axis_len, az }, glm::vec3{ 0.f }, m_angle), rect);
             SDL_RenderDrawLine(rend, ptop.x, ptop.y, pbot.x, pbot.y);
         }
 
-        if (i != m_points.size() - 1)
+        if (i != m_history.size() - 1)
         {
             glm::vec2 prev = pbot;
-            ax = gx2world(m_points[i + 1].first);
-            az = gz2world(m_points[i + 1].second);
+            ax = gx2world(m_history[i + 1].first);
+            az = gz2world(m_history[i + 1].second);
             pbot = project(graph_orig + rotate({ ax, 0.f, az }, glm::vec3{ 0.f }, m_angle), rect);
             SDL_RenderDrawLine(rend, prev.x, prev.y, pbot.x, pbot.y);
         }
     }
 }
 
-void Graph3::add_point(float x, float z)
+void Graph3::add_history(float x, float z)
 {
-    m_points.emplace_back(x, z);
+    m_history.emplace_back(x, z);
 }
 
 void Graph3::load(const std::string &config)

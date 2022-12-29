@@ -14,7 +14,7 @@ public:
     void render(SDL_Renderer *rend, SDL_Rect rect) const;
     void rot(glm::vec3 rotation) { m_angle += rotation; }
 
-    void add_point(float x, float z);
+    void add_history(float x, float z);
 
     void load(const std::string &config);
 
@@ -30,7 +30,7 @@ private:
     glm::vec3 m_angle{ 0.f, 0.f, 0.f };
 
     std::function<float(float, float)> m_func{};
-    std::vector<std::pair<float, float>> m_points;
+    std::vector<std::pair<float, float>> m_history;
 
     float m_axis_len{ 100.f };
 };

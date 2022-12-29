@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         });
     });
 
-    g3.add_point(vw[0], b);
+    g3.add_history(vw[0], b);
 
     bool mouse_down = false;
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
         if (keystates[SDL_SCANCODE_SPACE])
         {
             general::descend<1>(vw, b, .2f, data, linear::f_wb);
-            g3.add_point(vw[0], b);
+            g3.add_history(vw[0], b);
         }
 
         SDL_RenderClear(rend);
