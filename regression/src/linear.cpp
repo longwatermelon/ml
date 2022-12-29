@@ -1,4 +1,5 @@
 #include "impl.h"
+#include "common.h"
 #include <iostream>
 #include <graph2.h>
 #include <graph3.h>
@@ -20,16 +21,9 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     graph::Graph2 g("data/linear/graph");
-    g.add_shape(graph::Graph2Shape(
-        {
-            { 0.f, 0.f }, { 1.f, 1.f },
-            { 1.f, 0.f }, { 0.f, 1.f }
-        },
-        { 1.f, 0.f, 0.f }
-    ));
+    common::add_cross_shape(g);
 
     std::vector<DataPoint<1>> data;
-    data.reserve(g.data().size());
     for (const auto &p : g.data())
         data.emplace_back(DataPoint<1>({ p.p.x }, p.p.y));
 

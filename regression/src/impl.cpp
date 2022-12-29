@@ -39,13 +39,19 @@ float reg::linear::f_wb(const std::array<float, 1> &w, const std::array<float, 1
 }
 
 //// LOGISTIC
-float reg::logistic::f_wb(const std::array<float, 1> w, const std::array<float, 1> &features, float b)
+float reg::logistic::f_wb(const std::array<float, 1> &w, const std::array<float, 1> &features, float b)
 {
     return 1.f / (1.f + std::exp(-(w[0] * features[0] + b)));
 }
 
-float reg::logistic::loss(float w, float b, float prediction, float data_y)
+float reg::logistic::loss(float prediction, float data_y)
 {
     return ((int)data_y == 1 ? -data_y * std::log(prediction) : -(1.f - data_y) * std::log(1.f - prediction));
+}
+
+// MULTILOGISTIC
+float reg::multilogistic::f_wb(const std::array<float, 2> &w, const std::array<float, 2> &features, float b)
+{
+    return 1.f / (1.f + std::exp(-(general::dot(w, features) + b)));
 }
 

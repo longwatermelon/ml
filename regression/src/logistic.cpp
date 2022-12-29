@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 
     graph::Graph3 graph3("data/logistic/graph3", [&](float x, float z){
         return general::cost<1>(data, [x, z](const DataPoint<1> &p){
-            return logistic::loss(x, z, logistic::f_wb({ x }, p.features, z), p.y);
+            return logistic::loss(logistic::f_wb({ x }, p.features, z), p.y);
         });
     });
 

@@ -8,11 +8,11 @@ ARFLAGS=rc
 
 .PHONY: graph
 
-all: multilinear
+all: multilogistic
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp
-	$(CXX) $@.o impl.o $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp src/common.cpp
+	$(CXX) $@.o impl.o common.o $(LDFLAGS)
 
 lib:
 	$(CXX) $(CXXFLAGS) -c src/impl.cpp

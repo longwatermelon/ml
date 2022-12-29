@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdio>
 #include <vector>
 #include <array>
 #include <functional>
@@ -6,6 +7,7 @@
 
 namespace reg
 {
+    // N: num features
     template <size_t N>
     struct DataPoint
     {
@@ -28,6 +30,16 @@ namespace reg
         void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
 
         template <size_t N>
+        float dot(const std::array<float, N> &a, const std::array<float, N> &b)
+        {
+            float sum = 0.f;
+            for (size_t i = 0; i < a.size(); ++i)
+                sum += a[i] * b[i];
+            return sum;
+        }
+
+        // N: num features
+        template <size_t N>
         void feature_scale(std::vector<DataPoint<N>> &data, std::array<float, N> &sd, std::array<float, N> &mean)
         {
             for (size_t c = 0; c < N; ++c)
@@ -45,6 +57,7 @@ namespace reg
             }
         }
 
+        // N: num features
         template <size_t N>
         float cost(const std::vector<DataPoint<N>> &data,
                    const std::function<float(const DataPoint<N>&)> &err_f)
@@ -55,6 +68,7 @@ namespace reg
             return cost / (2.f * data.size());
         }
 
+        // N: num features
         // func parameters: vw, vx, b
         template <size_t N>
         void descend(std::array<float, N> &vw, float &b, float a,
@@ -78,6 +92,7 @@ namespace reg
                 for (size_t i = 0; i < data.size(); ++i)
                     dw_j += (func(vw, data[i].features, b) - data[i].y) * data[i].features[j];
                 dw_j /= data.size();
+                /* printf("%zu: %f\n", j, dw_j); */
 
                 vw_new[j] = vw[j] - a * dw_j;
             }
@@ -108,8 +123,13 @@ namespace reg
 
     namespace logistic
     {
-        float f_wb(const std::array<float, 1> w, const std::array<float, 1> &features, float b);
-        float loss(float w, float b, float prediction, float data_y);
+        float f_wb(const std::array<float, 1> &w, const std::array<float, 1> &features, float b);
+        float loss(float prediction, float data_y);
+    }
+
+    namespace multilogistic
+    {
+        float f_wb(const std::array<float, 2> &w, const std::array<float, 2> &features, float b);
     }
 }
 
