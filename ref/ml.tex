@@ -71,12 +71,12 @@ $\alpha$ = learning rate
 
 Must simultaneously update $w$ and $b$
 
-\begin{gather*}
-w_1 = w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
-b_1 = b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
-\frac{\partial}{\partial w} J(w,b) = \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)}) x^{(i)}\\
-\frac{\partial}{\partial b} J(w,b) = \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)})
-\end{gather*}
+\begin{align*}
+w_1 &= w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
+b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
+\frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)}) x^{(i)}\\
+\frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)})
+\end{align*}
 
 \subsection{Multiple linear regression}
 
@@ -86,18 +86,18 @@ $n$ = number of features
 
 Sum of predictions of all features is the prediction of multiple linear reg
 
-\begin{gather*}
-\vec w = [w_1, w_2, w_3, \cdots, w_n]\\
-\vec x = [x_1, x_2, x_3, \cdots, x_n]\\
-f_{\vec{w},b}(\vec{x}) = \vec{w} \cdot \vec{x} + b
-\end{gather*}
+\begin{align*}
+\vec w &= [w_1, w_2, w_3, \cdots, w_n]\\
+\vec x &= [x_1, x_2, x_3, \cdots, x_n]\\
+f_{\vec{w},b}(\vec{x}) &= \vec{w} \cdot \vec{x} + b
+\end{align*}
 
 Gradient descent
 
-\begin{gather*}
-w_j = w_j - \alpha \frac{\partial}{\partial w_j} J(\vec{w},b)\\
-b = b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
-\end{gather*}
+\begin{align*}
+w_j &= w_j - \alpha \frac{\partial}{\partial w_j} J(\vec{w},b)\\
+b &= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
+\end{align*}
 
 Cost function and its partial derivatives
 
@@ -155,11 +155,11 @@ $\mu_j$ = mean of all values for feature $j$
 
 $\sigma_j$ = standard deviation of feature $j$
 
-\begin{gather*}
-x_j^{(i)} = \frac{x_j^{(i)} - \mu_j}{\sigma_j}\\
-\mu_j = \frac{1}{m} \sum_{i=0}^{m-1} x_j^{(i)}\\
-\sigma_j^2 = \frac{1}{m} \sum_{i=0}^{m-1} (x_j^{(i)} - \mu_j)^2
-\end{gather*}
+\begin{align*}
+x_j^{(i)} &= \frac{x_j^{(i)} - \mu_j}{\sigma_j}\\
+\mu_j &= \frac{1}{m} \sum_{i=0}^{m-1} x_j^{(i)}\\
+\sigma_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (x_j^{(i)} - \mu_j)^2
+\end{align*}
 
 \subsection{Over / underfitting}
 
