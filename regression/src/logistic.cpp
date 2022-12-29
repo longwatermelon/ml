@@ -3,6 +3,8 @@
 #include <graph2.h>
 #include <graph3.h>
 
+using namespace reg;
+
 int main(int argc, char **argv)
 {
     SDL_Init(SDL_INIT_VIDEO);

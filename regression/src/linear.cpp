@@ -5,6 +5,8 @@
 #include <SDL2/SDL.h>
 #include <glm/glm.hpp>
 
+using namespace reg;
+
 int main(int argc, char **argv)
 {
     SDL_Init(SDL_INIT_VIDEO);

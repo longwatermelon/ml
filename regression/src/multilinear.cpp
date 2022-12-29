@@ -4,6 +4,7 @@
 #include <sstream>
 
 #define NF 4
+using namespace reg;
 
 int main(int argc, char **argv)
 {
