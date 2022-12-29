@@ -1,9 +1,11 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=
-LDFLAGS=-lSDL2
+LDFLAGS=-L../lib -lSDL2 -lreg
 
 .PHONY: reg
+
+all: cat-recognition
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp
