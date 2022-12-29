@@ -41,13 +41,8 @@ void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<f
 
     // Data points
     SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
-    for (const auto &p : m_data)
-    {
-        float x = gx2scr(p.x, r);
-        float y = r.y + (r.h - (gy2scr(p.y, r) - r.y));
-        SDL_RenderDrawLineF(rend, x - 3.f, y - 3.f, x + 3.f, y + 3.f);
-        SDL_RenderDrawLineF(rend, x - 3.f, y + 3.f, x + 3.f, y - 3.f);
-    }
+    for (const auto &dp : m_data)
+        render_shape(rend, r, dp);
 
     // Line
     SDL_SetRenderDrawColor(rend, 0, 0, 255, 255);
@@ -58,6 +53,22 @@ void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<f
         float y1 = r.y + (r.h - (gy2scr(func(x1), r) - r.y));
         float y2 = r.y + (r.h - (gy2scr(func(x2), r) - r.y));
         SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
+    }
+}
+
+void graph::Graph2::render_shape(SDL_Renderer *rend, SDL_Rect r, const DataPoint2 &p) const
+{
+    float x = gx2scr(p.p.x, r) - m_shape_dim / 2.f;
+    float y = r.y + (r.h - (gy2scr(p.p.y, r) - r.y)) - m_shape_dim / 2.f;
+
+    Graph2Shape shape = m_shapes[p.shape];
+    SDL_SetRenderDrawColor(rend, shape.col.r * 255.f, shape.col.g * 255.f, shape.col.b * 255.f, 255);
+    for (size_t i = 0; i < shape.points.size(); i += 2)
+    {
+        glm::vec2 pt = shape.points[i],
+                  ptnext = shape.points[i + 1];
+        SDL_RenderDrawLine(rend, x + pt.x * m_shape_dim, y + pt.y * m_shape_dim,
+                         x + ptnext.x * m_shape_dim, y + ptnext.y * m_shape_dim);
     }
 }
 
@@ -78,11 +89,16 @@ void graph::Graph2::load(const std::string &config)
         if (field == "step") ss >> m_step.x >> m_step.y;
         if (field == "data")
         {
-            glm::vec2 p;
-            ss >> p.x >> p.y;
+            DataPoint2 p;
+            ss >> p.p.x >> p.p.y >> p.shape;
             m_data.emplace_back(p);
         }
     }
+}
+
+void graph::Graph2::add_shape(const Graph2Shape &shape)
+{
+    m_shapes.emplace_back(shape);
 }
 
 float graph::Graph2::gx2scr(float x, SDL_Rect r) const

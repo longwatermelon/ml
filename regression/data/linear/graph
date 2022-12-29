@@ -2,10 +2,10 @@ min 0 0
 max 4 1000
 step .5 100
 
-data 1 630
-data 1.7 530
-data 2 330
-data 2.5 380
-data 3 200
-data 3.2 150
+data 1 630 0
+data 1.7 530 0
+data 2 330 0
+data 2.5 380 0
+data 3 200 0
+data 3.2 150 0
 

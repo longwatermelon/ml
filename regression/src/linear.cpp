@@ -19,13 +19,19 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-
     graph::Graph2 g("data/linear/graph");
+    g.add_shape(graph::Graph2Shape(
+        {
+            { 0.f, 0.f }, { 1.f, 1.f },
+            { 1.f, 0.f }, { 0.f, 1.f }
+        },
+        { 1.f, 0.f, 0.f }
+    ));
 
     std::vector<DataPoint<1>> data;
     data.reserve(g.data().size());
     for (const auto &p : g.data())
-        data.emplace_back(DataPoint<1>({ p.x }, p.y));
+        data.emplace_back(DataPoint<1>({ p.p.x }, p.p.y));
 
     std::array<float, 1> vw = { -500.f };
     float b = -200.f;
