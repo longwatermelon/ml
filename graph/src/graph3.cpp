@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 
-Graph3::Graph3(const std::string &data_fp, const std::function<float(float, float)> &func)
+graph::Graph3::Graph3(const std::string &data_fp, const std::function<float(float, float)> &func)
 {
     std::ifstream ifs(data_fp);
     std::stringstream ss;
@@ -16,7 +16,7 @@ Graph3::Graph3(const std::string &data_fp, const std::function<float(float, floa
     find_y_minmax();
 }
 
-Graph3::~Graph3()
+graph::Graph3::~Graph3()
 {
 }
 
@@ -55,7 +55,7 @@ static glm::vec3 rotate(glm::vec3 p, glm::vec3 orig, glm::vec3 angle)
     return orig + (rotx * roty * (p - orig));
 }
 
-void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
+void graph::Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
 {
     // Black bg
     SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
@@ -131,12 +131,12 @@ void Graph3::render(SDL_Renderer *rend, SDL_Rect rect) const
     }
 }
 
-void Graph3::add_history(float x, float z)
+void graph::Graph3::add_history(float x, float z)
 {
     m_history.emplace_back(x, z);
 }
 
-void Graph3::load(const std::string &config)
+void graph::Graph3::load(const std::string &config)
 {
     std::istringstream ss(config);
     std::string buf;
@@ -153,7 +153,7 @@ void Graph3::load(const std::string &config)
     }
 }
 
-void Graph3::find_y_minmax()
+void graph::Graph3::find_y_minmax()
 {
     m_min.y = std::numeric_limits<float>::max();
     m_max.y = std::numeric_limits<float>::min();
@@ -169,17 +169,17 @@ void Graph3::find_y_minmax()
     }
 }
 
-float Graph3::gx2world(float x) const
+float graph::Graph3::gx2world(float x) const
 {
     return (x - m_min.x) / (m_max.x - m_min.x) * m_axis_len;
 }
 
-float Graph3::gy2world(float y) const
+float graph::Graph3::gy2world(float y) const
 {
     return (y - m_min.y) / (m_max.y - m_min.y) * m_axis_len;
 }
 
-float Graph3::gz2world(float z) const
+float graph::Graph3::gz2world(float z) const
 {
     return (z - m_min.z) / (m_max.z - m_min.z) * m_axis_len;
 }

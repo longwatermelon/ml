@@ -3,7 +3,7 @@
 #include <sstream>
 #include <iostream>
 
-Graph2::Graph2(const std::string &data_fp)
+graph::Graph2::Graph2(const std::string &data_fp)
 {
     std::ifstream ifs(data_fp);
     std::stringstream ss;
@@ -15,11 +15,11 @@ Graph2::Graph2(const std::string &data_fp)
     load(ss.str());
 }
 
-Graph2::~Graph2()
+graph::Graph2::~Graph2()
 {
 }
 
-void Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const
+void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const
 {
     // White bg
     SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
@@ -61,7 +61,7 @@ void Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(fl
     }
 }
 
-void Graph2::load(const std::string &config)
+void graph::Graph2::load(const std::string &config)
 {
     m_data.clear();
     std::istringstream ss(config);
@@ -85,12 +85,12 @@ void Graph2::load(const std::string &config)
     }
 }
 
-float Graph2::gx2scr(float x, SDL_Rect r) const
+float graph::Graph2::gx2scr(float x, SDL_Rect r) const
 {
     return (x - m_min.x) / (m_max.x - m_min.x) * (r.w - (m_espace * 2.f)) + r.x + m_espace;
 }
 
-float Graph2::gy2scr(float y, SDL_Rect r) const
+float graph::Graph2::gy2scr(float y, SDL_Rect r) const
 {
     return (y - m_min.y) / (m_max.y - m_min.y) * (r.h - (m_espace * 2.f)) + r.y + m_espace;
 }

@@ -17,7 +17,7 @@ int main(int argc, char **argv)
     bool running = true;
     SDL_Event evt;
 
-    Graph2 graph("data/logistic/graph");
+    graph::Graph2 graph("data/logistic/graph");
 
     std::vector<DataPoint<1>> data;
     data.reserve(graph.data().size());
@@ -27,7 +27,7 @@ int main(int argc, char **argv)
     std::array<float, 1> vw = { 0.f };
     float b = 0.f;
 
-    Graph3 graph3("data/logistic/graph3", [&](float x, float z){
+    graph::Graph3 graph3("data/logistic/graph3", [&](float x, float z){
         return general::cost<1>(data, [x, z](const DataPoint<1> &p){
             return logistic::loss(x, z, logistic::f_wb({ x }, p.features, z), p.y);
         });
