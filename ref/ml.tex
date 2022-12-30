@@ -118,7 +118,10 @@ g(z) = \frac{1}{1 + e^{-z}}\\
 
 From sigmoid function to logistic regression formula
 
-\[ f_{\vec{w},b}(\vec{x}) = g(\vec{w} \cdot \vec{x} + b) \]
+\begin{align*}
+z &= \vec{w} \cdot \vec{x} + b\\
+f_{\vec{w},b}(\vec{x}) &= g(z)
+\end{align*}
 
 The output of $f$ can be interpreted as the "probability" that class is 1.
 
