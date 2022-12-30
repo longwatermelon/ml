@@ -147,6 +147,27 @@ The loss function will decrease as $f$ approaches $y^{(i)}$ on a graph of $L$ vs
 
 $\frac{\partial J(\vec{w},b)}{\partial w_j}$ and $\frac{\partial J(\vec{w},b)}{\partial b}$ are the same as in linear regression, just the definition of $f$ has changed.
 
+\subsection{Softmax regression}
+
+Generalization of logistic regression, $y$ can have more than two possible values.
+
+\begin{align*}
+z_i &= \vec{w}_i \cdot \vec{x} + b_i\\
+a_i &= \frac{e^{z_i}}{\sum_{k=1}^{n} e^{z_k}}
+\end{align*}
+
+\begin{equation}
+L(\vec{a}, y) =
+  \left\{
+    \begin{aligned}
+    -\log a_1 &\text{ if } y = 1\\
+    -\log a_2 &\text{ if } y = 2\\
+    & \vdots\\
+    -\log a_n &\text{ if } y = n
+    \end{aligned}
+   \right.
+\end{equation}
+
 \subsection{Feature scaling: z-score normalization}
 
 After z-score normalization, all features will have a mean of 0 and a standard deviation of 1
