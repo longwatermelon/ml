@@ -207,7 +207,7 @@ Small values of $w_1,w_2,\cdots,w_n,b$ for simpler model, less likely to overfit
 Given $n$ features, there is no way to tell which features are important and which features should be penalized, so all features are penalized.
 \[ J_r(\vec{w},b) = J(\vec{w},b) + \frac{\lambda}{2m} \sum_{j=1}^n w_j^2 \]
 
-Can include $b$ by adding $\frac{\lambda}{2m} b^2$ to $J_0$ but typically doesn't make a large difference.
+Can include $b$ by adding $\frac{\lambda}{2m} b^2$ to $J_r$ but typically doesn't make a large difference.
 
 The extra term in $J_r$ is called the regularization term.
 
@@ -240,7 +240,7 @@ Superscript $[i]$ is used to notate information relating to the $i$th layer in a
 \[ \text{Activation value of layer $\ell$, unit (neuron) $j$} \]
 \[ a_j^{[\ell]} = g(\vec{w}_j^{[\ell]} \cdot \vec{a}^{[\ell - 1]} + b_j^{[\ell]}) \]
 
-ReLU activation function: $g(z) = max(0, z)$
+ReLU activation function: $g(z) = \max(0, z)$
 
 \subsection{Choosing an activation function}
 
