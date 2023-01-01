@@ -237,8 +237,7 @@ $a$ (activation) = scalar output of a single neuron
 
 Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
 
-\[ \text{Activation value of layer $\ell$, unit (neuron) $j$} \]
-\[ a_j^{[\ell]} = g(\vec{w}_j^{[\ell]} \cdot \vec{a}^{[\ell - 1]} + b_j^{[\ell]}) \]
+Activation functions are functions a neuron uses to output a value, more in section 2.2.
 
 ReLU activation function: $g(z) = \max(0, z)$
 
@@ -255,5 +254,51 @@ Regression, y = 0/+: use ReLU
 \subsubsection*{For hidden layer}
 
 ReLU is most common
+
+\subsection{Layer types}
+
+\subsubsection*{Dense layer}
+
+\includegraphics{nn/dense_layer}
+
+Activation value of unit (neuron) $j$ in layer $\ell$
+
+\[ a_j^{[\ell]} = g(\vec{w}_j^{[\ell]} \cdot \vec{a}^{[\ell - 1]} + b_j^{[\ell]}) \]
+
+Input layer is $\ell = 0$.
+
+\subsubsection*{Convolutional layer}
+
+Each neuron only looks at a part of the previous layer's output.
+
+May have faster computation, and needs less training data (less prone to overfitting)
+
+\subsection{Computation graph}
+
+Computes derivatives of neural networks automatically
+
+Assume neural network shown below:
+
+\includegraphics{nn/compgraph-ex/nn}
+
+where:
+
+\begin{align*}
+a &= g(z) = z\\
+z &= wx + b\\
+J(w,b) &= \frac{1}{2} (a-y)^2
+\end{align*}
+
+Variables: $w = 2$, $b = 8$, $x = -2$, $y = 2$
+
+\pagebreak
+
+Use forward propagation to calculate cost function
+
+\includegraphics[scale=.8]{nn/compgraph-ex/compgraph}
+
+Computing $\frac{\partial J}{\partial w}$ and $\frac{\partial J}{\partial b}$ will require back propagation.
+
+Start from last node in the graph, and determine how $J$ changes if $d$ changes by some small value $\epsilon$.
 
 \end{document}
