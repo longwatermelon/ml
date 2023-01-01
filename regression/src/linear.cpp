@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     float b = -200.f;
 
     graph::Graph3 g3("data/linear/graph3", [&](float x, float z){
-        return general::cost<1>(data, [x, z](const DataPoint<1> &p){
+        return general::cost<1>(data, vw, [x, z](const DataPoint<1> &p){
             return std::pow(linear::f_wb({ x }, p.features, z) - p.y, 2);
         });
     });

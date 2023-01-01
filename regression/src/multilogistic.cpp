@@ -31,7 +31,7 @@ int main()
         if ((i + 1) % 1000 == 0)
             printf("Iteration %zu: w = [%f, %f], b = %f, cost = %f\n",
                     i + 1, vw[0], vw[1], b,
-                    2.f * general::cost<2>(data, [vw, b](const DataPoint<2> &dp){
+                    2.f * general::cost<2>(data, vw, [vw, b](const DataPoint<2> &dp){
                         return logistic::loss(multilogistic::f_wb(vw, dp.features, b), dp.y);
                     }
             ));
