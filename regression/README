@@ -1,4 +1,3 @@
-All important implementation code is in impl.cpp and impl.h.
-Note: linear.cpp does not implement feature scaling, which may cause the program to crash under other datasets.
+Note: Only multilinear.cpp implements feature scaling, the other programs may crash under different datasets.
 
 Regression project: https://github.com/longwatermelon/graph-read
