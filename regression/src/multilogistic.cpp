@@ -59,9 +59,11 @@ int main()
 
         SDL_RenderClear(rend);
 
-        graph.render(rend, { 0, 0, 600, 600 }, [vw, b](float x){
+        graph.render(rend, { 0, 0, 600, 600 });
+
+        graph.render_line(rend, { 0, 0, 600, 600 }, [vw, b](float x){
             return (.5f - b - vw[0] * x) / vw[1];
-        });
+        }, { 0.f, 0.f, 1.f });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
         SDL_RenderPresent(rend);

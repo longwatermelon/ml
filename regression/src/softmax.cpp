@@ -16,7 +16,7 @@ int main()
     SDL_Renderer *rend = SDL_CreateRenderer(win, -1,
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
-    graph::Graph2 graph("data/softmax/quadrants");
+    graph::Graph2 graph("data/softmax/data");
     common::add_cross_shape(graph);
     common::add_tri_shape(graph);
     common::add_square_shape(graph);

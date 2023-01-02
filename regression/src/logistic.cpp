@@ -83,9 +83,10 @@ int main(int argc, char **argv)
 
         SDL_RenderClear(rend);
 
-        graph.render(rend, { 0, 0, 600, 300 }, [vw, b](float x){
+        graph.render(rend, { 0, 0, 600, 300 });
+        graph.render_line(rend, { 0, 0, 600, 300 }, [vw, b](float x){
             return logistic::f_wb(vw, { x }, b);
-        });
+        }, { 0.f, 0.f, 1.f });
 
         graph3.render(rend, { 0, 300, 600, 300 });
 

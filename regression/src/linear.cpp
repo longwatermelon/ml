@@ -71,7 +71,8 @@ int main(int argc, char **argv)
 
         SDL_RenderClear(rend);
 
-        g.render(rend, { 0, 0, 600, 300 }, [vw, b](float x){ return vw[0] * x + b; });
+        g.render(rend, { 0, 0, 600, 300 });
+        g.render_line(rend, { 0, 0, 600, 300 }, [vw, b](float x){ return vw[0] * x + b; }, { 0.f, 0.f, 1.f });
         g3.render(rend, { 0, 300, 600, 300 });
 
         SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
