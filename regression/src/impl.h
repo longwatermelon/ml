@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <vector>
 #include <array>
+#include <sstream>
 #include <functional>
 #include <glm/glm.hpp>
 
@@ -26,11 +27,12 @@ namespace reg
     namespace vec
     {
         template <size_t N>
-        void apply_fn(std::array<float, N> &v,
+        std::array<float, N> apply_fn(std::array<float, N> v,
                       const std::function<float(float)> &fn)
         {
             for (auto &f : v)
                 f = fn(f);
+            return v;
         }
 
         template <size_t N>
@@ -49,6 +51,16 @@ namespace reg
             for (auto &f : v)
                 total += f;
             return total;
+        }
+
+        template <size_t N>
+        std::string to_string(const std::array<float, N> &v)
+        {
+            std::stringstream ss;
+            ss.precision(2);
+            for (auto &f : v)
+                ss << std::fixed << f << ", ";
+            return "[" + ss.str().substr(0, ss.str().size() - 2) + "]";
         }
     }
 
@@ -160,16 +172,23 @@ namespace reg
     namespace multilogistic
     {
         float f_wb(const std::array<float, 2> &w, const std::array<float, 2> &features, float b);
+        float g(float z);
     }
 
     namespace softmax
     {
         template <size_t N>
+        float g(float z, const std::array<float, N> &vz)
+        {
+            return std::exp(z) / vec::sum(vec::apply_fn(vz, [](float z){ return std::exp(z); }));
+        }
+
+        template <size_t N>
         std::array<float, N> solve_va(std::array<float, N> vz)
         {
-            vec::apply_fn(vz, [](float z){ return std::exp(z); });
+            vz = vec::apply_fn(vz, [](float z){ return std::exp(z); });
             float sum = vec::sum(vz);
-            vec::apply_fn(vz, [sum](float z){ return z / sum; });
+            vz = vec::apply_fn(vz, [sum](float z){ return z / sum; });
             return vz;
         }
     }

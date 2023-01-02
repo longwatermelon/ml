@@ -8,5 +8,6 @@ namespace common
 {
     void add_cross_shape(graph::Graph2 &g);
     void add_tri_shape(graph::Graph2 &g);
+    void add_square_shape(graph::Graph2 &g);
 }
 

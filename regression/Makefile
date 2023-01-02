@@ -8,7 +8,7 @@ ARFLAGS=rc
 
 .PHONY: graph
 
-all: multilogistic
+all: softmax
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp src/common.cpp

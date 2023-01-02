@@ -23,3 +23,16 @@ void common::add_tri_shape(graph::Graph2 &g)
     ));
 }
 
+void common::add_square_shape(graph::Graph2 &g)
+{
+    g.add_shape(graph::Graph2Shape(
+        {
+            { 0.f, 0.f }, { 1.f, 0.f },
+            { 1.f, 0.f }, { 1.f, 1.f },
+            { 1.f, 1.f }, { 0.f, 1.f },
+            { 0.f, 0.f }, { 0.f, 1.f }
+        },
+        { .6f, .6f, 0 }
+    ));
+}
+

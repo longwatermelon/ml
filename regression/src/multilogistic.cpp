@@ -27,7 +27,12 @@ int main()
 
     for (size_t i = 0; i < 10000; ++i)
     {
-        general::descend<2>(vw, b, .1f, data, multilogistic::f_wb);
+        general::descend<2>(vw, b, .1f, data,
+                [](const std::array<float, 2> &vw,
+                   const std::array<float, 2> &vx,
+                   float b){
+            return multilogistic::g(multilogistic::f_wb(vw, vx, b));
+        });
         if ((i + 1) % 1000 == 0)
             printf("Iteration %zu: w = [%f, %f], b = %f, cost = %f\n",
                     i + 1, vw[0], vw[1], b,
