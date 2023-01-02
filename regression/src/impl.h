@@ -23,11 +23,15 @@ namespace reg
         float y{ 0.f };
     };
 
-    namespace general
+    namespace vec
     {
-        float calc_mean(const std::vector<float> &values);
-        float calc_sd(const std::vector<float> &values);
-        void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
+        template <size_t N>
+        void apply_fn(std::array<float, N> &v,
+                      const std::function<float(float)> &fn)
+        {
+            for (auto &f : v)
+                f = fn(f);
+        }
 
         template <size_t N>
         float dot(const std::array<float, N> &a, const std::array<float, N> &b)
@@ -37,6 +41,22 @@ namespace reg
                 sum += a[i] * b[i];
             return sum;
         }
+
+        template <size_t N>
+        float sum(const std::array<float, N> &v)
+        {
+            float total = 0.f;
+            for (auto &f : v)
+                total += f;
+            return total;
+        }
+    }
+
+    namespace general
+    {
+        float calc_mean(const std::vector<float> &values);
+        float calc_sd(const std::vector<float> &values);
+        void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
 
         // N: num features
         template <size_t N>
@@ -140,6 +160,18 @@ namespace reg
     namespace multilogistic
     {
         float f_wb(const std::array<float, 2> &w, const std::array<float, 2> &features, float b);
+    }
+
+    namespace softmax
+    {
+        template <size_t N>
+        std::array<float, N> solve_va(std::array<float, N> vz)
+        {
+            vec::apply_fn(vz, [](float z){ return std::exp(z); });
+            float sum = vec::sum(vz);
+            vec::apply_fn(vz, [sum](float z){ return z / sum; });
+            return vz;
+        }
     }
 }
 

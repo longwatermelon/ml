@@ -52,6 +52,6 @@ float reg::logistic::loss(float prediction, float data_y)
 // MULTILOGISTIC
 float reg::multilogistic::f_wb(const std::array<float, 2> &w, const std::array<float, 2> &features, float b)
 {
-    return 1.f / (1.f + std::exp(-(general::dot(w, features) + b)));
+    return 1.f / (1.f + std::exp(-(vec::dot(w, features) + b)));
 }
 
