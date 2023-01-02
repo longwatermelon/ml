@@ -116,13 +116,13 @@ namespace reg
                      const std::vector<DataPoint<N>> &data,
                      const std::function<float(const std::array<float, N>&,
                                                const std::array<float, N>&,
-                                               float)> &func,
+                                               float)> &prediction_func,
                      float lambda = 0.f)
         {
             // Calculate new b
             float db_j = 0.f;
             for (size_t i = 0; i < data.size(); ++i)
-                db_j += func(vw, data[i].features, b) - data[i].y;
+                db_j += prediction_func(vw, data[i].features, b) - data[i].y;
             db_j /= data.size();
             float b_new = b - a * db_j;
 
@@ -132,7 +132,7 @@ namespace reg
             {
                 float dw_j = 0.f;
                 for (size_t i = 0; i < data.size(); ++i)
-                    dw_j += (func(vw, data[i].features, b) - data[i].y) * data[i].features[j];
+                    dw_j += (prediction_func(vw, data[i].features, b) - data[i].y) * data[i].features[j];
                 dw_j /= data.size();
                 dw_j += lambda / data.size() * vw[j];
 
