@@ -19,7 +19,7 @@ graph::Graph2::~Graph2()
 {
 }
 
-void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const
+void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r) const
 {
     // White bg
     SDL_SetRenderDrawColor(rend, 255, 255, 255, 255);
@@ -43,17 +43,6 @@ void graph::Graph2::render(SDL_Renderer *rend, SDL_Rect r, const std::function<f
     SDL_SetRenderDrawColor(rend, 255, 0, 0, 255);
     for (const auto &dp : m_data)
         render_shape(rend, r, dp);
-
-    // Line
-    SDL_SetRenderDrawColor(rend, 0, 0, 255, 255);
-    for (int x = r.x + m_espace; x < r.x + r.w - m_espace; ++x)
-    {
-        float x1 = (float)(x - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
-        float x2 = (float)(x + 1 - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
-        float y1 = r.y + (r.h - (gy2scr(func(x1), r) - r.y));
-        float y2 = r.y + (r.h - (gy2scr(func(x2), r) - r.y));
-        SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
-    }
 }
 
 void graph::Graph2::render_shape(SDL_Renderer *rend, SDL_Rect r, const DataPoint2 &p) const
@@ -70,6 +59,41 @@ void graph::Graph2::render_shape(SDL_Renderer *rend, SDL_Rect r, const DataPoint
         SDL_RenderDrawLine(rend, x + pt.x * m_shape_dim, y + pt.y * m_shape_dim,
                          x + ptnext.x * m_shape_dim, y + ptnext.y * m_shape_dim);
     }
+}
+
+void graph::Graph2::render_line(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &line_fn, glm::vec3 color) const
+{
+    SDL_SetRenderDrawColor(rend, color.x * 255.f, color.y * 255.f, color.z * 255.f, 255);
+    for (int x = r.x + m_espace; x < r.x + r.w - m_espace; ++x)
+    {
+        float x1 = (float)(x - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
+        float x2 = (float)(x + 1 - (r.x + m_espace)) / (r.w - (m_espace * 2.f)) * (m_max.x - m_min.x) + m_min.x;
+        float y1 = r.y + (r.h - (gy2scr(line_fn(x1), r) - r.y));
+        float y2 = r.y + (r.h - (gy2scr(line_fn(x2), r) - r.y));
+        SDL_RenderDrawLineF(rend, x, y1, x + 1, y2);
+    }
+}
+
+void graph::Graph2::render_trend(SDL_Renderer *rend, SDL_Rect r, const std::function<glm::vec3(glm::vec2)> &trend_fn) const
+{
+    SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_BLEND);
+
+    for (int y = r.y + m_espace; y < r.y + r.h - m_espace; ++y)
+    {
+        for (int x = r.x + m_espace; x < r.x + r.w - m_espace; ++x)
+        {
+            glm::vec2 p{
+                (x - (r.x + m_espace)) / r.w * (m_max.x - m_min.x) + m_min.x,
+                (1.f - ((y - (r.y + m_espace)) / r.h)) * (m_max.y - m_min.y) + m_min.y
+            };
+
+            glm::vec3 col = trend_fn(p) * 255.f;
+            SDL_SetRenderDrawColor(rend, col.r, col.g, col.b, 150);
+            SDL_RenderDrawPoint(rend, x, y);
+        }
+    }
+
+    SDL_SetRenderDrawBlendMode(rend, SDL_BLENDMODE_NONE);
 }
 
 void graph::Graph2::load(const std::string &config)

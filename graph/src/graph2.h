@@ -29,8 +29,10 @@ namespace graph
         Graph2(const std::string &data_fp);
         ~Graph2();
 
-        void render(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &func) const;
+        void render(SDL_Renderer *rend, SDL_Rect r) const;
         void render_shape(SDL_Renderer *rend, SDL_Rect r, const DataPoint2 &p) const;
+        void render_line(SDL_Renderer *rend, SDL_Rect r, const std::function<float(float)> &line_fn, glm::vec3 color) const;
+        void render_trend(SDL_Renderer *rend, SDL_Rect r, const std::function<glm::vec3(glm::vec2)> &trend_fn) const;
 
         void load(const std::string &config);
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.8)  31 DEC 2022 22:19
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.8)  2 JAN 2023 14:28
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -385,13 +385,13 @@ l.44
 <./images//nn/dense_layer.png, id=127, 341.275pt x 154.5775pt>
 File: ./images//nn/dense_layer.png Graphic file (type png)
 <use ./images//nn/dense_layer.png>
-Package pdftex.def Info: ./images//nn/dense_layer.png  used on input line 262.
+Package pdftex.def Info: ./images//nn/dense_layer.png  used on input line 275.
 (pdftex.def)             Requested size: 341.27415pt x 154.5771pt.
 <./images//nn/compgraph-ex/nn.png, id=128, 180.675pt x 84.315pt>
 File: ./images//nn/compgraph-ex/nn.png Graphic file (type png)
 <use ./images//nn/compgraph-ex/nn.png>
 Package pdftex.def Info: ./images//nn/compgraph-ex/nn.png  used on input line 2
-82.
+95.
 (pdftex.def)             Requested size: 180.67455pt x 84.31477pt.
  [5 <./images//nn/dense_layer.png (PNG copy)> <./images//nn/compgraph-ex/nn.png
  (PNG copy)>]
@@ -399,7 +399,7 @@ Package pdftex.def Info: ./images//nn/compgraph-ex/nn.png  used on input line 2
 File: ./images//nn/compgraph-ex/compgraph.png Graphic file (type png)
 <use ./images//nn/compgraph-ex/compgraph.png>
 Package pdftex.def Info: ./images//nn/compgraph-ex/compgraph.png  used on input
- line 298.
+ line 311.
 (pdftex.def)             Requested size: 493.04266pt x 63.43706pt.
  [6 <./images//nn/compgraph-ex/compgraph.png (PNG copy)>] (build/ml.aux)
 Package rerunfilecheck Info: File `ml.out' has not changed.
@@ -408,11 +408,11 @@ Package rerunfilecheck Info: File `ml.out' has not changed.
 Here is how much of TeX's memory you used:
  9441 strings out of 478238
  147564 string characters out of 5850456
- 460556 words of memory out of 5000000
+ 461556 words of memory out of 5000000
  27534 multiletter control sequences out of 15000+600000
  475130 words of font info for 48 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 60i,10n,63p,298b,395s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,10n,63p,298b,338s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/publi
@@ -422,7 +422,7 @@ cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr
 st/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/p
 ublic/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts
 /cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on build/ml.pdf (7 pages, 187764 bytes).
+Output written on build/ml.pdf (7 pages, 190207 bytes).
 PDF statistics:
  196 PDF objects out of 1000 (max. 8388607)
  162 compressed objects within 2 object streams

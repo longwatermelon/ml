@@ -154,10 +154,23 @@ $\frac{\partial J(\vec{w},b)}{\partial w_j}$ and $\frac{\partial J(\vec{w},b)}{\
 
 Generalization of logistic regression, $y$ can have more than two possible values.
 
-\begin{align*}
-z_i &= \vec{w}_i \cdot \vec{x} + b_i\\
-a_i &= \frac{e^{z_i}}{\sum_{k=1}^{n} e^{z_k}}
-\end{align*}
+The most probable value of $y$ is the value that when given to $L$ yields the largest loss.
+
+Calculate $z_i$ with $\vec{x}$ only consisting of data points that have label $i$?
+
+$n_f$ = num features
+
+$n_y$ = number of possible $y$ outputs
+
+$W$ is now a matrix of dimensions $n \times n_f$.
+
+$\vec{b}$ is now a vector of length $n_y$.
+
+\begin{gather*}
+1 \leq i \leq n_y\\
+z_i = \vec{W}_i \cdot \vec{x} + b_i\\
+a_i = \frac{e^{z_i}}{\sum_{k=1}^{n_y} e^{z_k}}
+\end{gather*}
 
 \begin{equation}
 L(\vec{a}, y) =
