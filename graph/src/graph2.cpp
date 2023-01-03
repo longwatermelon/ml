@@ -50,6 +50,12 @@ void graph::Graph2::render_shape(SDL_Renderer *rend, SDL_Rect r, const DataPoint
     float x = gx2scr(p.p.x, r) - m_shape_dim / 2.f;
     float y = r.y + (r.h - (gy2scr(p.p.y, r) - r.y)) - m_shape_dim / 2.f;
 
+    if (p.shape > m_shapes.size())
+    {
+        fprintf(stderr, "Error: %zu is an invalid shape index.\n", p.shape);
+        exit(EXIT_FAILURE);
+    }
+
     Graph2Shape shape = m_shapes[p.shape];
     SDL_SetRenderDrawColor(rend, shape.col.r * 255.f, shape.col.g * 255.f, shape.col.b * 255.f, 255);
     for (size_t i = 0; i < shape.points.size(); i += 2)
