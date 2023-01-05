@@ -22,33 +22,28 @@ int main()
     common::add_square_shape(graph);
     common::add_plus_shape(graph);
 
-    std::array<std::array<float, NF>, NY> mw;
-    for (auto &vw : mw) vw.fill(0.f);
-    std::array<float, NY> vb;
-    vb.fill(0.f);
+    // mw is NY x NF
+    std::vector<std::vector<float>> mw(NY);
+    for (auto &vw : mw) vw = std::vector<float>(NF);
+    std::vector<float> vb(NY);
 
-    std::vector<DataPoint<NF>> data;
+    std::vector<DataPoint> data;
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint<NF>({ p.p.x, p.p.y }, p.shape));
+        data.emplace_back(DataPoint({ p.p.x, p.p.y }, p.shape));
 
     for (size_t i = 0; i < 1000; ++i)
     {
         for (int j = 0; j < NY; ++j)
         {
-            std::vector<DataPoint<NF>> data_copy = data;
+            std::vector<DataPoint> data_copy = data;
             for (auto &dp : data_copy)
-            {
-                if (dp.y == j)
-                    dp.y = 1;
-                else
-                    dp.y = 0;
-            }
+                dp.y = dp.y == j ? 1 : 0;
 
-            general::descend<NF>(mw[j], vb[j], .1f, data_copy,
-                    [mw, vb](const std::array<float, NF> &vw,
-                       const std::array<float, NF> &vx,
+            general::descend(mw[j], vb[j], .1f, data_copy,
+                    [mw, vb](const std::vector<float> &vw,
+                       const std::vector<float> &vx,
                        float b){
-                std::array<float, NY> vz;
+                std::vector<float> vz(NY);
                 for (size_t i = 0; i < NY; ++i)
                     vz[i] = vec::dot(mw[i], vx) + vb[i];
 
@@ -93,10 +88,10 @@ int main()
 
         graph.render_trend(rend, graph_r,
                 [colors, mw, vb](glm::vec2 p){
-            std::array<float, NY> vz;
+            std::vector<float> vz(NY);
             for (int i = 0; i < NY; ++i)
                 vz[i] = vec::dot(mw[i], { p.x, p.y }) + vb[i];
-            std::array<float, NY> va = softmax::solve_va(vz);
+            std::vector<float> va = softmax::solve_va(vz);
             return va[0] * colors[0] + va[1] * colors[1] + va[2] * colors[2] + va[3] * colors[3];
         });
 
