@@ -26,17 +26,18 @@ int main(int argc, char **argv)
         { 1.f, 0.f, 0.f }
     ));
 
-    std::vector<DataPoint<1>> data;
+    // Single feature data points
+    std::vector<DataPoint> data;
     data.reserve(graph.data().size());
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint<1>({ p.p.x }, p.p.y));
+        data.emplace_back(DataPoint({ p.p.x }, p.p.y));
 
-    std::array<float, 1> vw = { 0.f };
+    std::vector<float> vw = { 0.f };
     float b = 0.f;
 
     graph::Graph3 graph3("data/logistic/graph3", [&](float x, float z){
-        return general::cost<1>(data, vw, [x, z](const DataPoint<1> &p){
-            return logistic::loss(logistic::f_wb({ x }, p.features, z), p.y);
+        return general::cost(data, vw, [x, z](const DataPoint &p){
+            return logistic::loss(logistic::f_wb(x, p.features[0], z), p.y);
         });
     });
 
@@ -77,7 +78,12 @@ int main(int argc, char **argv)
         const Uint8 *keystates = SDL_GetKeyboardState(0);
         if (keystates[SDL_SCANCODE_SPACE])
         {
-            general::descend<1>(vw, b, 1.f, data, logistic::f_wb);
+            general::descend(vw, b, 1.f, data,
+                    [](const std::vector<float> &vw,
+                       const std::vector<float> &vx,
+                       float b){
+                return logistic::f_wb(vw[0], vx[0], b);
+            });
             graph3.add_history(vw[0], b);
         }
 
@@ -85,7 +91,7 @@ int main(int argc, char **argv)
 
         graph.render(rend, { 0, 0, 600, 300 });
         graph.render_line(rend, { 0, 0, 600, 300 }, [vw, b](float x){
-            return logistic::f_wb(vw, { x }, b);
+            return logistic::f_wb(vw[0], x, b);
         }, { 0.f, 0.f, 1.f });
 
         graph3.render(rend, { 0, 300, 600, 300 });
