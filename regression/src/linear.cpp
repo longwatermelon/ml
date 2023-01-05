@@ -23,16 +23,17 @@ int main(int argc, char **argv)
     graph::Graph2 g("data/linear/graph");
     common::add_cross_shape(g);
 
-    std::vector<DataPoint<1>> data;
+    // 1 feature data
+    std::vector<DataPoint> data;
     for (const auto &p : g.data())
-        data.emplace_back(DataPoint<1>({ p.p.x }, p.p.y));
+        data.emplace_back(DataPoint({ p.p.x }, p.p.y));
 
-    std::array<float, 1> vw = { -500.f };
+    std::vector<float> vw = { -500.f };
     float b = -200.f;
 
     graph::Graph3 g3("data/linear/graph3", [&](float x, float z){
-        return general::cost<1>(data, vw, [x, z](const DataPoint<1> &p){
-            return std::pow(linear::f_wb({ x }, p.features, z) - p.y, 2);
+        return general::cost(data, vw, [x, z](const DataPoint &p){
+            return std::pow(linear::f_wb(x, p.features[0], z) - p.y, 2);
         });
     });
 
@@ -65,7 +66,12 @@ int main(int argc, char **argv)
         const Uint8 *keystates = SDL_GetKeyboardState(0);
         if (keystates[SDL_SCANCODE_SPACE])
         {
-            general::descend<1>(vw, b, .2f, data, linear::f_wb);
+            general::descend(vw, b, .2f, data,
+                    [](const std::vector<float> &vw,
+                       const std::vector<float> &vx,
+                       float b){
+                return linear::f_wb(vw[0], vx[0], b);
+            });
             g3.add_history(vw[0], b);
         }
 
