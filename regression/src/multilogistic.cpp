@@ -2,6 +2,7 @@
 #include "common.h"
 #include <graph2.h>
 
+#define NF 2
 using namespace reg;
 
 int main()
@@ -17,26 +18,25 @@ int main()
     common::add_cross_shape(graph);
     common::add_tri_shape(graph);
 
-    std::array<float, 2> vw;
-    vw.fill(0.f);
+    std::vector<float> vw(NF);
     float b = 0.f;
 
-    std::vector<DataPoint<2>> data;
+    std::vector<DataPoint> data;
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint<2>({ p.p.x, p.p.y }, p.shape));
+        data.emplace_back(DataPoint({ p.p.x, p.p.y }, p.shape));
 
     for (size_t i = 0; i < 10000; ++i)
     {
-        general::descend<2>(vw, b, .1f, data,
-                [](const std::array<float, 2> &vw,
-                   const std::array<float, 2> &vx,
+        general::descend(vw, b, .1f, data,
+                [](const std::vector<float> &vw,
+                   const std::vector<float> &vx,
                    float b){
             return multilogistic::g(multilogistic::f_wb(vw, vx, b));
         });
         if ((i + 1) % 1000 == 0)
             printf("Iteration %zu: w = [%f, %f], b = %f, cost = %f\n",
                     i + 1, vw[0], vw[1], b,
-                    2.f * general::cost<2>(data, vw, [vw, b](const DataPoint<2> &dp){
+                    2.f * general::cost(data, vw, [vw, b](const DataPoint &dp){
                         return logistic::loss(multilogistic::f_wb(vw, dp.features, b), dp.y);
                     }
             ));
