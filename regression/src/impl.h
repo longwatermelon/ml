@@ -12,6 +12,8 @@ namespace reg
     struct DataPoint
     {
         DataPoint() = default;
+        DataPoint(size_t n)
+            : features(n) {}
         DataPoint(const std::vector<float> &features, float y)
             : features(features), y(y) {}
 

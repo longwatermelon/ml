@@ -9,14 +9,15 @@ using namespace reg;
 int main(int argc, char **argv)
 {
     // Read data
-    std::vector<DataPoint<NF>> data;
+    // 4 feature data points
+    std::vector<DataPoint> data;
 
     std::ifstream ifs("data/multilinear/data");
     std::string buf;
 
     while (std::getline(ifs, buf))
     {
-        DataPoint<NF> p;
+        DataPoint p(NF);
         std::stringstream ss(buf);
 
         for (size_t i = 0; i < NF; ++i)
@@ -29,12 +30,11 @@ int main(int argc, char **argv)
     ifs.close();
 
     // Scale
-    std::array<float, NF> vsd, vmean;
+    std::vector<float> vsd(NF), vmean(NF);
     general::feature_scale(data, vsd, vmean);
 
     // Gradient descent
-    std::array<float, NF> vw;
-    vw.fill(0.f);
+    std::vector<float> vw(NF);
     float b = 0.f;
 
     for (int i = 0; i < 500; ++i)
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         if ((i + 1) % 100 == 0)
             printf("Iteration %d: w = [%f, %f, %f, %f], b = %f\n",
                     i + 1, vw[0], vw[1], vw[2], vw[3], b);
-        general::descend<NF>(vw, b, .1f, data, multilinear::f_wb<NF>);
+        general::descend(vw, b, .1f, data, multilinear::f_wb);
     }
 
     // Predict
