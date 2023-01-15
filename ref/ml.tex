@@ -3,6 +3,7 @@
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{indentfirst}
+\usepackage{amsfonts}
 \geometry{legalpaper, portrait, margin=0.5in}
 \usepackage{color}   %May be necessary if you want to color links
 \usepackage{hyperref}
@@ -80,31 +81,33 @@ b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
 
 \subsection{Multiple linear regression}
 
-$x$ is a list of lists in multiple linear regression. Notation for accessing by row and column is $x_{col}^{(row)}$
+$n_f$ = number of features
 
-$n$ = number of features
+$m$ = number of data points
+
+$\vec{w}$ = vector of length $n_f$
+
+$X$ is a matrix of size $m \times n_f$
 
 Sum of predictions of all features is the prediction of multiple linear reg
 
 \begin{align*}
-\vec w &= [w_1, w_2, w_3, \cdots, w_n]\\
-\vec x &= [x_1, x_2, x_3, \cdots, x_n]\\
 f_{\vec{w},b}(\vec{x}) &= \vec{w} \cdot \vec{x} + b
 \end{align*}
 
 Gradient descent
 
 \begin{align*}
-w_j &= w_j - \alpha \frac{\partial}{\partial w_j} J(\vec{w},b)\\
+\vec{w}_j &= \vec{w}_j - \alpha \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b)\\
 b &= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
 \end{align*}
 
 Cost function and its partial derivatives
 
 \begin{align*}
-J(\vec{w},b) &= \frac{1}{2m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)})^2\\
-\frac{\partial}{\partial w_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)}) x_j^{(i)}\\
-\frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)})
+J(\vec{w},b) &= \frac{1}{2m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - y^{(i)})^2\\
+\frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - y^{(i)}) x_j^{(i)}\\
+\frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - y^{(i)})
 \end{align*}
 
 \subsection{Logistic regression}
@@ -246,6 +249,29 @@ For gradient descent, only $\frac{\partial J_r}{\partial w_j}$ changes (b is not
 
 \section{Neural networks}
 
+$n_{\ell}$ = num layers excluding input
+
+$n^{[\ell]}_n$ = n neurons in layer $\ell$
+
+$n_f$ = num features
+
+$\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n_f$
+
+$\vec{x}$ is a vector of outputs from each neuron in previous layer
+
+$\vec{b}$ is a vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
+
+$\vec{z}$ and $\vec{a}$: same dimensions as $\vec{b}$
+
+$g$: activation function
+
+$1 \leq i \leq n_{\ell}$
+
+\begin{align*}
+\vec{z}^{[\ell]}_i &= \vec{W}^{[\ell]}_i \vec{x} + \vec{b}^{[\ell]}_i\\
+\vec{a}^{[\ell]} &= g(\vec{z}^{[\ell]})
+\end{align*}
+
 $a$ (activation) = scalar output of a single neuron
 
 Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
@@ -256,13 +282,21 @@ ReLU activation function: $g(z) = \max(0, z)$
 
 \subsection{Choosing an activation function}
 
+sigmoid: $a = \frac{1}{1 + e^{-z}}$
+
+tanh: $a = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
+
+ReLU: $a = \max(0, z)$
+
+Leaky ReLU: $a = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
+
 \subsubsection*{For output layer}
 
-Binary classification, y = 0/1: use sigmoid
+Binary classification, y = 0 or 1: use sigmoid
 
-Regression, y = +/-: use linear activation function
+Regression, y $\in \mathbb{R}$: use linear activation function
 
-Regression, y = 0/+: use ReLU
+Regression, y $\geq$ 0: use ReLU
 
 \subsubsection*{For hidden layer}
 
@@ -285,35 +319,5 @@ Input layer is $\ell = 0$.
 Each neuron only looks at a part of the previous layer's output.
 
 May have faster computation, and needs less training data (less prone to overfitting)
-
-\subsection{Computation graph}
-
-Computes derivatives of neural networks automatically
-
-Assume neural network shown below:
-
-\includegraphics{nn/compgraph-ex/nn}
-
-where:
-
-\begin{align*}
-a &= g(z) = z\\
-z &= wx + b\\
-J(w,b) &= \frac{1}{2} (a-y)^2
-\end{align*}
-
-Variables: $w = 2$, $b = 8$, $x = -2$, $y = 2$
-
-\pagebreak
-
-Use forward propagation to calculate cost function
-
-\includegraphics[scale=.8]{nn/compgraph-ex/compgraph}
-
-Computing $\frac{\partial J}{\partial w}$ and $\frac{\partial J}{\partial b}$ will require back propagation.
-
-Start from last node in the graph, and determine how $J$ changes if $d$ changes by some small value $\epsilon$.
-
-If $\epsilon = 0.001$, $\delta J$ = 
 
 \end{document}
