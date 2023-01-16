@@ -44,7 +44,6 @@ namespace reg
                    const std::function<float(const DataPoint&)> &err_f,
                    float lambda = 0.f);
 
-        // N: num features
         // func parameters: vw, vx, b
         // All vectors have NF length
         void descend(std::vector<float> &vw, float &b, float a,
