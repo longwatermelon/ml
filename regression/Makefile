@@ -12,7 +12,7 @@ all: softmax
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/reg.cpp src/common.cpp
-	$(CXX) $@.o impl.o common.o $(LDFLAGS)
+	$(CXX) $@.o reg.o common.o $(LDFLAGS)
 
 lib:
 	$(CXX) $(CXXFLAGS) -c src/reg.cpp

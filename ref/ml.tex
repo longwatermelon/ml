@@ -256,7 +256,7 @@ $n^{[\ell]}_n$ = n neurons in layer $\ell$
 
 $n_f$ = num features
 
-$\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n_f$
+$\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n^{[\ell-1]}_n$
 
 $\vec{x}$ is a vector of outputs from each neuron in previous layer
 
@@ -267,11 +267,6 @@ $Z$ and $A$: vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
 $g$: activation function
 
 $1 \leq i \leq n_{\ell}$
-
-\begin{align*}
-    Z^{[\ell]}_i &= \vec{W}^{[\ell]}_i \vec{x} + \vec{b}^{[\ell]}\\
-    A^{[\ell]} &= g(Z^{[\ell]})
-\end{align*}
 
 $a$ (activation) = scalar output of a single neuron
 

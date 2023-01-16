@@ -1,25 +1,24 @@
 #include "deepnn.h"
-#include <impl.h>
+#include <reg.h>
 #include <cstddef>
+
+void nn::Model::compile()
+{
+    for (size_t i = 1; i < m_layers.size(); ++i)
+    {
+        int prev_nunits = m_layers[i - 1].nunits;
+        for (auto &vw : m_layers[i].mw)
+            vw = std::vector<float>(prev_nunits, 0.f);
+    }
+}
 
 void nn::Model::fit(const std::vector<std::vector<float>> &mx,
          const std::vector<float> &y, size_t epochs)
 {
-    for (size_t i = 0; i < epochs; ++i)
-    {
-        forward_prop(mx);
-        back_prop();
-    }
 }
 
 void nn::Model::forward_prop(const std::vector<std::vector<float>> &mx)
 {
-    auto solve_va = [&](const std::vector<float> &va_prev){
-    };
-
-    for (size_t i = 0; i <= m_layers.size(); ++i)
-    {
-    }
 }
 
 void nn::Model::back_prop()

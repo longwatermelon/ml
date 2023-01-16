@@ -6,19 +6,21 @@ LDFLAGS=-L../lib -lreg
 SRC=$(wildcard src/*.cpp)
 OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
 
-.PHONY: dirs clean
+.PHONY: graph
 
-all: dirs target
+all: cats
 
-target: $(OBJS)
-	$(CXX) $(CXXFLAGS) $^ $(LDFLAGS)
+%: src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/deepnn.cpp
+	$(CXX) $@.o deepnn.o $(LDFLAGS)
 
-obj/src/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $< -o $@
+lib:
+	$(CXX) $(CXXFLAGS) -c src/deepnn.cpp
+	$(AR) $(ARFLAGS) ../lib/libnn.a deepnn.o
 
-dirs:
-	mkdir -p obj/src
+reg:
+	$(MAKE) -C ../regression lib
 
 clean:
-	-rm -rf obj/ a.out
+	-rm *.o a.out
 
