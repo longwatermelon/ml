@@ -7,6 +7,7 @@ namespace nn
 {
     enum class Activation
     {
+        None,
         Relu,
         Sigmoid,
         Linear
@@ -20,7 +21,7 @@ namespace nn
     struct Layer
     {
         int nunits{ 0 };
-        Activation activation{ Activation::Relu };
+        Activation activation{ Activation::None };
 
         std::vector<std::vector<float>> mw;
         std::vector<float> mb;
@@ -40,6 +41,7 @@ namespace nn
             : m_layers(layers) {}
         ~Model() = default;
 
+        // First hidden layer will not have its column vectors initialized until Model::fit
         void compile();
 
         void fit(const std::vector<std::vector<float>> &mx,
