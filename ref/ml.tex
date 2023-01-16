@@ -261,42 +261,40 @@ $\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \tim
 
 $\vec{x}$ is a vector of outputs from each neuron in previous layer
 
-$\vec{b}$ is a vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
+$\vec{b}$ is a vector (length $n_{\ell}$), holds a bias value for each layer
 
-$\vec{z}$ and $\vec{a}$: same dimensions as $\vec{b}$
+$Z$ and $A$: vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
 
 $g$: activation function
 
 $1 \leq i \leq n_{\ell}$
 
 \begin{align*}
-\vec{z}^{[\ell]}_i &= \vec{W}^{[\ell]}_i \vec{x} + \vec{b}^{[\ell]}_i\\
-\vec{a}^{[\ell]} &= g(\vec{z}^{[\ell]})
+    Z^{[\ell]}_i &= \vec{W}^{[\ell]}_i \vec{x} + \vec{b}^{[\ell]}\\
+    A^{[\ell]} &= g(Z^{[\ell]})
 \end{align*}
 
 $a$ (activation) = scalar output of a single neuron
 
 Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
 
-Activation functions are functions a neuron uses to output a value, more in section 2.2.
-
-ReLU activation function: $g(z) = \max(0, z)$
-
 \subsection{Choosing an activation function}
 
-sigmoid: $a = \frac{1}{1 + e^{-z}}$
+sigmoid: $g(z) = \frac{1}{1 + e^{-z}}$
 
-tanh: $a = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
+tanh: $g(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
 
-ReLU: $a = \max(0, z)$
+linear: $g(z) = z$
 
-Leaky ReLU: $a = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
+ReLU: $g(z) = \max(0, z)$
+
+Leaky ReLU: $g(z) = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
 
 \subsubsection*{For output layer}
 
 Binary classification, y = 0 or 1: use sigmoid
 
-Regression, y $\in \mathbb{R}$: use linear activation function
+Regression, $-\infty \leq y \leq \infty$: use linear activation function
 
 Regression, y $\geq$ 0: use ReLU
 
@@ -304,22 +302,26 @@ Regression, y $\geq$ 0: use ReLU
 
 ReLU is most common
 
-\subsection{Layer types}
+\subsection{Forward propagation}
 
-\subsubsection*{Dense layer}
+Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\vec{b}^{[\ell]}$
 
-\includegraphics{nn/dense_layer}
+\begin{align*}
+    Z^{[\ell]} &= W^{[\ell]} A^{[\ell-1]} + \vec{b}^{[\ell]}\\
+    A^{[\ell]} &= g^{[\ell]}(Z^{[\ell]})
+\end{align*}
 
-Activation value of unit (neuron) $j$ in layer $\ell$
+Up to $A^{[n_{\ell}]}$, in which case $\hat{y} = A^{[n_{\ell}]}_0$ assuming output layer has one unit
 
-\[ a_j^{[\ell]} = g(\vec{w}_j^{[\ell]} \cdot \vec{a}^{[\ell - 1]} + b_j^{[\ell]}) \]
+\subsection{Back propagation}
 
-Input layer is $\ell = 0$.
+Input $\dif a^{[\ell]}$, output $\dif a^{[\ell-1]}$, $\dif W^{[\ell-1]}$, $\dif \vec{b}^{[\ell-1]}$
 
-\subsubsection*{Convolutional layer}
-
-Each neuron only looks at a part of the previous layer's output.
-
-May have faster computation, and needs less training data (less prone to overfitting)
+\begin{align*}
+    \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot \frac{\dif g^{[\ell]}(Z^{[\ell]})}{\dif Z^{[\ell]}}\\
+    \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} \cdot A^{[\ell-1] T}\\
+    \dif \vec{b}^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i\\
+    \dif A^{[\ell-1]} &= W^{[\ell] T} \cdot \dif Z^{[\ell]}
+\end{align*}
 
 \end{document}
