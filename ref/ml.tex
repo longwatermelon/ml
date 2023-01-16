@@ -51,9 +51,11 @@ Measures how well line fits training data
 
 $m$ = num of training examples
 
+$\vec{x}$ holds training example x values (length $m$)
+
 $\vec{y}$ holds training example y values (length $m$)
 
-${\hat y}^{(i)}$ = $wx^{(i)} + b$
+${\hat y}^{(i)}$ = $w\vec{x}^{(i)} + b$
 
 \[ J(w,b) = \frac{1}{2m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i)^2 \]
 
@@ -73,10 +75,10 @@ $\alpha$ = learning rate
 Must simultaneously update $w$ and $b$
 
 \begin{align*}
-w_1 &= w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
-b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
-\frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i) x^{(i)}\\
-\frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i)
+    w_1 &= w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
+    b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
+    \frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i) \vec{x}^{(i)}\\
+    \frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i)
 \end{align*}
 
 \subsection{Multiple linear regression}
@@ -85,29 +87,29 @@ $n_f$ = number of features
 
 $m$ = number of data points
 
-$\vec{w}$ = vector of length $n_f$
+$\vec{w}$ = vector of weights (length $n_f$)
 
-$X$ is a matrix of size $m \times n_f$
+$X$ is a list of x vectors which hold $n_f$ features (size $m \times n_f$)
 
 Sum of predictions of all features is the prediction of multiple linear reg
 
 \begin{align*}
-f_{\vec{w},b}(\vec{x}) &= \vec{w} \cdot \vec{x} + b
+    f_{\vec{w},b}(\vec{x}) &= \vec{w} \cdot \vec{x} + b
 \end{align*}
 
 Gradient descent
 
 \begin{align*}
-\vec{w}_j &= \vec{w}_j - \alpha \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b)\\
-b &= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
+    \vec{w}_j &= \vec{w}_j - \alpha \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b)\\
+    b &= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
 \end{align*}
 
 Cost function and its partial derivatives
 
 \begin{align*}
-J(\vec{w},b) &= \frac{1}{2m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)^2\\
-\frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i) X_j^{(i)}\\
-\frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)
+    J(\vec{w},b) &= \frac{1}{2m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)^2\\
+    \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i) X_j^{(i)}\\
+    \frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)
 \end{align*}
 
 \subsection{Logistic regression}
@@ -115,41 +117,37 @@ J(\vec{w},b) &= \frac{1}{2m} \sum_{i=0}^{m-1} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_
 Sigmoid function
 
 \begin{gather*}
-g(z) = \frac{1}{1 + e^{-z}}\\
-0 < g(z) < 1
+    g(z) = \frac{1}{1 + e^{-z}}\\
+    0 < g(z) < 1\\
+    z = f_{\vec{w},b}(\vec{x})
 \end{gather*}
 
-From sigmoid function to logistic regression formula
+The output of $g$ can be interpreted as the "probability" that class is 1.
 
-\begin{align*}
-z &= \vec{w} \cdot \vec{x} + b\\
-f_{\vec{w},b}(\vec{x}) &= g(z)
-\end{align*}
-
-The output of $f$ can be interpreted as the "probability" that class is 1.
-
-ex. $f_{\vec{w},b}(\vec{x}) = 0.7$ means there is a 70\% chance $y$ is 1
+ex. $g(z) = 0.7$ means there is a 70\% chance $y$ is 1
 
 Logistic regression requires a new cost function because $f_{\vec{w},b}(\vec{x})$ for logistic regression is non-convex, trapping gradient descend in local minima.
 
 Cost function
 
-\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(f_{\vec{w},b}(X^{(i)}),\vec{y}_i) \]
+$\hat{y}^{(i)}$ = $g(f_{\vec{w},b}(X^{(i)}))$
+
+\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(g_z,\vec{y}_i) \]
 
 \begin{equation*}
-L(f_{\vec{w},b}(X^{(i)}),\vec{y}_i) = 
+L(\hat{y}^{(i)},\vec{y}_i) = 
   \left\{
     \begin{aligned}
-      & -\log(f_{\vec{w},b}(X^{(i)}) & \text{if } \vec{y}_i = 1 \\
-      & -\log(1 - f_{\vec{w},b}(X^{(i)})) & \text{if } \vec{y}_i = 0
+      & -\log(\hat{y}^{(i)}) & \text{if } \vec{y}_i = 1 \\
+      & -\log(1 - \hat{y}^{(i)}) & \text{if } \vec{y}_i = 0
     \end{aligned}
   \right.
 \end{equation*}
 
 Simplified form
-\[ L(f_{\vec{w},b}(X^{(i)}), \vec{y}_i) = -\vec{y}_i \log(f_{\vec{w},b}(X^{(i)})) - (1 - \vec{y}_i) \log (1 - f_{\vec{w},b}(X^{(i)})) \]
+\[ L(\hat{y}^{(i)}, \vec{y}_i) = -\vec{y}_i \log(\hat{y}^{(i)}) - (1 - \vec{y}_i) \log (1 - \hat{y}^{(i)}) \]
 
-The loss function will decrease as $f$ approaches $\vec{y}_i$ on a graph of $L$ vs $f$.
+The loss function will decrease as $\hat{y}^{(i)}$ approaches $\vec{y}_i$ on a graph of $L$ vs $f$.
 
 $\frac{\partial J(\vec{w},b)}{\partial \vec{w}_j}$ and $\frac{\partial J(\vec{w},b)}{\partial b}$ are the same as in linear regression, just the definition of $f$ has changed.
 
@@ -170,9 +168,9 @@ $W$ is a matrix of dimensions $n_y \times n_f$.
 $\vec{b}$, $\vec{z}$, $\vec{a}$ are vectors of length $n_y$.
 
 \begin{gather*}
-1 \leq i \leq n_y\\
-\vec{z}_i = W^{(i)} \cdot \vec{x} + \vec{b}_i\\
-\vec{a}_i = \frac{e^{\vec{z}_i}}{\sum_{k=1}^{n_y} e^{\vec{z}_k}}
+    1 \leq i \leq n_y\\
+    \vec{z}_i = W^{(i)} \cdot \vec{x} + \vec{b}_i\\
+    \vec{a}_i = \frac{e^{\vec{z}_i}}{\sum_{k=1}^{n_y} e^{\vec{z}_k}}
 \end{gather*}
 
 \begin{equation}
@@ -198,9 +196,9 @@ $\vec{\mu}_j$ = mean of all values for feature $j$ (length $n_f$)
 $\vec{\sigma}_j$ = standard deviation of feature $j$ (length $n_f$)
 
 \begin{align*}
-X_j^{(i)} &= \frac{X_j^{(i)} - \vec{\mu}_j}{\vec{\sigma}_j}\\
-\vec{\mu}_j &= \frac{1}{m} \sum_{i=0}^{m-1} X_j^{(i)}\\
-\vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (X_j^{(i)} - \vec{\mu}_j)^2
+    X_j^{(i)} &= \frac{X_j^{(i)} - \vec{\mu}_j}{\vec{\sigma}_j}\\
+    \vec{\mu}_j &= \frac{1}{m} \sum_{i=0}^{m-1} X_j^{(i)}\\
+    \vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (X_j^{(i)} - \vec{\mu}_j)^2
 \end{align*}
 
 \subsection{Over / underfitting}
