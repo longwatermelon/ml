@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cstddef>
 
 namespace nn
 {
@@ -31,7 +32,14 @@ namespace nn
             : m_layers(layers) {}
         ~Model() = default;
 
-        void compile(Losses loss);
+        void fit(const std::vector<std::vector<float>> &mx,
+                 const std::vector<float> &y, size_t epochs);
+
+        void set_loss(Losses loss);
+
+    private:
+        void forward_prop(const std::vector<std::vector<float>> &mx);
+        void back_prop();
 
     private:
         std::vector<Layer> m_layers;

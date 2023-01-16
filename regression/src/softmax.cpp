@@ -1,4 +1,4 @@
-#include "impl.h"
+#include "reg.h"
 #include "common.h"
 #include <graph2.h>
 

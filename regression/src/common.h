@@ -1,5 +1,4 @@
 #pragma once
-#include "impl.h"
 #include <vector>
 #include <cstddef>
 #include <graph2.h>

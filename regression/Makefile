@@ -11,12 +11,12 @@ ARFLAGS=rc
 all: softmax
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/impl.cpp src/common.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/reg.cpp src/common.cpp
 	$(CXX) $@.o impl.o common.o $(LDFLAGS)
 
 lib:
-	$(CXX) $(CXXFLAGS) -c src/impl.cpp
-	$(AR) $(ARFLAGS) ../lib/libreg.a impl.o
+	$(CXX) $(CXXFLAGS) -c src/reg.cpp
+	$(AR) $(ARFLAGS) ../lib/libreg.a reg.o
 
 graph:
 	$(MAKE) -C ../graph
