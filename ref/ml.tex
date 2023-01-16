@@ -44,6 +44,9 @@
 \pagebreak
 
 \section{Regression}
+
+Important: Gradient descent and predictions are different. When finding optimal parameters, a dataset will be used, while a single data point will be used in prediction, outputting a single prediction value.
+
 \subsection{Linear regression}
 \subsubsection{Squared error cost function}
 
@@ -116,23 +119,21 @@ Cost function and its partial derivatives
 
 Sigmoid function
 
-\begin{gather*}
-    g(z) = \frac{1}{1 + e^{-z}}\\
-    0 < g(z) < 1\\
-    z = f_{\vec{w},b}(\vec{x})
-\end{gather*}
+\begin{align*}
+    g(z) &= \frac{1}{1 + e^{-z}}\\
+    z &= f_{\vec{w},b}(\vec{x})\\
+    \hat{y}^{(i)} &= g(f_{\vec{w},b}(X^{(i)}))
+\end{align*}
 
-The output of $g$ can be interpreted as the "probability" that class is 1.
+$\hat{y}^{(i)}$ can be interpreted as the "probability" that class is 1, $0 \leq \hat{y}^{(i)} \leq 1$
 
-ex. $g(z) = 0.7$ means there is a 70\% chance $y$ is 1
+ex. $\hat{y}^{(i)} = 0.7$ means there is a 70\% chance $y$ is 1
 
 Logistic regression requires a new cost function because $f_{\vec{w},b}(\vec{x})$ for logistic regression is non-convex, trapping gradient descend in local minima.
 
 Cost function
 
-$\hat{y}^{(i)}$ = $g(f_{\vec{w},b}(X^{(i)}))$
-
-\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(g_z,\vec{y}_i) \]
+\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(\hat{y}^{(i)},\vec{y}_i) \]
 
 \begin{equation*}
 L(\hat{y}^{(i)},\vec{y}_i) = 
@@ -157,7 +158,7 @@ Generalization of logistic regression, $y$ can have more than two possible value
 
 The most probable value of $y$ is the value that when given to $L$ yields the largest loss.
 
-Calculate $z_i$ with $\vec{x}$ only consisting of data points that have label $i$?
+Calculate $z_i$ with $\vec{x}$ only consisting of data points that have label $i$. In implementation, set all $y$ values of data points with label equal to $i$ to 1, and 0 for everything else.
 
 $n_f$ = num features
 
