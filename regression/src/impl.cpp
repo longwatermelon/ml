@@ -154,9 +154,14 @@ float reg::multilinear::f_wb(const std::vector<float> &vw, const std::vector<flo
 }
 
 //// LOGISTIC
+float reg::logistic::g(float z)
+{
+    return 1.f / (1.f + std::exp(-z));
+}
+
 float reg::logistic::f_wb(float w, float x, float b)
 {
-    return 1.f / (1.f + std::exp(-(w * x + b)));
+    return w * x + b;
 }
 
 float reg::logistic::loss(float prediction, float data_y)

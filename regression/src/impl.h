@@ -68,6 +68,7 @@ namespace reg
 
     namespace logistic
     {
+        float g(float z);
         float f_wb(float w, float x, float b);
         float loss(float prediction, float data_y);
     }
