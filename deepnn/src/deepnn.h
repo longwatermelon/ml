@@ -5,15 +5,20 @@ namespace nn
 {
     enum class Activation
     {
-        RELU,
-        LINEAR,
-        SIGMOID
+        ReLU,
+        Sigmoid,
+        Linear
+    };
+
+    enum class Losses
+    {
+        SparseCategoricalCrossentropy
     };
 
     struct Layer
     {
         int nunits{ 0 };
-        Activation activation{ Activation::RELU };
+        Activation activation{ Activation::ReLU };
 
         Layer(int nunits, Activation activation)
             : nunits(nunits), activation(activation) {}
@@ -26,10 +31,11 @@ namespace nn
             : m_layers(layers) {}
         ~Model() = default;
 
-        void compile();
+        void compile(Losses loss);
 
     private:
         std::vector<Layer> m_layers;
+        Losses m_loss{ Losses::SparseCategoricalCrossentropy };
     };
 }
 
