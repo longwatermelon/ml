@@ -24,13 +24,15 @@ namespace nn
         Activation activation{ Activation::None };
 
         std::vector<std::vector<float>> mw;
-        std::vector<float> mb;
+        std::vector<float> vb, vz, va;
 
         Layer(int nunits, Activation activation)
             : nunits(nunits), activation(activation)
         {
             mw.resize(nunits);
-            mb.resize(nunits);
+            vb.resize(nunits);
+            vz.resize(nunits);
+            va.resize(nunits);
         }
     };
 
@@ -51,6 +53,7 @@ namespace nn
 
     private:
         void forward_prop(const std::vector<std::vector<float>> &mx);
+        void forward_prop_solve(nn::Layer &curr, const nn::Layer &prev);
         void back_prop();
 
     private:

@@ -4,7 +4,7 @@
 #include <array>
 #include <sstream>
 #include <functional>
-#include <glm/glm.hpp>
+#include <cmath>
 
 namespace reg
 {
@@ -27,6 +27,8 @@ namespace reg
         float dot(const std::vector<float> &a, const std::vector<float> &b);
         float sum(const std::vector<float> &v);
         std::string to_string(const std::vector<float> &v);
+
+        std::vector<float> matmul(const std::vector<std::vector<float>> &m, const std::vector<float> &v);
     }
 
     namespace general

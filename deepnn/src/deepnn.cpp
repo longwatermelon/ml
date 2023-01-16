@@ -15,9 +15,21 @@ void nn::Model::compile()
 void nn::Model::fit(const std::vector<std::vector<float>> &mx,
          const std::vector<float> &y, size_t epochs)
 {
+    for (size_t i = 0; i < epochs; ++i)
+    {
+        forward_prop(mx);
+        back_prop();
+    }
 }
 
 void nn::Model::forward_prop(const std::vector<std::vector<float>> &mx)
+{
+    for (size_t i = 0; i < m_layers.size(); ++i)
+    {
+    }
+}
+
+void nn::Model::forward_prop_solve(nn::Layer &curr, const nn::Layer &prev)
 {
 }
 

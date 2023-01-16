@@ -1,4 +1,5 @@
 #include "deepnn.h"
+#include <reg.h>
 
 int main()
 {
@@ -9,6 +10,15 @@ int main()
     });
 
     model.compile();
+
+    std::vector<std::vector<float>> mat = {
+        { 1, 0, 0 },
+        { 0, 1, 0 },
+        { 1, 0, 1 }
+    };
+
+    std::vector<float> v = { 1.f, 2.f, 3.f };
+    printf("%s\n", reg::vec::to_string(reg::vec::matmul(mat, v)).c_str());
 
     return 0;
 }

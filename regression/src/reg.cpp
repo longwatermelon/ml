@@ -38,6 +38,26 @@ std::string reg::vec::to_string(const std::vector<float> &v)
     return "[" + ss.str().substr(0, ss.str().size() - 2) + "]";
 }
 
+std::vector<float> reg::vec::matmul(const std::vector<std::vector<float>> &m, const std::vector<float> &v)
+{
+    if (v.size() != m[0].size())
+    {
+        fprintf(stderr, "[reg::vec::matmul] Matrix is shaped differently from vector.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    std::vector<float> res(v.size());
+
+    for (size_t r = 0; r < m.size(); ++r)
+    {
+        res[r] = 0.f;
+        for (size_t c = 0; c < m[r].size(); ++c)
+            res[r] += v[c] * m[r][c];
+    }
+
+    return res;
+}
+
 //// GENERAL
 float reg::general::calc_mean(const std::vector<float> &values)
 {
