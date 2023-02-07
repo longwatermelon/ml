@@ -296,7 +296,8 @@ Regression, y $\geq$ 0: use ReLU
 
 ReLU is most common
 
-\subsection{Forward propagation}
+\subsection{Training a model}
+\subsubsection{Forward propagation}
 
 Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\vec{b}^{[\ell]}$
 
@@ -307,15 +308,50 @@ Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\v
 
 Up to $A^{[n_{\ell}]}$, in which case $\hat{y} = A^{[n_{\ell}]}_0$ assuming output layer has one unit
 
-\subsection{Back propagation}
+\subsubsection{Back propagation}
 
 Input $\dif a^{[\ell]}$, output $\dif a^{[\ell-1]}$, $\dif W^{[\ell-1]}$, $\dif \vec{b}^{[\ell-1]}$
 
 \begin{align*}
-    \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot \frac{\dif g^{[\ell]}(Z^{[\ell]})}{\dif Z^{[\ell]}}\\
+    \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot g'^{[\ell]}(Z^{[\ell]})\\
     \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} \cdot A^{[\ell-1] T}\\
     \dif \vec{b}^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i\\
     \dif A^{[\ell-1]} &= W^{[\ell] T} \cdot \dif Z^{[\ell]}
 \end{align*}
+
+\subsection{Improving model}
+
+Cross validation: split data into training and test, use test data to determine how well the model generalizes
+
+\subsubsection{Fixing high bias/variance}
+
+High bias (underfit): $J_{train}$ high, $J_{train} \approx J_{cv}$
+
+High variance (overfit): $J_{train}$ may be low, $J_{cv} \gg J_{train}$
+
+High bias and high variance: $J_{train}$ high, $J_{cv} \gg J_{train}$
+
+How to fix:
+
+\begin{myenumerate}
+\item Get more training examples (fix high variance)
+\item Try smaller sets of features (fix high variance)
+\item Add more features (fix high bias)
+\item Add polynomial features (fix high bias)
+\item Decrease $\lambda$ (fix high bias)
+\item Increase $\lambda$ (fix high variance)
+\end{myenumerate}
+
+\textbf{Neural networks and bias/variance}
+
+If $J_{train}$ is high, make the network larger
+
+If $J_{cv}$ is high, get more data
+
+\subsubsection{Adding data}
+
+Data augmentation: add data with distortions (ex. distorted letters in a letter recognition program)
+
+\subsection{Decision trees}
 
 \end{document}

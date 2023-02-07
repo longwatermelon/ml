@@ -10,6 +10,14 @@ std::vector<float> reg::vec::apply_fn(std::vector<float> v,
     return v;
 }
 
+std::vector<float> reg::vec::apply_fn(std::vector<float> v,
+        const std::function<void(std::vector<float> &v, size_t i)> &fn)
+{
+    for (size_t i = 0; i < v.size(); ++i)
+        fn(v, i);
+    return v;
+}
+
 float reg::vec::dot(const std::vector<float> &a, const std::vector<float> &b)
 {
     if (a.size() != b.size())

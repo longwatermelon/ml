@@ -56,6 +56,8 @@ namespace nn
         void forward_prop_solve(nn::Layer &curr, const nn::Layer &prev);
         void back_prop();
 
+        std::vector<float> activation_fn(Activation type, const std::vector<float> &vz);
+
     private:
         std::vector<Layer> m_layers;
         Losses m_loss{ Losses::SparseCategoricalCrossentropy };

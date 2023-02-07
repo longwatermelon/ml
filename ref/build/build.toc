@@ -11,5 +11,10 @@
 \contentsline {subsubsection}{\numberline {1.6.1}Regularization}{4}{subsubsection.1.6.1}%
 \contentsline {section}{\numberline {2}Neural networks}{5}{section.2}%
 \contentsline {subsection}{\numberline {2.1}Choosing an activation function}{5}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Forward propagation}{5}{subsection.2.2}%
-\contentsline {subsection}{\numberline {2.3}Back propagation}{5}{subsection.2.3}%
+\contentsline {subsection}{\numberline {2.2}Training a model}{5}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Forward propagation}{5}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Back propagation}{5}{subsubsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.3}Improving model}{5}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Fixing high bias/variance}{6}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Adding data}{6}{subsubsection.2.3.2}%
+\contentsline {subsection}{\numberline {2.4}Decision trees}{6}{subsection.2.4}%
