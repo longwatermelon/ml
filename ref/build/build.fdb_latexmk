@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1675728603 "ml.tex" "build/build.pdf" "build/build" 1675728603
+["pdflatex"] 1676147599 "ml.tex" "build/build.pdf" "build/build" 1676147600
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1650183167 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1650183167 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1650183167 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -86,13 +86,19 @@
   "/usr/share/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty" 1650183167 9715 b051d5b493d9fe5f4bc251462d039e5f ""
   "/usr/share/texmf-dist/tex/latex/tools/indentfirst.sty" 1650183167 1618 786b14c5a3e144c3a51452d08232d18b ""
   "/usr/share/texmf-dist/tex/latex/url/url.sty" 1650183167 12796 8edb7d69a20b857904dd0ea757c14ec9 ""
+  "/usr/share/texmf-dist/tex/plain/gustlib/map/split.tex" 1650183167 1603 18f4e93cc271ff226e37d15eba07ce59 ""
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1650183167 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1672972439 334353 c825108cbc13fa4a18a274c473196142 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1667953992 2927665 aff6318dd201c05b3ae12bdbc851bc44 ""
-  "build/build.aux" 1675728603 3235 22bd5ad79ec78b497b77b075c03f9f63 "pdflatex"
-  "build/build.out" 1675728603 3182 9e4500310ddffe408949842dfc5db2e8 "pdflatex"
-  "build/build.toc" 1675728603 1729 73df9cbc85ef6234bcddd0f53fcb89c3 "pdflatex"
-  "ml.tex" 1675728597 11512 ec9754ff89162feb9b7ea9667dbc0a63 ""
+  "build/build.aux" 1676147600 3751 1f451c27b0b5f916358b884cc72485b0 "pdflatex"
+  "build/build.out" 1676147600 3920 853ee88a0ace66eff723f0bd679830d8 "pdflatex"
+  "build/build.toc" 1676147600 2081 00780bbf30b48ed62269e04294d8f7f9 "pdflatex"
+  "images//decision-tree.png" 1676135511 77723 28eb76caf4d8417d32efbe1ea2fab732 ""
+  "images//entropy.png" 1676133597 23792 f49eddd92686d74ad93cc846b94e4473 ""
+  "images//information-gain.png" 1676134817 41464 59758855257d714651b9d8d2e8d0819a ""
+  "images//purity.png" 1676133478 26339 facd2702e4cd3dc5e7f2161533f3dfca ""
+  "images//split.png" 1676134117 190093 b7360793513e26630e9b67afe46d3a01 ""
+  "ml.tex" 1676147598 13750 a7bdcc3eb76e76da3ea1fa1e22c320ec ""
   (generated)
   "build/build.aux"
   "build/build.log"

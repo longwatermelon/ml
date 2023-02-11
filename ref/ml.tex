@@ -350,6 +350,86 @@ If $J_{cv}$ is high, get more data
 
 Data augmentation: add data with distortions (ex. distorted letters in a letter recognition program)
 
-\subsection{Decision trees}
+\section{Decision trees}
+
+\subsection{Measuring purity}
+
+\textbf{Entropy as a measure of impurity}
+
+$p$ = fraction of examples that are cats
+
+\includegraphics{purity}
+
+$p$ = $\frac{1}{2}$
+
+Impurity can be measured with the entropy function $H(p)$
+
+\includegraphics{entropy}
+
+Higher $H$ = more pure
+
+Mathematically, $H$ is defined as:
+
+\begin{align*}
+    H(p) &= -p \log_2(p) - (1 - p) \log_2(1 - p)
+\end{align*}
+
+$0 \log(0)$ is defined as 0 for the function $H$
+
+\subsection{Choosing a split}
+
+\includegraphics[scale=.6]{split}
+
+To choose which feature to split data on is the best, calculate the weighted average of the entropy on the left
+and right branches, then choose which split has the highest entropy (most pure, which will give a good split).\\
+
+Average of ear shape split entropy: $0.5 H(0.8) + 0.5 H(0.2) = 0.28$
+
+Average of face shape split entropy: $0.7 H(0.57) + 0.3 H(0.33) = 0.03$
+
+Average of whiskers split entropy: $0.4 H(0.75) + 0.6 H(0.33) = 0.12$
+
+Ear shape has the largest entropy, so the best choice is to split based on ear shape.\\
+
+Formal definition of information gain:
+
+\includegraphics{information-gain}
+
+$p_{root}$ = number of positive examples (0.5 in this case)
+
+$p_{left}$ = 4/5
+
+$p_{right}$ = 1/5
+
+$w_{left}$ = 5/10
+
+$w_{right}$ = 5/10
+
+$H(p_{root}) - (w_{left} H(p_{left}) + w_{right} H(p_{right}))$
+
+\subsection{Constructing a decision tree}
+
+\begin{myenumerate}
+    \item Start with all examples at root node
+    \item Calculate information gain for all possible features, pick one with highest information gain
+    \item Split dataset according to selected feature, creating a left and right branch
+    \item Stop when stopping criteria is met (node is 100\% one class, information gain
+        from more splits is less than a threshold, num examples is below a threshold)
+\end{myenumerate}
+
+Final decision tree
+
+\includegraphics[scale=.5]{decision-tree}
+
+\subsection{Features with multiple possible values}
+
+\textbf{Known number of possible values}
+
+If a categorical feature can take on $k$ values, create $k$ binary features
+
+ex. Create a true/false feature for pointy ears, floppy ears, and oval ears instead of a single
+feature "ear shape" which takes on three possible values.\\
+
+\textbf{Unknown number of possible values}
 
 \end{document}

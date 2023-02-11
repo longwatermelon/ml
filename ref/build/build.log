@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.8)  6 FEB 2023 17:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2022.11.8)  11 FEB 2023 13:33
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -346,23 +346,64 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has b
 <to be read again> 
                    \relax 
 l.45 
-      [1] [2] [3] [4] [5] [6] (./build/build.aux)
+      [1] [2] [3] [4] [5]
+<./images//purity.png, id=189, 312.16624pt x 75.28125pt>
+File: ./images//purity.png Graphic file (type png)
+<use ./images//purity.png>
+Package pdftex.def Info: ./images//purity.png  used on input line 361.
+(pdftex.def)             Requested size: 312.16548pt x 75.28105pt.
+<./images//entropy.png, id=190, 296.10625pt x 207.77625pt>
+File: ./images//entropy.png Graphic file (type png)
+<use ./images//entropy.png>
+Package pdftex.def Info: ./images//entropy.png  used on input line 367.
+(pdftex.def)             Requested size: 296.10551pt x 207.77573pt.
+<./images//split.png, id=191, 814.04124pt x 279.0425pt>
+File: ./images//split.png Graphic file (type png)
+<use ./images//split.png>
+Package pdftex.def Info: ./images//split.png  used on input line 381.
+(pdftex.def)             Requested size: 488.42851pt x 167.42679pt.
+ [6 <./images//purity.png (PNG copy)> <./images//entropy.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 383--385
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 392--393
+
+ []
+
+<./images//information-gain.png, id=203, 272.01625pt x 204.765pt>
+File: ./images//information-gain.png Graphic file (type png)
+<use ./images//information-gain.png>
+Package pdftex.def Info: ./images//information-gain.png  used on input line 396.
+(pdftex.def)             Requested size: 272.01558pt x 204.76448pt.
+<./images//decision-tree.png, id=204, 442.65375pt x 318.18875pt>
+File: ./images//decision-tree.png Graphic file (type png)
+<use ./images//decision-tree.png>
+Package pdftex.def Info: ./images//decision-tree.png  used on input line 422.
+(pdftex.def)             Requested size: 221.32632pt x 159.09398pt.
+[7 <./images//split.png (PNG copy)> <./images//information-gain.png (PNG copy)> <./images//decision-tree.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 430--432
+
+ []
+
+[8] (./build/build.aux)
 Package rerunfilecheck Info: File `build/build.out' has not changed.
-(rerunfilecheck)             Checksum: 9E4500310DDFFE408949842DFC5DB2E8;3182.
+(rerunfilecheck)             Checksum: 853EE88A0ACE66EFF723F0BD679830D8;3920.
  ) 
 Here is how much of TeX's memory you used:
- 9522 strings out of 478238
- 148362 string characters out of 5850456
- 463049 words of memory out of 5000000
- 27600 multiletter control sequences out of 15000+600000
+ 9595 strings out of 478238
+ 149911 string characters out of 5850456
+ 463052 words of memory out of 5000000
+ 27660 multiletter control sequences out of 15000+600000
  476365 words of font info for 54 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 60i,11n,63p,298b,414s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,11n,63p,302b,414s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on build/build.pdf (7 pages, 145509 bytes).
+Output written on build/build.pdf (9 pages, 511509 bytes).
 PDF statistics:
- 237 PDF objects out of 1000 (max. 8388607)
- 203 compressed objects within 3 object streams
- 38 named destinations out of 1000 (max. 500000)
- 161 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 279 PDF objects out of 1000 (max. 8388607)
+ 238 compressed objects within 3 object streams
+ 48 named destinations out of 1000 (max. 500000)
+ 218 words of extra memory for PDF output out of 10000 (max. 10000000)
 

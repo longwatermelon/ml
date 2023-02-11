@@ -17,4 +17,8 @@
 \contentsline {subsection}{\numberline {2.3}Improving model}{5}{subsection.2.3}%
 \contentsline {subsubsection}{\numberline {2.3.1}Fixing high bias/variance}{6}{subsubsection.2.3.1}%
 \contentsline {subsubsection}{\numberline {2.3.2}Adding data}{6}{subsubsection.2.3.2}%
-\contentsline {subsection}{\numberline {2.4}Decision trees}{6}{subsection.2.4}%
+\contentsline {section}{\numberline {3}Decision trees}{6}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Measuring purity}{6}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}Choosing a split}{7}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}Constructing a decision tree}{7}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}Features with multiple possible values}{8}{subsection.3.4}%
