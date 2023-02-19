@@ -609,6 +609,10 @@ INPUT ./images//decision-tree.png
 INPUT ./images//decision-tree.png
 INPUT ./images//decision-tree.png
 INPUT ./images//decision-tree.png
+INPUT ./images//continuous-tree.png
+INPUT ./images//continuous-tree.png
+INPUT ./images//continuous-tree.png
+INPUT ./images//continuous-tree.png
 INPUT build/ml.aux
 INPUT build/ml.out
 INPUT build/ml.out

@@ -19,6 +19,11 @@
 \contentsline {subsubsection}{\numberline {2.3.2}Adding data}{6}{subsubsection.2.3.2}%
 \contentsline {section}{\numberline {3}Decision trees}{6}{section.3}%
 \contentsline {subsection}{\numberline {3.1}Measuring purity}{6}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Entropy as a measure of impurity}{6}{subsubsection.3.1.1}%
 \contentsline {subsection}{\numberline {3.2}Choosing a split}{7}{subsection.3.2}%
 \contentsline {subsection}{\numberline {3.3}Constructing a decision tree}{7}{subsection.3.3}%
 \contentsline {subsection}{\numberline {3.4}Features with multiple possible values}{8}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}Tree ensembles}{8}{subsection.3.5}%
+\contentsline {subsubsection}{\numberline {3.5.1}Sampling with replacement}{8}{subsubsection.3.5.1}%
+\contentsline {subsubsection}{\numberline {3.5.2}Random forest algorithm}{8}{subsubsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.3}XGBoost}{8}{subsubsection.3.5.3}%

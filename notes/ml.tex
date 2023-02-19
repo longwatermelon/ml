@@ -354,7 +354,7 @@ Data augmentation: add data with distortions (ex. distorted letters in a letter 
 
 \subsection{Measuring purity}
 
-\textbf{Entropy as a measure of impurity}
+\subsubsection{Entropy as a measure of impurity}
 
 $p$ = fraction of examples that are cats
 
@@ -366,7 +366,7 @@ Impurity can be measured with the entropy function $H(p)$
 
 \includegraphics{entropy}
 
-Higher $H$ = more pure
+Higher $H$ = less pure, more information gain
 
 Mathematically, $H$ is defined as:
 
@@ -381,7 +381,7 @@ $0 \log(0)$ is defined as 0 for the function $H$
 \includegraphics[scale=.6]{split}
 
 To choose which feature to split data on is the best, calculate the weighted average of the entropy on the left
-and right branches, then choose which split has the highest entropy (most pure, which will give a good split).\\
+and right branches, then choose which split has the highest entropy (least pure, which will give a good split).\\
 
 Average of ear shape split entropy: $0.5 H(0.8) + 0.5 H(0.2) = 0.28$
 
@@ -395,7 +395,7 @@ Formal definition of information gain:
 
 \includegraphics{information-gain}
 
-$p_{root}$ = number of positive examples (0.5 in this case)
+$p_{root}$ = percentage of positive examples (0.5 in this case)
 
 $p_{left}$ = 4/5
 
@@ -431,5 +431,51 @@ ex. Create a true/false feature for pointy ears, floppy ears, and oval ears inst
 feature "ear shape" which takes on three possible values.\\
 
 \textbf{Unknown number of possible values}
+
+\includegraphics[scale=.7]{continuous-tree}
+
+Split on weight $\le$ 8 lbs
+
+$p_{root}$ = 0.5
+
+$p_{left}$ = 1
+
+$p_{right}$ = 3/8
+
+$w_{left}$ = 2/10
+
+$w_{right}$ = 8/10
+
+$H(0.5) - (\frac{2}{10} H(1) + \frac{8}{10} H(\frac{3}{8}))$
+
+To find most optimal information gain (maximize $H$), make splits between every pair of adjacent data points and choose
+the one with the highest information gain.
+
+\subsection{Tree ensembles}
+
+Training multiple decision trees will lead to more accurate predictions since
+a single decision tree is sensitive to small changes in data.
+
+\subsubsection{Sampling with replacement}
+
+Take original training set of size $m$ and randomly select from the original training set to
+create a new training set of size $m$. Repeated data is expected.
+
+This will create new datasets that are similar to the original dataset, but are slightly different
+which will create unique decision trees.
+
+\subsubsection{Random forest algorithm}
+
+From $b$ = 1 to $B$: sampling with replacement to create new dataset, train decision tree on new dataset.
+
+$B$ is commonly around 100. Setting $B$ too large doesn't hurt performance but gives diminishing returns
+as it increases.\\
+
+Randomizing feature choice is another way to create more unique decision trees:
+Given $n$ features, give each decision tree a subset of all features of size $k$.
+
+A good value for $k$ is $k = \sqrt n$.
+
+\subsubsection{XGBoost}
 
 \end{document}
