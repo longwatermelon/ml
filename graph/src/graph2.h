@@ -51,6 +51,10 @@ namespace graph
         void add_square_shape();
         void add_plus_shape();
 
+        void push_datapoint(const DataPoint2 &dp);
+        void pop_datapoint();
+        void clear_data();
+
     private:
         float gx2scr(float x, SDL_Rect r) const;
         float gy2scr(float y, SDL_Rect r) const;

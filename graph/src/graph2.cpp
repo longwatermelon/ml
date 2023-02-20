@@ -187,3 +187,18 @@ void graph::Graph2::add_plus_shape()
         { 0.f, 0.f, 0.f }
     ));
 }
+
+void graph::Graph2::push_datapoint(const DataPoint2 &dp)
+{
+    m_data.emplace_back(dp);
+}
+
+void graph::Graph2::pop_datapoint()
+{
+    m_data.pop_back();
+}
+
+void graph::Graph2::clear_data()
+{
+    m_data.clear();
+}
