@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     data[9] = dtree::DataPoint({ 0, 1, 0 }, 0);
 
     std::unique_ptr<dtree::DTree> tree = dtree::create_dtree(data);
-    printf("%d\n", tree->predict({ (bool)std::stoi(argv[1]), (bool)std::stoi(argv[2]), (bool)std::stoi(argv[3]) }));
+    printf("%s\n", tree->predict({ (bool)std::stoi(argv[1]), (bool)std::stoi(argv[2]), (bool)std::stoi(argv[3]) }) ? "Cat" : "Not a cat");
 
     return 0;
 }
