@@ -46,6 +46,11 @@ namespace graph
         void set_espace(float espace) { m_espace = espace; }
         void set_shape_size(float size) { m_shape_dim = size; }
 
+        void add_cross_shape();
+        void add_tri_shape();
+        void add_square_shape();
+        void add_plus_shape();
+
     private:
         float gx2scr(float x, SDL_Rect r) const;
         float gy2scr(float y, SDL_Rect r) const;

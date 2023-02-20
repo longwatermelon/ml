@@ -141,3 +141,49 @@ float graph::Graph2::gy2scr(float y, SDL_Rect r) const
     return (y - m_min.y) / (m_max.y - m_min.y) * (r.h - (m_espace * 2.f)) + r.y + m_espace;
 }
 
+void graph::Graph2::add_cross_shape()
+{
+    add_shape(graph::Graph2Shape(
+        {
+            { 0.f, 0.f }, { 1.f, 1.f },
+            { 1.f, 0.f }, { 0.f, 1.f }
+        },
+        { 1.f, 0.f, 0.f }
+    ));
+}
+
+void graph::Graph2::add_tri_shape()
+{
+    add_shape(graph::Graph2Shape(
+        {
+            { .5f, 0.f }, { 0.f, 1.f },
+            { .5f, 0.f }, { 1.f, 1.f },
+            { 0.f, 1.f }, { 1.f, 1.f }
+        },
+        { 0.f, .5f, 1.f }
+    ));
+}
+
+void graph::Graph2::add_square_shape()
+{
+    add_shape(graph::Graph2Shape(
+        {
+            { 0.f, 0.f }, { 1.f, 0.f },
+            { 1.f, 0.f }, { 1.f, 1.f },
+            { 1.f, 1.f }, { 0.f, 1.f },
+            { 0.f, 0.f }, { 0.f, 1.f }
+        },
+        { .6f, .6f, 0 }
+    ));
+}
+
+void graph::Graph2::add_plus_shape()
+{
+    add_shape(graph::Graph2Shape(
+        {
+            { .5f, 0.f }, { .5f, 1.f },
+            { 0.f, .5f }, { 1.f, .5f }
+        },
+        { 0.f, 0.f, 0.f }
+    ));
+}

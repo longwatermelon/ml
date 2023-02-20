@@ -21,7 +21,7 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     graph::Graph2 g("data/linear/graph");
-    common::add_cross_shape(g);
+    g.add_cross_shape();
 
     // 1 feature data
     std::vector<DataPoint> data;

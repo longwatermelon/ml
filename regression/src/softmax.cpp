@@ -17,10 +17,10 @@ int main()
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     graph::Graph2 graph("data/softmax/data");
-    common::add_cross_shape(graph);
-    common::add_tri_shape(graph);
-    common::add_square_shape(graph);
-    common::add_plus_shape(graph);
+    graph.add_cross_shape();
+    graph.add_tri_shape();
+    graph.add_square_shape();
+    graph.add_plus_shape();
 
     // mw is NY x NF
     std::vector<std::vector<float>> mw(NY);

@@ -15,8 +15,8 @@ int main()
             SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     graph::Graph2 graph("data/multilogistic/data");
-    common::add_cross_shape(graph);
-    common::add_tri_shape(graph);
+    graph.add_cross_shape();
+    graph.add_tri_shape();
 
     std::vector<float> vw(NF);
     float b = 0.f;

@@ -18,13 +18,7 @@ int main(int argc, char **argv)
     SDL_Event evt;
 
     graph::Graph2 graph("data/logistic/graph");
-    graph.add_shape(graph::Graph2Shape(
-        {
-            { 0.f, 0.f }, { 1.f, 1.f },
-            { 1.f, 0.f }, { 0.f, 1.f }
-        },
-        { 1.f, 0.f, 0.f }
-    ));
+    graph.add_cross_shape();
 
     // Single feature data points
     std::vector<DataPoint> data;
