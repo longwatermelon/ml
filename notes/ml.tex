@@ -481,4 +481,54 @@ A good value for $k$ is $k = \sqrt n$.
 Instead of picking from all training data with equal probability in the random forest algorithm,
 make it more likely to pick misclassified examples from previous decision trees
 
+\section{Unsupervised learning}
+
+\subsection{Clustering: K-means}
+
+\subsubsection{Algorithm}
+
+\includegraphics[scale=.5]{images/clusters.png}
+
+Given a dataset like this, the algorithm will guess the centers of
+two different clusters (Determining number of clusters will be covered later).
+
+Once two cluster centers (or centroids) are guessed, each data point on the graph
+will be associated with the centroid it's closest to. The centroid will then move to
+the average position of all its data points.
+
+Eventually, the centroids will move to the center of the two clusters:
+
+\includegraphics[scale=.5]{images/cluster-finished.png}
+
+\subsubsection{Cost function}
+
+$k$ = num clusters
+
+$\vec{c}_i$ = index of cluster (1,2,$\ldots$,$k$) to which example $\vec{x}_i$ is currently assigned
+
+$\mu_i$ = cluster centroid $i$
+
+$\mu_{\vec{c}_i}$ = cluster centroid of cluster to which example $\vec{x}_i$ is currently assigned to
+
+\[ J(\vec{c},\vec{\mu}) = \frac{1}{m} \sum_{i=1}^m \| \vec{x}_i - \vec{\mu}_{\vec{c}_i} \|^2 \]
+
+The cost function can be used to determine how well the centroids predicted the clusters, and it can
+also determine when k-means is converging.
+
+The most optimal centroids can be determined by running k-means multiple times with random initial centroid
+positions every time, then choosing the result with the lowest cost.
+
+\subsubsection{Choosing k}
+
+\textbf{Elbow method}
+
+Plot cost as a function of $k$, choose $k$ where cost begins to decrease at a slow rate.
+
+\includegraphics[scale=.6]{elbow}
+
+In this graph, $k$ = 3 might be a good number of clusters. Although cost does continue to decrease as $k$ increases
+beyond 3, the number of clusters is too large and makes for less meaningful clusters.
+
+The "right" value of $k$ is often ambiguous however, which is an issue with the elbow method.
+
 \end{document}
