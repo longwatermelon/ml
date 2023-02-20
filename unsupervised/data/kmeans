@@ -1,0 +1,16 @@
+min 0 0
+max 50 50
+step 5 5
+
+data 10 10 0
+data 20 10 0
+data 10 20 0
+data 15 22 0
+data 14 10 0
+data 12 12 0
+
+data 30 30 0
+data 29 34 0
+data 35 40 0
+data 34 29 0
+data 38 38 0
