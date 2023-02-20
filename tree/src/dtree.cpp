@@ -10,6 +10,9 @@ static void check_uniformity(const std::vector<dtree::DataPoint> &yes,
     uniform_yes = true;
     uniform_no = true;
 
+    if (yes.empty()) uniform_yes = false;
+    if (no.empty()) uniform_no = false;
+
     for (size_t i = 1; i < yes.size(); ++i)
         if (yes[i].y != yes[i - 1].y)
             uniform_yes = false;
