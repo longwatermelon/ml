@@ -135,7 +135,7 @@ float reg::logistic::loss(float prediction, float data_y)
 // MULTILOGISTIC
 float reg::multilogistic::f_wb(const std::vector<float> &vw, const std::vector<float> &vx, float b)
 {
-    return vec::dot(vw, vx) + b;
+    return common::vec::dot(vw, vx) + b;
 }
 
 float reg::multilogistic::g(float z)
@@ -146,14 +146,14 @@ float reg::multilogistic::g(float z)
 //// SOFTMAX
 float reg::softmax::g(float z, const std::vector<float> &vz)
 {
-    return std::exp(z) / vec::sum(vec::apply_fn(vz, [](float z){ return std::exp(z); }));
+    return std::exp(z) / common::vec::sum(common::vec::apply_fn(vz, [](float z){ return std::exp(z); }));
 }
 
 std::vector<float> reg::softmax::solve_va(std::vector<float> vz)
 {
-    vz = vec::apply_fn(vz, [](float z){ return std::exp(z); });
-    float sum = vec::sum(vz);
-    vz = vec::apply_fn(vz, [sum](float z){ return z / sum; });
+    vz = common::vec::apply_fn(vz, [](float z){ return std::exp(z); });
+    float sum = common::vec::sum(vz);
+    vz = common::vec::apply_fn(vz, [sum](float z){ return z / sum; });
     return vz;
 }
 

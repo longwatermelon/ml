@@ -45,9 +45,9 @@ int main()
                        float b){
                 std::vector<float> vz(NY);
                 for (size_t i = 0; i < NY; ++i)
-                    vz[i] = vec::dot(mw[i], vx) + vb[i];
+                    vz[i] = common::vec::dot(mw[i], vx) + vb[i];
 
-                return softmax::g(vec::dot(vw, vx) + b, vz);
+                return softmax::g(common::vec::dot(vw, vx) + b, vz);
             });
         }
 
@@ -55,8 +55,8 @@ int main()
         {
             printf("Iteration %zu: mw = [ ", i);
             for (const auto &vw : mw)
-                printf("%s ", vec::to_string(vw).c_str());
-            printf("]| vb = %s\n", vec::to_string(vb).c_str());
+                printf("%s ", common::vec::to_string(vw).c_str());
+            printf("]| vb = %s\n", common::vec::to_string(vb).c_str());
         }
     }
 
@@ -90,7 +90,7 @@ int main()
                 [colors, mw, vb](glm::vec2 p){
             std::vector<float> vz(NY);
             for (int i = 0; i < NY; ++i)
-                vz[i] = vec::dot(mw[i], { p.x, p.y }) + vb[i];
+                vz[i] = common::vec::dot(mw[i], { p.x, p.y }) + vb[i];
             std::vector<float> va = softmax::solve_va(vz);
             return va[0] * colors[0] + va[1] * colors[1] + va[2] * colors[2] + va[3] * colors[3];
         });

@@ -6,16 +6,17 @@
 namespace common
 {
     // N: num features
+    template <typename T, typename U>
     struct DataPoint
     {
         DataPoint() = default;
         DataPoint(size_t n)
             : features(n) {}
-        DataPoint(const std::vector<float> &features, float y)
+        DataPoint(const std::vector<T> &features, U y)
             : features(features), y(y) {}
 
-        std::vector<float> features;
-        float y{ 0.f };
+        std::vector<T> features;
+        U y{};
     };
 
     namespace vec

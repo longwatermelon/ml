@@ -7,10 +7,10 @@
 #include <functional>
 #include <cmath>
 
-using namespace common;
-
 namespace reg
 {
+    using DataPoint = common::DataPoint<float, float>;
+
     namespace general
     {
         float calc_mean(const std::vector<float> &values);
