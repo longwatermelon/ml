@@ -1,6 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1676867573 "/home/long/workspace/ml/notes/ml.tex" "build/ml.pdf" "ml" 1676867573
-  "/home/long/workspace/ml/notes/ml.tex" 1676867573 17184 49d45853453c56f46da206d21fb9c439 ""
+["pdflatex"] 1676930350 "/home/long/workspace/ml/notes/ml.tex" "build/ml.pdf" "ml" 1676930350
+  "/home/long/workspace/ml/notes/ml.tex" 1676930350 19349 44d0c8701c306c4a093a1c5cb919bf01 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1650183167 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1650183167 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1650183167 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -28,6 +28,7 @@
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb" 1650183167 37166 8ab3487cbe3ab49ebce74c29ea2418db ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb" 1650183167 35469 70d41d2b9ea31d5d813066df7c99281c ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb" 1650183167 32722 d7379af29a190c3f453aba36302ff5a9 ""
+  "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb" 1650183167 32734 69e00a6b65cedb993666e42eedb3d48f ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb" 1650183167 32726 0a1aea6fcd6468ee2cf64d891f5c43c8 ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb" 1650183167 32569 5e5ddc8df908dea60932f3c484a54c0d ""
   "/usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb" 1650183167 32587 1788b0c1c5b39540c96f5e42ccd6dae8 ""
@@ -91,9 +92,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1650183167 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1672972439 334353 c825108cbc13fa4a18a274c473196142 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1667953992 2927665 aff6318dd201c05b3ae12bdbc851bc44 ""
-  "build/ml.aux" 1676867573 5055 a24edf70cd01f2d6a654323f8690e68a "pdflatex"
-  "build/ml.out" 1676867573 5463 dc545ed0a24899db974de8d143d0a4ba "pdflatex"
-  "build/ml.toc" 1676867573 2974 777467896fc2a13778d471ed483a3631 "pdflatex"
+  "build/ml.aux" 1676930350 5852 9f0f6d7712e1d91ff7d384771b73a798 "pdflatex"
+  "build/ml.out" 1676930350 6414 59e5423aba98f5e327d6410a20814c71 "pdflatex"
+  "build/ml.toc" 1676930350 3525 6e3c630c7bb58318e88a0a58da88341e "pdflatex"
   "images//continuous-tree.png" 1676834948 33612 341087b7b01795a08e70b34ba5aaed75 ""
   "images//decision-tree.png" 1676135511 77723 28eb76caf4d8417d32efbe1ea2fab732 ""
   "images//elbow.png" 1676867285 49998 12703c3faac11036f00ec5592d02e2cd ""
@@ -103,7 +104,8 @@
   "images//split.png" 1676134117 190093 b7360793513e26630e9b67afe46d3a01 ""
   "images/cluster-finished.png" 1676865038 61803 6b6024ae01c9648b8020148e3a23816c ""
   "images/clusters.png" 1676864778 39173 8029662c21beabe2466d7a6c00dcb893 ""
-  "ml.tex" 1676867573 17184 49d45853453c56f46da206d21fb9c439 ""
+  "images/normal-distribution.png" 1676924661 47952 6dbe6668b80cbd8e81da2c4dc1bb6019 ""
+  "ml.tex" 1676930350 19349 44d0c8701c306c4a093a1c5cb919bf01 ""
   (generated)
   "build/ml.aux"
   "build/ml.log"

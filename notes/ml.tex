@@ -531,4 +531,78 @@ beyond 3, the number of clusters is too large and makes for less meaningful clus
 
 The "right" value of $k$ is often ambiguous however, which is an issue with the elbow method.
 
+\subsection{Anomaly detection}
+
+\subsubsection{Normal distribution}
+
+The equation for the normal distribution is given by
+
+\[ p(x,\mu,\sigma) = \frac{1}{\sqrt{2\pi}\sigma} e^{\frac{-(x - \mu)^2}{2\sigma^2}} \]
+
+Change in $\mu$ will shift the curve on the x axis, and change in $\sigma$ will make the curve
+thinner or wider. Smaller $\sigma$ makes curve narrow, larger $\sigma$ makes curve wide.
+
+\includegraphics{images/normal-distribution.png}
+
+Values of $\mu$ and $\sigma$ that produce a normal distribution which will fit the data well can be determined
+like this:
+
+\begin{align*}
+    \mu &= \frac{1}{m} \sum_{i=1}^m x^{(i)}\\
+    \sigma^2 &= \frac{1}{m} \sum_{i=1}^m (x^{(i)} - \mu)^2
+\end{align*}
+
+\subsubsection{Density estimation}
+
+Training set: $\left\{\vec{x}^{(1)}, \vec{x}^{(2)}, \ldots, \vec{x}^{(m)}\right\}$
+
+Each example has $n$ features
+
+\[ p(\vec{x}) = \prod_{i=1}^n p(\vec{x}_i,\mu_i,\sigma_i^2) \]
+
+\subsection{Recommender systems}
+
+$n$ = num features
+
+$r(i,j) = 1$ if user $j$ has rated item $i$ (0 if otherwise)
+
+$y^{(i,j)}$ = rating given by user $j$ on item $i$ (if defined)
+
+$\vec{w}^{(j)},b^{(j)}$ = parameters for user $j$
+
+$\vec{x}^{(i)}$ = feature vector for item $i$
+
+For user $j$, predict rating of item $i$ with $\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)}$
+
+Feature example:
+
+\begin{center}
+    \begin{tabular}{ ||c|c|c|c|| }
+        \hline
+        Movie & $x_1$ (Romance) & $x_2$ (Action) & $x_3$ (Horror)\\
+        \hline
+        Romance movie & 1.0 & 0.1 & 0.0\\
+        Action movie & 0.0 & 1.0 & 0.0\\
+        Comedy movie & 0.5 & 0.0 & 0.0\\
+        Horror movie & 0.0 & 1.0 & 1.0\\
+        \hline
+    \end{tabular}
+\end{center}
+
+\subsubsection{Cost function}
+
+Learn parameters for user $j$:
+
+\[ J(\vec{w}^{(j)},b^{(j)}) = \frac{1}{2m^{(j)}} \sum_{i:r(i,j)=1} (\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)} - y^{(i,j)})^2 \]
+
+Learn parameters for all users $n_u$:
+
+$W$ is a matrix of size $n_u \times n$
+
+$\vec{b}$ is a vector of length $n_u$
+
+\[ J(W,\vec{b}) = \frac{1}{2} \sum_{j=1}^{n_u} \left[ \sum_{i:r(i,j)=1} (\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)} - y^{(i,j)})^2 \right] \]
+
+\subsubsection{Collaborative filtering}
+
 \end{document}
