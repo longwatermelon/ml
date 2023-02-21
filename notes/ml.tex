@@ -56,9 +56,9 @@ $\vec{x}$ holds training example x values (length $m$)
 
 $\vec{y}$ holds training example y values (length $m$)
 
-${\hat y}^{(i)}$ = $w\vec{x}^{(i)} + b$
+$\hat y_i$ = $w\vec{x}_i + b$
 
-\[ J(w,b) = \frac{1}{2m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i)^2 \]
+\[ J(w,b) = \frac{1}{2m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i)^2 \]
 
 $\frac{1}{m}$ finds average error for larger data sets, $\frac{1}{2m}$ makes later calculations neater
 
@@ -78,8 +78,8 @@ Must simultaneously update $w$ and $b$
 \begin{align*}
     w_1 &= w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
     b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
-    \frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i) \vec{x}^{(i)}\\
-    \frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - \vec{y}_i)
+    \frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i) \vec{x}_i\\
+    \frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i)
 \end{align*}
 
 \subsection{Multiple linear regression}
@@ -108,9 +108,9 @@ Gradient descent
 Cost function and its partial derivatives
 
 \begin{align*}
-    J(\vec{w},b) &= \frac{1}{2m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)^2\\
-    \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i) X_j^{(i)}\\
-    \frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)
+    J(\vec{w},b) &= \frac{1}{2m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i)^2\\
+    \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i) X_{ij}\\
+    \frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i)
 \end{align*}
 
 \subsection{Logistic regression}
@@ -120,33 +120,33 @@ Sigmoid function
 \begin{align*}
     g(z) &= \frac{1}{1 + e^{-z}}\\
     z &= f_{\vec{w},b}(\vec{x})\\
-    \hat{y}^{(i)} &= g(f_{\vec{w},b}(X^{(i)}))
+    \hat{y}_i &= g(f_{\vec{w},b}(X_i))
 \end{align*}
 
-$\hat{y}^{(i)}$ can be interpreted as the "probability" that class is 1, $0 \leq \hat{y}^{(i)} \leq 1$
+$\hat{y}_i$ can be interpreted as the "probability" that class is 1, $0 \leq \hat{y}_i \leq 1$
 
-ex. $\hat{y}^{(i)} = 0.7$ means there is a 70\% chance $y$ is 1
+ex. $\hat{y}_i = 0.7$ means there is a 70\% chance $y$ is 1
 
 Logistic regression requires a new cost function because $f_{\vec{w},b}(\vec{x})$ for logistic regression is non-convex, trapping gradient descend in local minima.
 
 Cost function
 
-\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(\hat{y}^{(i)},\vec{y}_i) \]
+\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(\hat{y}_i,\vec{y}_i) \]
 
 \begin{equation*}
-L(\hat{y}^{(i)},\vec{y}_i) = 
+L(\hat{y}_i,\vec{y}_i) = 
   \left\{
     \begin{aligned}
-      & -\log(\hat{y}^{(i)}) & \text{if } \vec{y}_i = 1 \\
-      & -\log(1 - \hat{y}^{(i)}) & \text{if } \vec{y}_i = 0
+      & -\log(\hat{y}_i) & \text{if } \vec{y}_i = 1 \\
+      & -\log(1 - \hat{y}_i) & \text{if } \vec{y}_i = 0
     \end{aligned}
   \right.
 \end{equation*}
 
 Simplified form
-\[ L(\hat{y}^{(i)}, \vec{y}_i) = -\vec{y}_i \log(\hat{y}^{(i)}) - (1 - \vec{y}_i) \log (1 - \hat{y}^{(i)}) \]
+\[ L(\hat{y}_i, \vec{y}_i) = -\vec{y}_i \log(\hat{y}_i) - (1 - \vec{y}_i) \log (1 - \hat{y}_i) \]
 
-The loss function will decrease as $\hat{y}^{(i)}$ approaches $\vec{y}_i$ on a graph of $L$ vs $f$.
+The loss function will decrease as $\hat{y}_i$ approaches $\vec{y}_i$ on a graph of $L$ vs $f$.
 
 $\frac{\partial J(\vec{w},b)}{\partial \vec{w}_j}$ and $\frac{\partial J(\vec{w},b)}{\partial b}$ are the same as in linear regression, just the definition of $f$ has changed.
 
@@ -168,7 +168,7 @@ $\vec{b}$, $\vec{z}$, $\vec{a}$ are vectors of length $n_y$.
 
 \begin{gather*}
     1 \leq i \leq n_y\\
-    \vec{z}_i = W^{(i)} \cdot \vec{x} + \vec{b}_i\\
+    \vec{z}_i = W_i \cdot \vec{x} + \vec{b}_i\\
     \vec{a}_i = \frac{e^{\vec{z}_i}}{\sum_{k=1}^{n_y} e^{\vec{z}_k}}
 \end{gather*}
 
@@ -195,9 +195,9 @@ $\vec{\mu}_j$ = mean of all values for feature $j$ (length $n_f$)
 $\vec{\sigma}_j$ = standard deviation of feature $j$ (length $n_f$)
 
 \begin{align*}
-    X_j^{(i)} &= \frac{X_j^{(i)} - \vec{\mu}_j}{\vec{\sigma}_j}\\
-    \vec{\mu}_j &= \frac{1}{m} \sum_{i=0}^{m-1} X_j^{(i)}\\
-    \vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (X_j^{(i)} - \vec{\mu}_j)^2
+    X_{ij} &= \frac{X_{ij} - \vec{\mu}_j}{\vec{\sigma}_j}\\
+    \vec{\mu}_j &= \frac{1}{m} \sum_{i=0}^{m-1} X_{ij}\\
+    \vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (X_{ij} - \vec{\mu}_j)^2
 \end{align*}
 
 \subsection{Over / underfitting}
@@ -230,19 +230,19 @@ Effectively, $\lambda \propto \frac{1}{w}$. When trying to minimize cost, either
 
 \noindent \textbf{Regularized linear regression}
 
-\[ J_r(\vec{w},b) = \frac{1}{2m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)^2\right] + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
+\[ J_r(\vec{w},b) = \frac{1}{2m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)^2\right] + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
 
 For gradient descent, only $\frac{\partial J_r}{\partial \vec{w}_j}$ changes ($b$ is not regularized):
 
-\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)X_j^{(i)}\right] + \frac{\lambda}{m} \vec{w}_j \]
+\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)X_{ij}\right] + \frac{\lambda}{m} \vec{w}_j \]
 
 \noindent \textbf{Regularized logistic regression}
 
-\[ J_r(\vec{w},b) = \frac{1}{m} \sum_{i=1}^m L(f_{\vec{w},b}(X^{(i)}), \vec{y}_i) + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
+\[ J_r(\vec{w},b) = \frac{1}{m} \sum_{i=1}^m L(f_{\vec{w},b}(X_i), \vec{y}_i) + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
 
 For gradient descent, only $\frac{\partial J_r}{\partial w_j}$ changes (b is not regularized):
 
-\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X^{(i)}) - \vec{y}_i)X_j^{(i)}\right] + \frac{\lambda}{m} \vec{w}_j \]
+\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)X_{ij}\right] + \frac{\lambda}{m} \vec{w}_j \]
 
 \pagebreak
 
@@ -548,15 +548,13 @@ Values of $\mu$ and $\sigma$ that produce a normal distribution which will fit t
 like this:
 
 \begin{align*}
-    \mu &= \frac{1}{m} \sum_{i=1}^m x^{(i)}\\
-    \sigma^2 &= \frac{1}{m} \sum_{i=1}^m (x^{(i)} - \mu)^2
+    \mu &= \frac{1}{m} \sum_{i=1}^m \vec{x}_i\\
+    \sigma^2 &= \frac{1}{m} \sum_{i=1}^m (\vec{x}_i - \mu)^2
 \end{align*}
 
 \subsubsection{Density estimation}
 
-Training set: $\left\{\vec{x}^{(1)}, \vec{x}^{(2)}, \ldots, \vec{x}^{(m)}\right\}$
-
-Each example has $n$ features
+Training set: matrix $X$ of size $m \times n$ ($m$ examples, $n$ features)
 
 \[ p(\vec{x}) = \prod_{i=1}^n p(\vec{x}_i,\mu_i,\sigma_i^2) \]
 
@@ -568,20 +566,20 @@ $r(i,j) = 1$ if user $j$ has rated item $i$ (0 if otherwise)
 
 $y_{i,j}$ = rating given by user $j$ on item $i$ (if defined)
 
-$W^{(j)},\vec{b}_j$ = parameters for user $j$
+$W_j,\vec{b}_j$ = parameters for user $j$
 
-$X^{(i)}$ = feature vector for item $i$
+$X_i$ = feature vector for item $i$
 
 $\vec{m}_j$ = number of items user $j$ has rated
 
-For user $j$, predict rating of item $i$ with $W^{(j)} \cdot X^{(i)} + \vec{b}_j$
+For user $j$, predict rating of item $i$ with $W_j \cdot X_i + \vec{b}_j$
 
 Feature example:
 
 \begin{center}
     \begin{tabular}{ ||c|c|c|c|| }
         \hline
-        Movie & $X^{(i)}_1$ (Romance) & $X^{(i)}_2$ (Action) & $X^{(i)}_3$ (Horror)\\
+        Movie & $X_{i1}$ (Romance) & $X_{i2}$ (Action) & $X_{i3}$ (Horror)\\
         \hline
         Romance movie ($i$ = 1) & 1.0 & 0.1 & 0.0\\
         Action movie ($i$ = 2) & 0.0 & 1.0 & 0.0\\
@@ -595,7 +593,7 @@ Feature example:
 
 Learn parameters for user $j$:
 
-\[ J(W^{(j)},\vec{b}_j) = \frac{1}{2\vec m_j} \sum_{i:r(i,j)=1} (\vec w_j \cdot X^{(i)} + \vec b_j - y_{i,j})^2 \]
+\[ J(W_j,\vec{b}_j) = \frac{1}{2\vec m_j} \sum_{i:r(i,j)=1} (\vec w_j \cdot X_i + \vec b_j - y_{i,j})^2 \]
 
 Learn parameters for all users $n_u$:
 
@@ -603,7 +601,7 @@ $W$ is a matrix of size $n_u \times n$
 
 $\vec{b}$ is a vector of length $n_u$
 
-\[ J(W,\vec{b}) = \frac{1}{2} \sum_{j=1}^{n_u} \left[ \sum_{i:r(i,j)=1} (\vec{w}_j \cdot X^{(i)} + \vec b_j - y_{i,j})^2 \right] \]
+\[ J(W,\vec{b}) = \frac{1}{2} \sum_{j=1}^{n_u} \left[ \sum_{i:r(i,j)=1} (\vec{w}_j \cdot X_i + \vec b_j - y_{i,j})^2 \right] \]
 
 \subsubsection{Collaborative filtering}
 

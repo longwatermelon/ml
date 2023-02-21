@@ -1,6 +1,6 @@
 # Fdb version 3
-["pdflatex"] 1676946386 "/home/long/workspace/ml/notes/ml.tex" "build/ml.pdf" "ml" 1676946386
-  "/home/long/workspace/ml/notes/ml.tex" 1676946386 19469 a165362451124f5d96350ec9b12d1571 ""
+["pdflatex"] 1676947074 "/home/long/workspace/ml/notes/ml.tex" "build/ml.pdf" "ml" 1676947074
+  "/home/long/workspace/ml/notes/ml.tex" 1676947074 19266 04faf3d1c3bb89704cabb4133c2e3e97 ""
   "/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1650183167 2900 1537cc8184ad1792082cd229ecc269f4 ""
   "/usr/share/texmf-dist/fonts/map/fontname/texfonts.map" 1650183167 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texmf-dist/fonts/tfm/jknappen/ec/tcrm1200.tfm" 1650183167 1536 74b7293ec3713bb7fdca8dd1bd1f469c ""
@@ -92,9 +92,9 @@
   "/usr/share/texmf-dist/web2c/texmf.cnf" 1650183167 39911 2da6c67557ec033436fe5418a70a8a61 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1672972439 334353 c825108cbc13fa4a18a274c473196142 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1667953992 2927665 aff6318dd201c05b3ae12bdbc851bc44 ""
-  "build/ml.aux" 1676946386 5852 9f0f6d7712e1d91ff7d384771b73a798 "pdflatex"
-  "build/ml.out" 1676946386 6414 59e5423aba98f5e327d6410a20814c71 "pdflatex"
-  "build/ml.toc" 1676946386 3525 6e3c630c7bb58318e88a0a58da88341e "pdflatex"
+  "build/ml.aux" 1676947074 5852 a6bc5c192c2b7095b1b4f754ba45dede "pdflatex"
+  "build/ml.out" 1676947074 6414 59e5423aba98f5e327d6410a20814c71 "pdflatex"
+  "build/ml.toc" 1676947074 3525 d3dd0a14827ef550165be324df192e9c "pdflatex"
   "images//continuous-tree.png" 1676834948 33612 341087b7b01795a08e70b34ba5aaed75 ""
   "images//decision-tree.png" 1676135511 77723 28eb76caf4d8417d32efbe1ea2fab732 ""
   "images//elbow.png" 1676867285 49998 12703c3faac11036f00ec5592d02e2cd ""
@@ -105,7 +105,7 @@
   "images/cluster-finished.png" 1676865038 61803 6b6024ae01c9648b8020148e3a23816c ""
   "images/clusters.png" 1676864778 39173 8029662c21beabe2466d7a6c00dcb893 ""
   "images/normal-distribution.png" 1676924661 47952 6dbe6668b80cbd8e81da2c4dc1bb6019 ""
-  "ml.tex" 1676946386 19469 a165362451124f5d96350ec9b12d1571 ""
+  "ml.tex" 1676947074 19266 04faf3d1c3bb89704cabb4133c2e3e97 ""
   (generated)
   "build/ml.aux"
   "build/ml.log"
