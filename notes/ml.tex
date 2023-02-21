@@ -566,25 +566,27 @@ $n$ = num features
 
 $r(i,j) = 1$ if user $j$ has rated item $i$ (0 if otherwise)
 
-$y^{(i,j)}$ = rating given by user $j$ on item $i$ (if defined)
+$y_{i,j}$ = rating given by user $j$ on item $i$ (if defined)
 
-$\vec{w}^{(j)},b^{(j)}$ = parameters for user $j$
+$W^{(j)},\vec{b}_j$ = parameters for user $j$
 
-$\vec{x}^{(i)}$ = feature vector for item $i$
+$X^{(i)}$ = feature vector for item $i$
 
-For user $j$, predict rating of item $i$ with $\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)}$
+$\vec{m}_j$ = number of items user $j$ has rated
+
+For user $j$, predict rating of item $i$ with $W^{(j)} \cdot X^{(i)} + \vec{b}_j$
 
 Feature example:
 
 \begin{center}
     \begin{tabular}{ ||c|c|c|c|| }
         \hline
-        Movie & $x_1$ (Romance) & $x_2$ (Action) & $x_3$ (Horror)\\
+        Movie & $X^{(i)}_1$ (Romance) & $X^{(i)}_2$ (Action) & $X^{(i)}_3$ (Horror)\\
         \hline
-        Romance movie & 1.0 & 0.1 & 0.0\\
-        Action movie & 0.0 & 1.0 & 0.0\\
-        Comedy movie & 0.5 & 0.0 & 0.0\\
-        Horror movie & 0.0 & 1.0 & 1.0\\
+        Romance movie ($i$ = 1) & 1.0 & 0.1 & 0.0\\
+        Action movie ($i$ = 2) & 0.0 & 1.0 & 0.0\\
+        Comedy movie ($i$ = 3) & 0.5 & 0.0 & 0.0\\
+        Horror movie ($i$ = 4) & 0.0 & 1.0 & 1.0\\
         \hline
     \end{tabular}
 \end{center}
@@ -593,7 +595,7 @@ Feature example:
 
 Learn parameters for user $j$:
 
-\[ J(\vec{w}^{(j)},b^{(j)}) = \frac{1}{2m^{(j)}} \sum_{i:r(i,j)=1} (\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)} - y^{(i,j)})^2 \]
+\[ J(W^{(j)},\vec{b}_j) = \frac{1}{2\vec m_j} \sum_{i:r(i,j)=1} (\vec w_j \cdot X^{(i)} + \vec b_j - y_{i,j})^2 \]
 
 Learn parameters for all users $n_u$:
 
@@ -601,8 +603,10 @@ $W$ is a matrix of size $n_u \times n$
 
 $\vec{b}$ is a vector of length $n_u$
 
-\[ J(W,\vec{b}) = \frac{1}{2} \sum_{j=1}^{n_u} \left[ \sum_{i:r(i,j)=1} (\vec{w}^{(j)} \cdot \vec{x}^{(i)} + b^{(j)} - y^{(i,j)})^2 \right] \]
+\[ J(W,\vec{b}) = \frac{1}{2} \sum_{j=1}^{n_u} \left[ \sum_{i:r(i,j)=1} (\vec{w}_j \cdot X^{(i)} + \vec b_j - y_{i,j})^2 \right] \]
 
 \subsubsection{Collaborative filtering}
+
+Given user parameters $\vec{w}$ and $b$, predict features.
 
 \end{document}
