@@ -562,6 +562,8 @@ Training set: matrix $X$ of size $m \times n$ ($m$ examples, $n$ features)
 
 $n$ = num features
 
+$n_i$ = num items
+
 $r(i,j) = 1$ if user $j$ has rated item $i$ (0 if otherwise)
 
 $y_{i,j}$ = rating given by user $j$ on item $i$ (if defined)
@@ -589,9 +591,7 @@ Feature example:
     \end{tabular}
 \end{center}
 
-\subsubsection{Cost function}
-
-Learn parameters for user $j$:
+Cost function to learn parameters for user $j$:
 
 \[ J(W_j,\vec{b}_j) = \frac{1}{2\vec m_j} \sum_{i:r(i,j)=1} (\vec w_j \cdot X_i + \vec b_j - y_{i,j})^2 \]
 
@@ -606,5 +606,83 @@ $\vec{b}$ is a vector of length $n_u$
 \subsubsection{Collaborative filtering}
 
 Given user parameters $\vec{w}$ and $b$, predict features.
+
+To learn $X_i$:
+
+\[ J(X_i) = \frac 1 2 \sum_{j:r(i,j)=1} (\vec w_j \cdot X_i + \vec b_j - y_{i,j})^2 \]
+
+To learn $X_{1 \ldots n_m}$:
+
+\[ J(X) = \frac 1 2 \sum_{i=1}^{n_m} \sum_{j:r(i,j)=1} (\vec w_j \cdot X_i + \vec b_j - y_{i,j})^2 \]
+
+\subsubsection{Cost function}
+
+\[ J(\vec w, \vec b, X) = \frac 1 2 \sum_{(i,j):r(i,j)=1} (\vec w_j \cdot X_i + \vec b_j - y_{i,j})^2 \]
+
+\subsubsection{Binary labels}
+
+Predict probability of $y_{i,j}$ = 1 using $a_{i,j} = g(\vec w_j \cdot X_i + \vec b_j)$ where $g(z) = \frac 1 {1 + e^{-z}}$
+
+Loss for binary labels
+
+\[ L(a_{i,j},y_{i,j}) = -y_{i,j} \log(a_{i,j}) - (1 - y_{i,j}) \log(1 - a_{i,j}) \]
+
+Cost function
+
+\[ J(\vec w, \vec b, X) = \sum_{(i,j):r(i,j)=1} L(g(\vec w_j \cdot X_i + \vec b_j),y_{i,j}) \]
+
+\subsubsection{Mean normalization}
+
+Allows the algorithm to give better predictions for users who have rated very few movies.
+
+Given a chart like this,
+
+\includegraphics[scale=.5]{movies}
+
+create a matrix
+
+\[
+\begin{bmatrix}
+    5 & 5 & 0 & 0 & ?\\
+    5 & ? & ? & 0 & ?\\
+    ? & 4 & 0 & ? & ?\\
+    0 & 0 & 5 & 4 & ?\\
+    0 & 0 & 5 & ? & ?
+\end{bmatrix}
+\]
+
+\[
+    \mu =
+    \begin{bmatrix}
+        2.5\\
+        2.5\\
+        2\\
+        2.25\\
+        1.25
+    \end{bmatrix}
+\]
+
+After subtracting every value in each row by its corresponding $\mu$:
+
+\[
+    \begin{bmatrix}
+        2.5 & 2.5 & -2.5 & -2.5 & ?\\
+        2.5 & ? & ? & -2.5 & ?\\
+        ? & 2 & -2 & ? & ?\\
+        -2.25 & -2.25 & 2.75 & 1.75 & ?\\
+        -1.25 & -1.25 & 3.75 & -1.25 & ?
+    \end{bmatrix}
+\]
+
+\subsubsection{Finding related items}
+
+Find item $k$ with $X_k$ similar to $X_i$
+
+\[ \sum_{l=1}^n (X_{k,l} - X_{i,l})^2 \]
+
+\subsubsection{Content based filtering}
+
+Recommends items user might like, in contrast to collaborative filtering which decides if a user
+would like an item
 
 \end{document}

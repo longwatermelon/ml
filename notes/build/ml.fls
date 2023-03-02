@@ -632,6 +632,10 @@ INPUT ./images/normal-distribution.png
 INPUT images/normal-distribution.png
 INPUT ./images/normal-distribution.png
 INPUT ./images/normal-distribution.png
+INPUT ./images//movies.png
+INPUT ./images//movies.png
+INPUT ./images//movies.png
+INPUT ./images//movies.png
 INPUT build/ml.aux
 INPUT build/ml.out
 INPUT build/ml.out
