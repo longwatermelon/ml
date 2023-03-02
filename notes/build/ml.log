@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2023.2.25)  26 FEB 2023 12:14
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022/Arch Linux) (preloaded format=pdflatex 2023.2.25)  1 MAR 2023 19:09
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -326,9 +326,7 @@ LaTeX Info: Redefining \nameref on input line 16.
 \@outlinefile=\write3
 \openout3 = `ml.out'.
 
- [1
-
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (build/ml.toc
+ (build/ml.toc
 LaTeX Font Info:    Trying to load font information for U+msa on input line 3.
  (/usr/share/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
@@ -340,107 +338,104 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 \tf@toc=\write4
 \openout4 = `ml.toc'.
 
+ [1
 
-pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.45 
-      [1] [2] [3] [4] [5]
-<./images//purity.png, id=310, 312.16624pt x 75.28125pt>
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] [4] [5]
+<./images//purity.png, id=307, 312.16624pt x 75.28125pt>
 File: ./images//purity.png Graphic file (type png)
 <use ./images//purity.png>
-Package pdftex.def Info: ./images//purity.png  used on input line 361.
+Package pdftex.def Info: ./images//purity.png  used on input line 354.
 (pdftex.def)             Requested size: 312.16548pt x 75.28105pt.
-<./images//entropy.png, id=311, 296.10625pt x 207.77625pt>
+<./images//entropy.png, id=308, 296.10625pt x 207.77625pt>
 File: ./images//entropy.png Graphic file (type png)
 <use ./images//entropy.png>
-Package pdftex.def Info: ./images//entropy.png  used on input line 367.
+Package pdftex.def Info: ./images//entropy.png  used on input line 360.
 (pdftex.def)             Requested size: 296.10551pt x 207.77573pt.
-<./images//split.png, id=312, 814.04124pt x 279.0425pt>
+<./images//split.png, id=309, 814.04124pt x 279.0425pt>
 File: ./images//split.png Graphic file (type png)
 <use ./images//split.png>
-Package pdftex.def Info: ./images//split.png  used on input line 381.
+Package pdftex.def Info: ./images//split.png  used on input line 374.
 (pdftex.def)             Requested size: 488.42851pt x 167.42679pt.
  [6 <./images//purity.png (PNG copy)> <./images//entropy.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 383--385
+Underfull \hbox (badness 10000) in paragraph at lines 376--378
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 392--393
+Underfull \hbox (badness 10000) in paragraph at lines 385--386
 
  []
 
-<./images//information-gain.png, id=324, 272.01625pt x 204.765pt>
+<./images//information-gain.png, id=320, 272.01625pt x 204.765pt>
 File: ./images//information-gain.png Graphic file (type png)
 <use ./images//information-gain.png>
-Package pdftex.def Info: ./images//information-gain.png  used on input line 396.
+Package pdftex.def Info: ./images//information-gain.png  used on input line 389.
 (pdftex.def)             Requested size: 272.01558pt x 204.76448pt.
-<./images//decision-tree.png, id=325, 442.65375pt x 318.18875pt>
+<./images//decision-tree.png, id=321, 442.65375pt x 318.18875pt>
 File: ./images//decision-tree.png Graphic file (type png)
 <use ./images//decision-tree.png>
-Package pdftex.def Info: ./images//decision-tree.png  used on input line 422.
+Package pdftex.def Info: ./images//decision-tree.png  used on input line 415.
 (pdftex.def)             Requested size: 221.32632pt x 159.09398pt.
 [7 <./images//split.png (PNG copy)> <./images//information-gain.png (PNG copy)> <./images//decision-tree.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 430--432
+Underfull \hbox (badness 10000) in paragraph at lines 423--425
 
  []
 
-<./images//continuous-tree.png, id=334, 629.35126pt x 234.8775pt>
+<./images//continuous-tree.png, id=331, 629.35126pt x 234.8775pt>
 File: ./images//continuous-tree.png Graphic file (type png)
 <use ./images//continuous-tree.png>
-Package pdftex.def Info: ./images//continuous-tree.png  used on input line 435.
+Package pdftex.def Info: ./images//continuous-tree.png  used on input line 428.
 (pdftex.def)             Requested size: 440.54288pt x 164.41312pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 471--473
+Underfull \hbox (badness 10000) in paragraph at lines 464--466
 
  []
 
-<images/clusters.png, id=335, 600.2425pt x 460.72125pt>
+<images/clusters.png, id=332, 600.2425pt x 460.72125pt>
 File: images/clusters.png Graphic file (type png)
 <use images/clusters.png>
-Package pdftex.def Info: images/clusters.png  used on input line 490.
+Package pdftex.def Info: images/clusters.png  used on input line 483.
 (pdftex.def)             Requested size: 300.12051pt x 230.36006pt.
 [8 <./images//continuous-tree.png (PNG copy)>]
-<images/cluster-finished.png, id=340, 745.78625pt x 460.72125pt>
+<images/cluster-finished.png, id=337, 745.78625pt x 460.72125pt>
 File: images/cluster-finished.png Graphic file (type png)
 <use images/cluster-finished.png>
-Package pdftex.def Info: images/cluster-finished.png  used on input line 501.
+Package pdftex.def Info: images/cluster-finished.png  used on input line 494.
 (pdftex.def)             Requested size: 372.89221pt x 230.36006pt.
-<./images//elbow.png, id=341, 442.65375pt x 309.155pt>
+<./images//elbow.png, id=338, 442.65375pt x 309.155pt>
 File: ./images//elbow.png Graphic file (type png)
 <use ./images//elbow.png>
-Package pdftex.def Info: ./images//elbow.png  used on input line 527.
+Package pdftex.def Info: ./images//elbow.png  used on input line 520.
 (pdftex.def)             Requested size: 265.59428pt x 185.49442pt.
  [9 <./images/clusters.png (PNG copy)> <./images/cluster-finished.png (PNG copy)>]
-<images/normal-distribution.png, id=346, 491.8375pt x 268.00125pt>
+<images/normal-distribution.png, id=343, 491.8375pt x 268.00125pt>
 File: images/normal-distribution.png Graphic file (type png)
 <use images/normal-distribution.png>
-Package pdftex.def Info: images/normal-distribution.png  used on input line 545.
+Package pdftex.def Info: images/normal-distribution.png  used on input line 538.
 (pdftex.def)             Requested size: 491.83629pt x 268.00058pt.
  [10 <./images//elbow.png (PNG copy)> <./images/normal-distribution.png (PNG copy)>]
-<./images//movies.png, id=352, 751.80875pt x 270.00874pt>
+<./images//movies.png, id=349, 751.80875pt x 270.00874pt>
 File: ./images//movies.png Graphic file (type png)
 <use ./images//movies.png>
-Package pdftex.def Info: ./images//movies.png  used on input line 640.
+Package pdftex.def Info: ./images//movies.png  used on input line 633.
 (pdftex.def)             Requested size: 375.90344pt x 135.00403pt.
  [11] [12 <./images//movies.png (PNG copy)>] (build/ml.aux)
 Package rerunfilecheck Info: File `ml.out' has not changed.
 (rerunfilecheck)             Checksum: D05E989238F42890103A99263D9041F0;7079.
  ) 
 Here is how much of TeX's memory you used:
- 9693 strings out of 478238
- 152048 string characters out of 5850456
- 463033 words of memory out of 5000000
- 27731 multiletter control sequences out of 15000+600000
- 476365 words of font info for 54 fonts, out of 8000000 for 9000
+ 9690 strings out of 478238
+ 152006 string characters out of 5850456
+ 469033 words of memory out of 5000000
+ 27728 multiletter control sequences out of 15000+600000
+ 475759 words of font info for 52 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  60i,11n,63p,332b,414s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}</usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on build/ml.pdf (13 pages, 843785 bytes).
+Output written on build/ml.pdf (12 pages, 843505 bytes).
 PDF statistics:
- 432 PDF objects out of 1000 (max. 8388607)
- 378 compressed objects within 4 object streams
+ 428 PDF objects out of 1000 (max. 8388607)
+ 375 compressed objects within 4 object streams
  72 named destinations out of 1000 (max. 500000)
  408 words of extra memory for PDF output out of 10000 (max. 10000000)
 
