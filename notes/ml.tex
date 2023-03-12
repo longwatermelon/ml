@@ -36,7 +36,17 @@
 
 \pagebreak
 
+\section{Notation}
+
+Superscript $(i)$ indicates relation to training example $i$.
+
+Superscript $[i]$ indicates relation to neural network layer $i$.
+
+Matrices are indexed by $M_{rc}$, $r$ = row, $c$ = col.
+
 \section{Regression}
+
+Superscript $(i)$ indicates relation to training example $i$.
 
 \subsection{Linear regression}
 \subsubsection{Squared error cost function}
@@ -45,13 +55,13 @@ Measures how well line fits training data
 
 $m$ = num of training examples
 
-$\vec{x}$ holds training example x values (length $m$)
+$x^{(i)}$ is training example x value $i$
 
-$\vec{y}$ holds training example y values (length $m$)
+$y^{(i)}$ is training example y value $i$
 
-$\hat y_i$ = $w\vec{x}_i + b$
+$\hat y^{(i)}$ = $wx^{(i)} + b$
 
-\[ J(w,b) = \frac{1}{2m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i)^2 \]
+\[ J(w,b) = \frac{1}{2m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)})^2 \]
 
 $\frac{1}{m}$ finds average error for larger data sets, $\frac{1}{2m}$ makes later calculations neater
 
@@ -69,10 +79,10 @@ $\alpha$ = learning rate
 Must simultaneously update $w$ and $b$
 
 \begin{align*}
-    w_1 &= w_0 - \alpha \frac{\partial}{\partial w} J(w_0,b_0)\\
-    b_1 &= b_0 - \alpha \frac{\partial}{\partial b} J(w_0,b_0)\\
-    \frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i) \vec{x}_i\\
-    \frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}_i - \vec{y}_i)
+    w &:= w - \alpha \frac{\partial}{\partial w} J(w,b)\\
+    b &:= b - \alpha \frac{\partial}{\partial b} J(w,b)\\
+    \frac{\partial}{\partial w} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)}) x^{(i)}\\
+    \frac{\partial}{\partial b} J(w,b) &= \frac{1}{m} \sum_{i=1}^m ({\hat y}^{(i)} - y^{(i)})
 \end{align*}
 
 \subsection{Multiple linear regression}
@@ -83,7 +93,7 @@ $m$ = number of data points
 
 $\vec{w}$ = vector of weights (length $n_f$)
 
-$X$ is a list of x vectors which hold $n_f$ features (size $m \times n_f$)
+$\vec{x}^{(i)}$ = vector of x values for training example $i$, length $n_f$
 
 Sum of predictions of all features is the prediction of multiple linear reg
 
@@ -94,16 +104,16 @@ Sum of predictions of all features is the prediction of multiple linear reg
 Gradient descent
 
 \begin{align*}
-    \vec{w}_j &= \vec{w}_j - \alpha \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b)\\
-    b &= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
+    \vec{w}_j &:= \vec{w}_j - \alpha \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b)\\
+    b &:= b - \alpha \frac{\partial}{\partial b} J(\vec{w},b)
 \end{align*}
 
 Cost function and its partial derivatives
 
 \begin{align*}
-    J(\vec{w},b) &= \frac{1}{2m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i)^2\\
-    \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i) X_{ij}\\
-    \frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(X_i) - \vec{y}_i)
+    J(\vec{w},b) &= \frac{1}{2m} \sum_{i=1}^{m} (f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)})^2\\
+    \frac{\partial}{\partial \vec{w}_j} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)}) \vec{x}^{(i)}_j\\
+    \frac{\partial}{\partial b} J(\vec{w},b) &= \frac{1}{m} \sum_{i=1}^{m} (f_{\vec{w},b}(\vec x^{(i)}) - y^{(i)})
 \end{align*}
 
 \subsection{Logistic regression}
@@ -113,31 +123,31 @@ Sigmoid function
 \begin{align*}
     g(z) &= \frac{1}{1 + e^{-z}}\\
     z &= f_{\vec{w},b}(\vec{x})\\
-    \hat{y}_i &= g(f_{\vec{w},b}(X_i))
+    \hat{y}^{(i)} &= g(f_{\vec{w},b}(\vec x^{(i)}))
 \end{align*}
 
-$\hat{y}_i$ can be interpreted as the "probability" that class is 1, $0 \leq \hat{y}_i \leq 1$
+$\hat{y}^{(i)}$ can be interpreted as the "probability" that class is 1, $0 \leq \hat{y}^{(i)} \leq 1$
 
-ex. $\hat{y}_i = 0.7$ means there is a 70\% chance $y$ is 1
+ex. $\hat{y}^{(i)} = 0.7$ means there is a 70\% chance $y$ is 1
 
 Logistic regression requires a new cost function because $f_{\vec{w},b}(\vec{x})$ for logistic regression is non-convex, trapping gradient descend in local minima.
 
 Cost function
 
-\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(\hat{y}_i,\vec{y}_i) \]
+\[ J(\vec{w},b) = \frac{1}{m} \sum_{i=1}^{m} L(\hat{y}^{(i)},y^{(i)}) \]
 
 \begin{equation*}
-L(\hat{y}_i,\vec{y}_i) = 
+L(\hat{y}^{(i)},y^{(i)}) = 
   \left\{
     \begin{aligned}
-      & -\log(\hat{y}_i) & \text{if } \vec{y}_i = 1 \\
-      & -\log(1 - \hat{y}_i) & \text{if } \vec{y}_i = 0
+      & -\log(\hat{y}^{(i)}) & \text{if } y^{(i)} = 1 \\
+      & -\log(1 - \hat{y}^{(i)}) & \text{if } y^{(i)} = 0
     \end{aligned}
   \right.
 \end{equation*}
 
 Simplified form
-\[ L(\hat{y}_i, \vec{y}_i) = -\vec{y}_i \log(\hat{y}_i) - (1 - \vec{y}_i) \log (1 - \hat{y}_i) \]
+\[ L(\hat{y}^{(i)}, y^{(i)}) = -y^{(i)} \log(\hat{y}^{(i)}) - (1 - y^{(i)}) \log (1 - \hat{y}^{(i)}) \]
 
 The loss function will decrease as $\hat{y}_i$ approaches $\vec{y}_i$ on a graph of $L$ vs $f$.
 
@@ -149,7 +159,7 @@ Generalization of logistic regression, $y$ can have more than two possible value
 
 The most probable value of $y$ is the value that when given to $L$ yields the largest loss.
 
-Calculate $z_i$ with $\vec{x}$ only consisting of data points that have label $i$. In implementation, set all $y$ values of data points with label equal to $i$ to 1, and 0 for everything else.
+Calculate $\vec{z}_i$ with $\vec{x}$ only consisting of data points that have label $i$. In implementation, set all $y$ values of data points with label equal to $i$ to 1, and 0 for everything else.
 
 $n_f$ = num features
 
@@ -188,9 +198,9 @@ $\vec{\mu}_j$ = mean of all values for feature $j$ (length $n_f$)
 $\vec{\sigma}_j$ = standard deviation of feature $j$ (length $n_f$)
 
 \begin{align*}
-    X_{ij} &= \frac{X_{ij} - \vec{\mu}_j}{\vec{\sigma}_j}\\
-    \vec{\mu}_j &= \frac{1}{m} \sum_{i=0}^{m-1} X_{ij}\\
-    \vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=0}^{m-1} (X_{ij} - \vec{\mu}_j)^2
+    \vec{x}^{(i)}_j &= \frac{\vec{x}^{(i)}_j - \vec{\mu}_j}{\vec{\sigma}_j}\\
+    \vec{\mu}_j &= \frac{1}{m} \sum_{i=1}^{m} \vec x^{(i)}_j\\
+    \vec{\sigma}_j^2 &= \frac{1}{m} \sum_{i=1}^{m} (\vec x^{(i)}_j - \vec{\mu}_j)^2
 \end{align*}
 
 \subsection{Over / underfitting}
@@ -223,19 +233,19 @@ Effectively, $\lambda \propto \frac{1}{w}$. When trying to minimize cost, either
 
 \noindent \textbf{Regularized linear regression}
 
-\[ J_r(\vec{w},b) = \frac{1}{2m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)^2\right] + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
+\[ J_r(\vec{w},b) = \frac{1}{2m} \sum_{i=1}^m \left[(f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)})^2\right] + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
 
 For gradient descent, only $\frac{\partial J_r}{\partial \vec{w}_j}$ changes ($b$ is not regularized):
 
-\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)X_{ij}\right] + \frac{\lambda}{m} \vec{w}_j \]
+\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(\vec x^{(i)}) - y^{(i)})\vec{x}^{(i)}_j\right] + \frac{\lambda}{m} \vec{w}_j \]
 
 \noindent \textbf{Regularized logistic regression}
 
-\[ J_r(\vec{w},b) = \frac{1}{m} \sum_{i=1}^m L(f_{\vec{w},b}(X_i), \vec{y}_i) + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
+\[ J_r(\vec{w},b) = \frac{1}{m} \sum_{i=1}^m L(f_{\vec{w},b}(\vec{x}^{(i)}), y^{(i)}) + \frac{\lambda}{2m} \sum_{j=1}^{n_f} \vec{w}_j^2 \]
 
 For gradient descent, only $\frac{\partial J_r}{\partial w_j}$ changes (b is not regularized):
 
-\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(X_i) - \vec{y}_i)X_{ij}\right] + \frac{\lambda}{m} \vec{w}_j \]
+\[ \frac{\partial J_r}{\partial \vec{w}_j} = \frac{1}{m} \sum_{i=1}^m \left[(f_{\vec{w},b}(\vec{x}^{(i)}) - y^{(i)})\vec{x}^{(i)}_j\right] + \frac{\lambda}{m} \vec{w}_j \]
 
 \pagebreak
 
