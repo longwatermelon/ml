@@ -15,7 +15,7 @@ all: softmax
 	$(CXX) $@.o reg.o $(LDFLAGS)
 
 lib:
-	$(CXX) $(CXXFLAGS) -c src/reg.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -c src/reg.cpp
 	$(AR) $(ARFLAGS) ../lib/libreg.a reg.o
 
 graph:
