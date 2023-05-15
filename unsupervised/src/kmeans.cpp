@@ -23,13 +23,13 @@ int main()
     graph.add_tri_shape();
     graph.add_square_shape();
 
-    std::vector<std::vector<float>> mx;
+    std::vector<Eigen::Vector2f> mx;
     for (const auto &dp : graph.data())
-        mx.emplace_back(std::vector<float>{dp.p.x, dp.p.y});
+        mx.emplace_back(Eigen::Vector2f({{dp.p.x, dp.p.y}}));
 
-    std::vector<std::vector<float>> centroids = {
-        { (float)(rand() % 50), (float)(rand() % 50) },
-        { (float)(rand() % 50), (float)(rand() % 50) }
+    std::vector<Eigen::Vector2f> centroids = {
+        Eigen::Vector2f({{ (float)(rand() % 50), (float)(rand() % 50) }}),
+        Eigen::Vector2f({{ (float)(rand() % 50), (float)(rand() % 50) }})
     };
     graph.push_datapoint(graph::DataPoint2{ .p = { centroids[0][0], centroids[0][1] }, .shape = 2 });
     graph.push_datapoint(graph::DataPoint2{ .p = { centroids[1][0], centroids[1][1] }, .shape = 2 });
@@ -53,7 +53,7 @@ int main()
                 case SDLK_SPACE:
                 {
                     kmeans::move_centroids(mx, centroids);
-                    std::vector<std::vector<std::vector<float>>> points;
+                    std::vector<std::vector<Eigen::Vector2f>> points;
                     kmeans::assign_points_to_centroids(mx, centroids, points);
                     graph.clear_data();
 

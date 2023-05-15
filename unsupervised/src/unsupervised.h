@@ -1,17 +1,16 @@
 #pragma once
 #include <vector>
+#include <eigen3/Eigen/Dense>
 
 namespace kmeans
 {
-    void move_centroids(const std::vector<std::vector<float>> &data,
-                        std::vector<std::vector<float>> &centroids);
+    void move_centroids(const std::vector<Eigen::Vector2f> &data,
+                        std::vector<Eigen::Vector2f> &centroids);
     void assign_points_to_centroids(
-            const std::vector<std::vector<float>> &data,
-            const std::vector<std::vector<float>> &centroids,
-            std::vector<std::vector<std::vector<float>>> &out_points);
-    float cost(const std::vector<std::vector<float>> &centroids,
-               const std::vector<std::vector<float>> &points);
-
-    float distance(const std::vector<float> &va, const std::vector<float> &vb);
-    std::vector<float> points_average(const std::vector<std::vector<float>> &mx);
+            const std::vector<Eigen::Vector2f> &data,
+            const std::vector<Eigen::Vector2f> &centroids,
+            std::vector<std::vector<Eigen::Vector2f>> &out_points);
+    float cost(const std::vector<Eigen::Vector2f> &centroids,
+               const std::vector<Eigen::Vector2f> &points);
+    Eigen::Vector2f points_average(const std::vector<Eigen::Vector2f> &mx);
 }

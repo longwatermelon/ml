@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=-I../common/src/ -I../graph/src/ -I../regression/src/
-LDFLAGS=-L../lib/ -lcommon -lgraph -lSDL2 -lm -lunsupervised -lreg
+LDFLAGS=-L../lib/ -lgraph -lSDL2 -lm -lunsupervised -lreg
 
 AR=ar
 ARFLAGS=rc

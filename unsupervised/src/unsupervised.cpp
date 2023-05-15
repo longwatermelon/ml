@@ -1,17 +1,19 @@
 #include "unsupervised.h"
+#include <eigen3/Eigen/Dense>
 #include <cstddef>
 #include <cmath>
+#include <eigen3/Eigen/src/Core/Matrix.h>
 #include <stdexcept>
 
 namespace kmeans
 {
-    void move_centroids(const std::vector<std::vector<float>> &data,
-                        std::vector<std::vector<float>> &centroids)
+    void move_centroids(const std::vector<Eigen::Vector2f> &data,
+                        std::vector<Eigen::Vector2f> &centroids)
     {
-        std::vector<std::vector<std::vector<float>>> points;
+        std::vector<std::vector<Eigen::Vector2f>> points;
         assign_points_to_centroids(data, centroids, points);
 
-        std::vector<std::vector<float>> averages(centroids.size());
+        std::vector<Eigen::Vector2f> averages(centroids.size());
         for (size_t i = 0; i < averages.size(); ++i)
         {
             if (!points[i].empty())
@@ -23,9 +25,9 @@ namespace kmeans
     }
 
     void assign_points_to_centroids(
-            const std::vector<std::vector<float>> &data,
-            const std::vector<std::vector<float>> &centroids,
-            std::vector<std::vector<std::vector<float>>> &out_points)
+            const std::vector<Eigen::Vector2f> &data,
+            const std::vector<Eigen::Vector2f> &centroids,
+            std::vector<std::vector<Eigen::Vector2f>> &out_points)
     {
         out_points.resize(centroids.size());
         for (const auto &dp : data)
@@ -34,7 +36,7 @@ namespace kmeans
             float nearest_dist = INFINITY;
             for (size_t i = 0; i < centroids.size(); ++i)
             {
-                float dist = distance(centroids[i], dp);
+                float dist = (centroids[i] - dp).norm();
                 if (dist < nearest_dist)
                 {
                     nearest_dist = dist;
@@ -46,39 +48,24 @@ namespace kmeans
         }
     }
 
-    float cost(const std::vector<std::vector<float>> &centroids,
-               const std::vector<std::vector<float>> &points)
+    float cost(const std::vector<Eigen::Vector2f> &centroids,
+               const std::vector<Eigen::Vector2f> &points)
     {
         float error = 0.f;
         for (size_t c = 0; c < centroids.size(); ++c)
-            error += distance(centroids[c], points[c]);
+            error += (centroids[c] - points[c]).norm();
 
         return error / points.size();
     }
 
-    float distance(const std::vector<float> &va, const std::vector<float> &vb)
+    Eigen::Vector2f points_average(const std::vector<Eigen::Vector2f> &mx)
     {
-        if (va.size() != vb.size())
-            throw std::runtime_error("[kmeans::distance] va and vb are not the same length.");
+        Eigen::Vector2f average;
+        average.setZero();
 
-        float dist = 0.f;
-        for (size_t i = 0; i < va.size(); ++i)
-            dist += std::pow(va[i] - vb[i], 2);
-        return std::sqrt(dist);
-    }
-
-    std::vector<float> points_average(const std::vector<std::vector<float>> &mx)
-    {
-        std::vector<float> average(mx[0].size());
         for (const auto &vx : mx)
-        {
-            for (size_t i = 0; i < vx.size(); ++i)
-                average[i] += vx[i];
-        }
+            average += vx;
 
-        for (size_t i = 0; i < average.size(); ++i)
-            average[i] /= mx.size();
-
-        return average;
+        return average / mx.size();
     }
 }
