@@ -1,6 +1,6 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
-INC=-I../regression/src
+INC=-I../regression/src -I../common/src -I/usr/include/eigen3
 LDFLAGS=-L../lib -lreg
 
 SRC=$(wildcard src/*.cpp)

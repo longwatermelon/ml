@@ -26,9 +26,9 @@ int main(int argc, char **argv)
     // 1 feature data
     std::vector<DataPoint> data;
     for (const auto &p : g.data())
-        data.emplace_back(DataPoint({ p.p.x }, p.p.y));
+        data.emplace_back(DataPoint(Eigen::VectorXf({{ p.p.x }}), p.p.y));
 
-    std::vector<float> vw = { -500.f };
+    Eigen::VectorXf vw({{ -500.f }});
     float b = -200.f;
 
     graph::Graph3 g3("data/linear/graph3", [&](float x, float z){
@@ -67,8 +67,8 @@ int main(int argc, char **argv)
         if (keystates[SDL_SCANCODE_SPACE])
         {
             general::descend(vw, b, .2f, data,
-                    [](const std::vector<float> &vw,
-                       const std::vector<float> &vx,
+                    [](const Eigen::VectorXf &vw,
+                       const Eigen::VectorXf &vx,
                        float b){
                 return linear::f_wb(vw[0], vx[0], b);
             });

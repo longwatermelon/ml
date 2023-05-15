@@ -13,25 +13,25 @@ namespace reg
 
     namespace general
     {
-        float calc_mean(const std::vector<float> &values);
-        float calc_sd(const std::vector<float> &values);
-        void zscore_normalize(std::vector<float> &features, float &sd, float &mean);
+        float calc_mean(const Eigen::VectorXf &values);
+        float calc_sd(const Eigen::VectorXf &values);
+        void zscore_normalize(Eigen::VectorXf &features, float &sd, float &mean);
 
         // All vectors have NF length
-        void feature_scale(std::vector<DataPoint> &data, std::vector<float> &sd, std::vector<float> &mean);
+        void feature_scale(std::vector<DataPoint> &data, Eigen::VectorXf &sd, Eigen::VectorXf &mean);
 
         // All vectors have NF length
         float cost(const std::vector<DataPoint> &data,
-                   const std::vector<float> &vw,
+                   const Eigen::VectorXf &vw,
                    const std::function<float(const DataPoint&)> &err_f,
                    float lambda = 0.f);
 
         // func parameters: vw, vx, b
         // All vectors have NF length
-        void descend(std::vector<float> &vw, float &b, float a,
+        void descend(Eigen::VectorXf &vw, float &b, float a,
                      const std::vector<DataPoint> &data,
-                     const std::function<float(const std::vector<float>&,
-                                               const std::vector<float>&,
+                     const std::function<float(const Eigen::VectorXf&,
+                                               const Eigen::VectorXf&,
                                                float)> &prediction_func,
                      float lambda = 0.f);
     }
@@ -43,7 +43,7 @@ namespace reg
 
     namespace multilinear
     {
-        float f_wb(const std::vector<float> &vw, const std::vector<float> &features,
+        float f_wb(const Eigen::VectorXf &vw, const Eigen::VectorXf &features,
                    float b);
     }
 
@@ -56,14 +56,14 @@ namespace reg
 
     namespace multilogistic
     {
-        float f_wb(const std::vector<float> &vw, const std::vector<float> &vx, float b);
+        float f_wb(const Eigen::VectorXf &vw, const Eigen::VectorXf &vx, float b);
         float g(float z);
     }
 
     namespace softmax
     {
-        float g(float z, const std::vector<float> &vz);
-        std::vector<float> solve_va(std::vector<float> vz);
+        float g(float z, const Eigen::VectorXf &vz);
+        Eigen::VectorXf solve_va(Eigen::VectorXf vz);
     }
 }
 

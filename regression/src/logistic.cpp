@@ -24,9 +24,9 @@ int main(int argc, char **argv)
     std::vector<DataPoint> data;
     data.reserve(graph.data().size());
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint({ p.p.x }, p.p.y));
+        data.emplace_back(DataPoint(Eigen::VectorXf({{ p.p.x }}), p.p.y));
 
-    std::vector<float> vw = { 0.f };
+    Eigen::VectorXf vw({{ 0.f }});
     float b = 0.f;
 
     graph::Graph3 graph3("data/logistic/graph3", [&](float x, float z){
@@ -73,8 +73,8 @@ int main(int argc, char **argv)
         if (keystates[SDL_SCANCODE_SPACE])
         {
             general::descend(vw, b, 1.f, data,
-                    [](const std::vector<float> &vw,
-                       const std::vector<float> &vx,
+                    [](const Eigen::VectorXf &vw,
+                       const Eigen::VectorXf &vx,
                        float b){
                 return logistic::g(logistic::f_wb(vw[0], vx[0], b));
             });

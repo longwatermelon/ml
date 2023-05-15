@@ -1,6 +1,7 @@
 #include "reg.h"
 #include "common.h"
 #include <graph2.h>
+#include <iostream>
 
 using namespace reg;
 
@@ -23,13 +24,14 @@ int main()
     graph.add_plus_shape();
 
     // mw is NY x NF
-    std::vector<std::vector<float>> mw(NY);
-    for (auto &vw : mw) vw = std::vector<float>(NF);
-    std::vector<float> vb(NY);
+    Eigen::MatrixXf mw(NY, NF);
+    mw.setZero();
+    Eigen::VectorXf vb(NY);
+    vb.setZero();
 
     std::vector<DataPoint> data;
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint({ p.p.x, p.p.y }, p.shape));
+        data.emplace_back(DataPoint(Eigen::VectorXf({{ p.p.x, p.p.y }}), p.shape));
 
     for (size_t i = 0; i < 1000; ++i)
     {
@@ -39,24 +41,27 @@ int main()
             for (auto &dp : data_copy)
                 dp.y = dp.y == j ? 1 : 0;
 
-            general::descend(mw[j], vb[j], .1f, data_copy,
-                    [mw, vb](const std::vector<float> &vw,
-                       const std::vector<float> &vx,
+            Eigen::VectorXf vw = mw.row(j);
+            general::descend(vw, vb[j], .1f, data_copy,
+                    [mw, vb](const Eigen::VectorXf &vw,
+                       const Eigen::VectorXf &vx,
                        float b){
-                std::vector<float> vz(NY);
+                Eigen::VectorXf vz(NY);
                 for (size_t i = 0; i < NY; ++i)
-                    vz[i] = common::vec::dot(mw[i], vx) + vb[i];
+                    vz[i] = mw.row(i).transpose().dot(vx) + vb[i];
 
-                return softmax::g(common::vec::dot(vw, vx) + b, vz);
+                return softmax::g(vw.dot(vx) + b, vz);
             });
+            mw.row(j) = vw;
         }
 
         if ((i + 1) % 100 == 0)
         {
-            printf("Iteration %zu: mw = [ ", i);
-            for (const auto &vw : mw)
-                printf("%s ", common::vec::to_string(vw).c_str());
-            printf("]| vb = %s\n", common::vec::to_string(vb).c_str());
+            std::cout << "Iteration " << i << ": mw = \n[" << mw;
+            // printf("Iteration %zu: mw = [ ", i);
+                // printf("%s ", common::vec::to_string(vw).c_str());
+            std::cout << "]\nvb = [" << vb.transpose() << "]\n";
+            // printf("]| vb = %s\n", common::vec::to_string(vb).c_str());
         }
     }
 
@@ -88,10 +93,10 @@ int main()
 
         graph.render_trend(rend, graph_r,
                 [colors, mw, vb](glm::vec2 p){
-            std::vector<float> vz(NY);
+            Eigen::VectorXf vz(NY);
             for (int i = 0; i < NY; ++i)
-                vz[i] = common::vec::dot(mw[i], { p.x, p.y }) + vb[i];
-            std::vector<float> va = softmax::solve_va(vz);
+                vz[i] = mw.row(i).dot(Eigen::VectorXf({{ p.x, p.y }})) + vb[i];
+            Eigen::VectorXf va = softmax::solve_va(vz);
             return va[0] * colors[0] + va[1] * colors[1] + va[2] * colors[2] + va[3] * colors[3];
         });
 

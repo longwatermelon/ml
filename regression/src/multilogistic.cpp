@@ -18,18 +18,19 @@ int main()
     graph.add_cross_shape();
     graph.add_tri_shape();
 
-    std::vector<float> vw(NF);
+    Eigen::VectorXf vw(NF);
+    vw.setZero();
     float b = 0.f;
 
     std::vector<DataPoint> data;
     for (const auto &p : graph.data())
-        data.emplace_back(DataPoint({ p.p.x, p.p.y }, p.shape));
+        data.emplace_back(DataPoint(Eigen::VectorXf({{ p.p.x, p.p.y }}), p.shape));
 
     for (size_t i = 0; i < 10000; ++i)
     {
         general::descend(vw, b, .1f, data,
-                [](const std::vector<float> &vw,
-                   const std::vector<float> &vx,
+                [](const Eigen::VectorXf &vw,
+                   const Eigen::VectorXf &vx,
                    float b){
             return multilogistic::g(multilogistic::f_wb(vw, vx, b));
         });

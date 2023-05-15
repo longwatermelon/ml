@@ -30,11 +30,12 @@ int main(int argc, char **argv)
     ifs.close();
 
     // Scale
-    std::vector<float> vsd(NF), vmean(NF);
+    Eigen::VectorXf vsd(NF), vmean(NF);
     general::feature_scale(data, vsd, vmean);
 
     // Gradient descent
-    std::vector<float> vw(NF);
+    Eigen::VectorXf vw(NF);
+    vw.setZero();
     float b = 0.f;
 
     for (int i = 0; i < 500; ++i)
