@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=-I../graph/src/ -I../common/src/
-LDFLAGS=-L../lib -lSDL2 -lgraph -lcommon
+LDFLAGS=-L../lib -lSDL2 -lgraph -lreg
 
 AR=ar
 ARFLAGS=rc
@@ -11,8 +11,8 @@ ARFLAGS=rc
 all: softmax
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/reg.cpp
-	$(CXX) $@.o reg.o $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) -c $^
+	$(CXX) $@.o $(LDFLAGS)
 
 lib:
 	$(CXX) $(CXXFLAGS) $(INC) -c src/reg.cpp
