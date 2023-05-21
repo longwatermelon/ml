@@ -1,25 +1,26 @@
 #include "deepnn.h"
-#include <reg.h>
-#include <Eigen/Dense>
+#include <iostream>
 
 int main()
 {
-    // nn::Model model({
-    //     nn::Layer(25, nn::Activation::Relu),
-    //     nn::Layer(15, nn::Activation::Relu),
-    //     nn::Layer(10, nn::Activation::Linear)
-    // });
+    nn::Model model({
+        nn::Layer(4, nn::Activation::Tanh),
+        nn::Layer(2, nn::Activation::Sigmoid)
+    });
 
-    // model.compile();
+    mt::mat X(3, 1);
+    X.atref(0, 0) = 0.f;
+    X.atref(1, 0) = 1.f;
+    X.atref(2, 0) = 2.f;
+    /* Eigen::MatrixXf X(1, 3); */
+    /* X << 0.f, 1.f, 2.f; */
 
-    // std::vector<std::vector<float>> mat = {
-    //     { 1, 0, 0 },
-    //     { 0, 1, 0 },
-    //     { 1, 0, 1 }
-    // };
+    /* Eigen::VectorXf vy(3); */
+    /* vy << 0.f, 1.f, 2.f; */
+    mt::vec vy(1);
+    vy.atref(0, 0) = 1.f;
 
-    // std::vector<float> v = { 1.f, 2.f, 3.f };
-    // printf("%s\n", reg::vec::to_string(reg::vec::matmul(mat, v)).c_str());
+    model.train(X, vy, 1000);
 
     return 0;
 }

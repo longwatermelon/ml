@@ -1,7 +1,7 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
-INC=-I../regression/src -I../common/src -I/usr/include/eigen3
-LDFLAGS=-L../lib -lreg
+INC=-I../common/src
+LDFLAGS=-L../lib
 
 SRC=$(wildcard src/*.cpp)
 OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
@@ -11,11 +11,11 @@ OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
 all: cats
 
 %: src/%.cpp
-	$(CXX) $(CXXFLAGS) $(INC) -c $^ src/deepnn.cpp
-	$(CXX) $@.o deepnn.o $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) $(INC) -c $^
+	$(CXX) $@.o $(LDFLAGS) -lnn
 
 lib:
-	$(CXX) $(CXXFLAGS) -c src/deepnn.cpp
+	$(CXX) $(CXXFLAGS) $(INC) -c src/deepnn.cpp
 	$(AR) $(ARFLAGS) ../lib/libnn.a deepnn.o
 
 reg:

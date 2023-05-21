@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 \usepackage{amsmath}
+\usepackage{bm}
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{indentfirst}
@@ -13,22 +14,20 @@
     linkcolor=black,  %choose some color if you want links to stand out
 }
 \graphicspath{ {./images/} }
+\usepackage{enumitem}
 \begin{document}
 \newcommand*\dif{\mathop{}\!\mathrm{d}}
 
-\newenvironment{myitemize}
-{ \begin{itemize}
-    \setlength{\itemsep}{0pt}
-    \setlength{\parskip}{0pt}
-    \setlength{\parsep}{0pt}     }
-{ \end{itemize}                  } 
+\setlist[enumerate]{noitemsep, topsep=0pt, leftmargin=2.5\parindent}
+\setlist[itemize]{noitemsep, topsep=0pt, leftmargin=2.5\parindent}
 
-\newenvironment{myenumerate}
-{ \begin{enumerate}
-    \setlength{\itemsep}{0pt}
-    \setlength{\parskip}{0pt}
-    \setlength{\parsep}{0pt}     }
-{ \end{enumerate}                  } 
+\newenvironment{subitemize}
+{ \begin{itemize}[leftmargin=\parindent] }
+{ \end{itemize} }
+
+\newenvironment{subenumerate}
+{ \begin{enumerate}[leftmargin=\parindent] }
+{ \end{enumerate} }
 
 \tableofcontents
 
@@ -69,10 +68,10 @@ $\frac{1}{m}$ finds average error for larger data sets, $\frac{1}{2m}$ makes lat
 
 Find $w,b$ for minimum of cost function $J(w,b)$
 
-\begin{myenumerate}
+\begin{enumerate}
 	\item Start with some $w,b$ (commonly $0,0$)
 	\item Look around starting point and find direction that will move the point furthest downwards for a small step size
-\end{myenumerate}
+\end{enumerate}
 
 $\alpha$ = learning rate
 
@@ -212,11 +211,11 @@ Overfit / high variance: fits training set extremely well but does not generaliz
 \vspace{5px}
 
 Addressing overfitting
-\begin{myitemize}
+\begin{itemize}
 	\item Collect more data
 	\item Select features ("Feature selection")
 	\item Reduce size of parameters ("Regularization")
-\end{myitemize}
+\end{itemize}
 
 \subsubsection{Regularization}
 
@@ -251,74 +250,174 @@ For gradient descent, only $\frac{\partial J_r}{\partial w_j}$ changes (b is not
 
 \section{Neural networks}
 
-$n_{\ell}$ = num layers excluding input
+\subsection{Intuition}
 
-$n^{[\ell]}_n$ = n neurons in layer $\ell$
+The input layer, or the data, is layer 0. Hidden layers start from layer 1, and the
+output layer is the last layer. Superscript square brackets are commonly used
+to refer to some layer; for example, $\vec a^{[i]}$ refers to the vectors of
+activations in layer $i$.
 
-$n_f$ = num features
+\includegraphics[scale=.5]{images/nn-intuition.png}
 
-$\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n^{[\ell-1]}_n$
+where $g$ is some activation function (ex. sigmoid). $\vec a$ will be the output of this
+layer, which is a vector of the activations $[a_1,a_2,a_3]$ from the previous layer.
 
-$\vec{x}$ is a vector of outputs from each neuron in previous layer
+A more compact way of expressing the activations in a layer is $a^{[\ell]}_j =
+g(\vec w^{[\ell]}_j \cdot \vec a^{[\ell-1]} + b^{[\ell]}_j)$.
 
-$\vec{b}$ is a vector (length $n_{\ell}$), holds a bias value for each layer
+\subsection{Activation functions}
 
-$Z$ and $A$: vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
+Linear: $g(z) = z$, used for ex. change in stock prices tomorrow
 
-$g$: activation function
+Sigmoid: $g(z) = \frac{1}{1 + e^{-z}}$, used for binary classification
 
-$1 \leq i \leq n_{\ell}$
+ReLU: $g(z) = \max(0, z)$, used for non-negative predictions ex. housing prices
 
-$a$ (activation) = scalar output of a single neuron
+When choosing $g(z)$ for the output layer:
+\begin{itemize}
+    \item Sigmoid for binary classification
+    \item Linear for linear regression with both positive / negative results
+    \item ReLU is similar to linear but if output values can only be non-negative
+\end{itemize}
 
-Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
+Choosing $g(z)$ for hidden layers:
+\begin{itemize}
+    \item ReLU is the most common (faster, doesn't flatten out like sigmoid)
+    \item Linear is typically not used in hidden layers, because they remove complexity
+        from the model's predictions. A neural network with many layers that all use
+        the linear activation function is not any better than a single regression
+        using the activation function of the output layer.
+\end{itemize}
 
-\subsection{Choosing an activation function}
+\subsection{Training the model}
 
-sigmoid: $g(z) = \frac{1}{1 + e^{-z}}$
+Derivatives can be computed by changing a function's argument by some small $\epsilon$ and
+seeing how the function changes as a reuslt of its argument change. The derivative is then
+change in function / change in argument.
 
-tanh: $g(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
+For example, given cost function $J(w) = w^2$, $\frac{\partial J}{\partial w}\big{|}_{w=3}$
+can be determined with $\frac{J(w + \epsilon) - J(w)}{\epsilon}$. Values for $\epsilon$
+can be as small as 0.0001, because $\epsilon$ should simulate an infinitely small number.
 
-linear: $g(z) = z$
-
-ReLU: $g(z) = \max(0, z)$
-
-Leaky ReLU: $g(z) = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
-
-\subsubsection*{For output layer}
-
-Binary classification, y = 0 or 1: use sigmoid
-
-Regression, $-\infty \leq y \leq \infty$: use linear activation function
-
-Regression, y $\geq$ 0: use ReLU
-
-\subsubsection*{For hidden layer}
-
-ReLU is most common
-
-\subsection{Training a model}
 \subsubsection{Forward propagation}
+$n^{[\ell]}$ = number of neurons in layer $\ell$
 
-Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\vec{b}^{[\ell]}$
+$n_f$ = $n^{[0]}$ = num features
+
+$m$ = number of examples
+
+$Z^{[\ell]}$ is a matrix of dimensions $n^{[\ell]} \times m$ for $\ell > 0$ which holds the values to pass
+to the activation function of layer $\ell$. The $n^{[\ell]}$ rows hold one feature of the
+$m$ data points in each neuron in layer $\ell$. Not applicable for input layer.
+
+$A^{[\ell]}$ is a matrix of dimensions $n^{[\ell]} \times m$ for $\ell > 0$ which holds activation values
+that come from $g^{[\ell]}(Z^{[\ell]})$.
+
+$g^{[\ell]}$ is the activation function for layer $\ell$.
+
+$W^{[\ell]}$ is a matrix of dimensions $n^{[\ell]} \times n^{[\ell-1]}$ for $\ell > 0$, which holds $\bm w$ values
+for each neuron in layer $\ell$. Not applicable for input layer.
+
+$\bm b^{[\ell]}$ is a list of $b$ values for each neuron in layer $\ell$, length $n^{[\ell]}$.
+
+$A^{[0]}$ = $X$ is a matrix of dimensions $n_f \times m$ which holds all input data.
 
 \begin{align*}
-    Z^{[\ell]} &= W^{[\ell]} A^{[\ell-1]} + \vec{b}^{[\ell]}\\
+    Z^{[\ell]} &= W^{[\ell]} \cdot A^{[\ell-1]} + \bm b^{[\ell]}\\
     A^{[\ell]} &= g^{[\ell]}(Z^{[\ell]})
 \end{align*}
 
-Up to $A^{[n_{\ell}]}$, in which case $\hat{y} = A^{[n_{\ell}]}_0$ assuming output layer has one unit
-
 \subsubsection{Back propagation}
+Including variables from the forward propagation section:
 
-Input $\dif a^{[\ell]}$, output $\dif a^{[\ell-1]}$, $\dif W^{[\ell-1]}$, $\dif \vec{b}^{[\ell-1]}$
+$L$ = last layer
 
+$Y$ is a matrix of dimensions $n^{[L]} \times m$ which holds training data labels.
+
+$\dif Z^{[\ell]}_i$ is the $i$th column of $\dif Z$, giving a vector of length $n^{[\ell]}$.
+
+For output layer:
 \begin{align*}
-    \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot g'^{[\ell]}(Z^{[\ell]})\\
-    \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} \cdot A^{[\ell-1] T}\\
-    \dif \vec{b}^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i\\
-    \dif A^{[\ell-1]} &= W^{[\ell] T} \cdot \dif Z^{[\ell]}
+    \dif Z^{[L]} &= A^{[L]} - Y\\
+    \dif W^{[L]} &= \frac{1}{m} \dif Z^{[L]} A^{[L-1]T}\\
+    \dif \bm b^{[L]} &= \frac{1}{m} \sum_i \dif Z^{[L]}_i\\
 \end{align*}
+
+For hidden layers:
+\begin{align*}
+    \dif Z^{[\ell]} &= W^{[\ell+1]T}\dif Z^{[\ell+1]} * g^{[\ell]}'(Z^{[\ell]})\\
+    \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} A^{[\ell-1]T}\\
+    \dif \bm b^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i
+\end{align*}
+
+% $n_{\ell}$ = num layers excluding input
+
+% $n^{[\ell]}_n$ = n neurons in layer $\ell$
+
+% $n_f$ = num features
+
+% $\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n^{[\ell-1]}_n$
+
+% $\vec{x}$ is a vector of outputs from each neuron in previous layer
+
+% $\vec{b}$ is a vector (length $n_{\ell}$), holds a bias value for each layer
+
+% $Z$ and $A$: vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
+
+% $g$: activation function
+
+% $1 \leq i \leq n_{\ell}$
+
+% $a$ (activation) = scalar output of a single neuron
+
+% Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
+
+% \subsection{Choosing an activation function}
+
+% sigmoid: $g(z) = \frac{1}{1 + e^{-z}}$
+
+% tanh: $g(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
+
+% linear: $g(z) = z$
+
+% ReLU: $g(z) = \max(0, z)$
+
+% Leaky ReLU: $g(z) = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
+
+% \subsubsection*{For output layer}
+
+% Binary classification, y = 0 or 1: use sigmoid
+
+% Regression, $-\infty \leq y \leq \infty$: use linear activation function
+
+% Regression, y $\geq$ 0: use ReLU
+
+% \subsubsection*{For hidden layer}
+
+% ReLU is most common
+
+% \subsection{Training a model}
+% \subsubsection{Forward propagation}
+
+% Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\vec{b}^{[\ell]}$
+
+% \begin{align*}
+%     Z^{[\ell]} &= W^{[\ell]} A^{[\ell-1]} + \vec{b}^{[\ell]}\\
+%     A^{[\ell]} &= g^{[\ell]}(Z^{[\ell]})
+% \end{align*}
+
+% Up to $A^{[n_{\ell}]}$, in which case $\hat{y} = A^{[n_{\ell}]}_0$ assuming output layer has one unit
+
+% \subsubsection{Back propagation}
+
+% Input $\dif a^{[\ell]}$, output $\dif a^{[\ell-1]}$, $\dif W^{[\ell-1]}$, $\dif \vec{b}^{[\ell-1]}$
+
+% \begin{align*}
+%     \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot g'^{[\ell]}(Z^{[\ell]})\\
+%     \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} \cdot A^{[\ell-1] T}\\
+%     \dif \vec{b}^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i\\
+%     \dif A^{[\ell-1]} &= W^{[\ell] T} \cdot \dif Z^{[\ell]}
+% \end{align*}
 
 \subsection{Improving model}
 
@@ -334,14 +433,14 @@ High bias and high variance: $J_{train}$ high, $J_{cv} \gg J_{train}$
 
 How to fix:
 
-\begin{myenumerate}
+\begin{enumerate}
 \item Get more training examples (fix high variance)
 \item Try smaller sets of features (fix high variance)
 \item Add more features (fix high bias)
 \item Add polynomial features (fix high bias)
 \item Decrease $\lambda$ (fix high bias)
 \item Increase $\lambda$ (fix high variance)
-\end{myenumerate}
+\end{enumerate}
 
 \textbf{Neural networks and bias/variance}
 
@@ -412,13 +511,13 @@ $H(p_{root}) - (w_{left} H(p_{left}) + w_{right} H(p_{right}))$
 
 \subsection{Constructing a decision tree}
 
-\begin{myenumerate}
+\begin{enumerate}
     \item Start with all examples at root node
     \item Calculate information gain for all possible features, pick one with highest information gain
     \item Split dataset according to selected feature, creating a left and right branch
     \item Stop when stopping criteria is met (node is 100\% one class, information gain
         from more splits is less than a threshold, num examples is below a threshold)
-\end{myenumerate}
+\end{enumerate}
 
 Final decision tree
 
