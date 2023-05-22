@@ -18,25 +18,27 @@ namespace nn
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);
             m_layers[i].W.set(0.f);
-            /* m_layers[i].A = m_layers[i].W; */
-            /* m_layers[i].Z = m_layers[i].W; */
 
             m_layers[i].vb = mt::vec(m_layers[i].n);
         }
     }
 
-    void Model::train(const mt::mat &X, const mt::mat &Y, int epochs)
+    void Model::train(const mt::mat &X, const mt::mat &Y, int epochs, float a)
     {
         m_layers[0].n = X.rows();
         m_layers[1].W = mt::mat(m_layers[1].W.rows(), m_layers[0].n);
+        m_layers[1].W.m_data = {
+            { 1, 1, 1, 1 },
+            { 2, 2, 2, 2 }
+        };
 
-        forward_prop(X);
-        back_prop(Y);
-        /* for (int i = 0; i < epochs; ++i) */
-        /* { */
-        /*     forward_prop(X); */
-        /*     back_prop(vy); */
-        /* } */
+        for (int i = 0; i < epochs; ++i)
+        {
+            forward_prop(X);
+            if ((i + 1) % 1000 == 0)
+                printf("Iteration %d: %f\n", i + 1, cost(Y));
+            back_prop(Y, a);
+        }
     }
 
     void Model::forward_prop(const mt::mat &X)
@@ -78,13 +80,14 @@ namespace nn
         }
     }
 
-    void Model::back_prop(const mt::mat &Y)
+    void Model::back_prop(const mt::mat &Y, float a)
     {
+        std::vector<mt::mat> dWs;
+        std::vector<mt::vec> d_vbs;
         mt::mat dZ_prev = m_layers.back().A,
                 dW_prev;
 
         // Output layer
-        /* dZ_prev = m_layers.back().A - vy; */
         for (int r = 0; r < m_layers.back().A.rows(); ++r)
         {
             for (int c = 0; c < m_layers.back().A.cols(); ++c)
@@ -105,14 +108,14 @@ namespace nn
         for (int i = 0; i < d_vb.rows(); ++i)
             d_vb.atref(i, 0) /= Y.cols();
 
-        apply_diffs(m_layers.size() - 1, dW_prev, d_vb);
+        dWs.emplace_back(dW_prev);
+        d_vbs.emplace_back(d_vb);
 
         // Only hidden layers
         for (int i = m_layers.size() - 2; i > 0; --i)
         {
             mt::mat left = m_layers[i + 1].W.transpose() * dZ_prev;
             mt::mat right = gprime(i, m_layers[i].Z);
-            /* mt::mat dZ = left.cwiseProduct(right); */
             // Element-wise product left * right
             mt::mat dZ(left.rows(), left.cols());
             for (int r = 0; r < left.rows(); ++r)
@@ -125,6 +128,7 @@ namespace nn
 
             mt::mat dW = (dZ * m_layers[i - 1].A.transpose()) * (1.f / Y.cols());
 
+            d_vb = mt::vec(dZ.rows());
             d_vb.set(0.f);
             for (int j = 0; j < dZ.cols(); ++j)
             {
@@ -134,21 +138,27 @@ namespace nn
             for (int j = 0; j < d_vb.rows(); ++j)
                 d_vb.atref(j, 0) /= dZ.cols();
 
-            apply_diffs(i, dW, d_vb);
+            dWs.insert(dWs.begin(), dW);
+            d_vbs.insert(d_vbs.begin(), d_vb);
+            /* apply_diffs(i, dW, d_vb); */
             dW_prev = dW;
             dZ_prev = dZ;
         }
+
+        for (int i = 1; i < m_layers.size(); ++i)
+            apply_diffs(i, dWs[i - 1], d_vbs[i - 1], a);
     }
 
     void Model::apply_diffs(int l,
             const mt::mat &dW,
-            const mt::vec &db
+            const mt::vec &db,
+            float a
         )
     {
-        m_layers[l].W = m_layers[l].W + dW;
+        m_layers[l].W = m_layers[l].W + dW * (-a);
 
         for (int i = 0; i < m_layers[l].vb.rows(); ++i)
-            m_layers[l].vb.atref(i, 0) += db.at(i, 0);
+            m_layers[l].vb.atref(i, 0) -= a * db.at(i, 0);
     }
 
     mt::mat Model::gprime(int l, const mt::mat &Z)
@@ -211,6 +221,20 @@ namespace nn
         mt::mat tmp;
         tmp.set(0.f);
         return tmp;
+    }
+
+    float Model::cost(const mt::mat &Y)
+    {
+        float sum = 0.f;
+        for (int i = 0; i < Y.cols(); ++i)
+        {
+            for (int j = 0; j < Y.rows(); ++j)
+            {
+                sum += Y.at(j, i) * std::log(m_layers.back().A.at(j, i));
+            }
+        }
+
+        return -sum;
     }
 }
 

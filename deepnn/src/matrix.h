@@ -1,6 +1,7 @@
 #pragma once
 #include <cctype>
 #include <vector>
+#include <cstdio>
 
 namespace mt
 {
@@ -30,8 +31,9 @@ namespace mt
             {
                 for (int j = 0; j < m.cols(); ++j)
                 {
+                    res.atref(i, j) = 0;
                     for (int k = 0; k < cols(); ++k)
-                        res.atref(i, j) = at(i, k) + m.at(k, j);
+                        res.atref(i, j) += at(i, k) * m.at(k, j);
                 }
             }
 
@@ -79,13 +81,29 @@ namespace mt
             return res;
         }
 
+        void print() const
+        {
+            for (int r = 0; r < rows(); ++r)
+            {
+                for (int c = 0; c < cols(); ++c)
+                {
+                    printf("%f ", at(r, c));
+                }
+                printf("\n");
+            }
+        }
+
+        void print_dims() const
+        {
+            printf("%dx%d\n", rows(), cols());
+        }
+
         float at(int r, int c) const { return m_data[c][r]; }
         float& atref(int r, int c) { return m_data[c][r]; }
 
         int rows() const { return m_data[0].size(); }
         int cols() const { return m_data.size(); }
 
-    protected:
         std::vector<std::vector<float>> m_data;
     };
 

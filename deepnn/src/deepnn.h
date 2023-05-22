@@ -32,18 +32,23 @@ namespace nn
         Model(const std::vector<Layer> &layers);
         ~Model() = default;
 
-        void train(const mt::mat &X, const mt::mat &Y, int epochs);
+        void train(const mt::mat &X, const mt::mat &Y, int epochs, float a);
+
+        Layer layer(int i) const { return m_layers[i]; }
 
     private:
         void forward_prop(const mt::mat &X);
-        void back_prop(const mt::mat &Y);
+        void back_prop(const mt::mat &Y, float a);
         void apply_diffs(int l,
                 const mt::mat &dW,
-                const mt::vec &db
+                const mt::vec &db,
+                float a
         );
         mt::mat gprime(int l, const mt::mat &Z);
 
-    private:
+        float cost(const mt::mat &Y);
+
+    public:
         std::vector<Layer> m_layers;
     };
 }
