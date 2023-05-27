@@ -28,11 +28,12 @@ int main()
 {
     srand(1);
 
-    nn::Model model({
-        nn::Layer(25, nn::Activation::Sigmoid),
-        nn::Layer(15, nn::Activation::Sigmoid),
-        nn::Layer(2, nn::Activation::Sigmoid)
-    });
+    /* nn::Model model({ */
+    /*     nn::Layer(25, nn::Activation::Sigmoid), */
+    /*     nn::Layer(15, nn::Activation::Sigmoid), */
+    /*     nn::Layer(2, nn::Activation::Sigmoid) */
+    /* }); */
+    nn::Model model("digits-params");
 
     std::vector<std::vector<float>> images;
 
@@ -68,7 +69,7 @@ int main()
         }
     }
 
-    model.train(X, Y, 2000, 2.f);
+    /* model.train(X, Y, 2000, 2.f); */
 
     std::vector<float> test0 = from_image("data/digits/test0.png");
     std::vector<float> test1 = from_image("data/digits/test1.png");

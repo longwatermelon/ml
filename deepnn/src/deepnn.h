@@ -7,14 +7,15 @@ namespace nn
 {
     enum class Activation
     {
-        Sigmoid,
-        Linear,
-        Relu,
-        Tanh
+        Sigmoid = 0,
+        Linear = 1,
+        Relu = 2,
+        Tanh = 3
     };
 
     struct Layer
     {
+        Layer() = default;
         Layer(int n, Activation a_fn)
             : n(n), a_fn(a_fn) {}
 
@@ -30,10 +31,13 @@ namespace nn
     {
     public:
         Model(const std::vector<Layer> &layers);
+        Model(const std::string &src);
         ~Model() = default;
 
         void train(const mt::mat &X, const mt::mat &Y, int epochs, float a);
         std::vector<float> predict(const mt::mat &X);
+
+        void save_params(const std::string &fp);
 
         Layer layer(int i) const { return m_layers[i]; }
 

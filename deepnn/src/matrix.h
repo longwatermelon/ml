@@ -13,7 +13,7 @@ namespace mt
         mat(int r, int c)
         {
             m_data.resize(c);
-            for (int i = 0; i < m_data.size(); ++i)
+            for (size_t i = 0; i < m_data.size(); ++i)
                 m_data[i].resize(r);
         }
 

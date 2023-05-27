@@ -3,6 +3,8 @@
 #include <cmath>
 #include <functional>
 #include <cstdio>
+#include <fstream>
+#include <sstream>
 
 static const auto sigmoid = [](float z){ return 1.f / (1.f + std::exp(-z)); };
 
@@ -17,9 +19,58 @@ namespace nn
         for (size_t i = 1; i < m_layers.size(); ++i)
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);
-            m_layers[i].W.set((float)(rand() % 100) / 100.f - .5f);
+
+            for (int r = 0; r < m_layers[i].W.rows(); ++r)
+                for (int c = 0; c < m_layers[i].W.cols(); ++c)
+                    m_layers[i].W.atref(r, c) = (float)(rand() % 100) / 100.f - .5f;
 
             m_layers[i].vb = mt::vec(m_layers[i].n);
+        }
+    }
+
+    Model::Model(const std::string &src)
+    {
+        std::ifstream ifs(src);
+        std::string line;
+        while (std::getline(ifs, line))
+        {
+            std::stringstream ss(line);
+            std::string first;
+            ss >> first;
+
+            if (first == "l")
+                m_layers.emplace_back(Layer());
+
+            if (first == "n")
+                ss >> m_layers.back().n;
+
+            if (first == "W")
+            {
+                int rows, cols;
+                ss >> rows >> cols;
+                m_layers.back().W = mt::mat(rows, cols);
+                for (int r = 0; r < rows; ++r)
+                {
+                    for (int c = 0; c < cols; ++c)
+                        ss >> m_layers.back().W.atref(r, c);
+                }
+            }
+
+            if (first == "b")
+            {
+                int len;
+                ss >> len;
+                m_layers.back().vb = mt::vec(len);
+                for (int i = 0; i < len; ++i)
+                    ss >> m_layers.back().vb.atref(i, 0);
+            }
+
+            if (first == "afn")
+            {
+                int afn;
+                ss >> afn;
+                m_layers.back().a_fn = (Activation)afn;
+            }
         }
     }
 
@@ -151,8 +202,35 @@ namespace nn
             dZ_prev = dZ;
         }
 
-        for (int i = 1; i < m_layers.size(); ++i)
+        for (size_t i = 1; i < m_layers.size(); ++i)
             apply_diffs(i, dWs[i - 1], d_vbs[i - 1], a);
+    }
+
+    void Model::save_params(const std::string &fp)
+    {
+        std::ofstream ofs(fp);
+        for (size_t i = 0; i < m_layers.size(); ++i)
+        {
+            const Layer &l = m_layers[i];
+            ofs << "l\n";
+            ofs << "n " << l.n << '\n';
+
+            if (i > 0)
+            {
+                ofs << "W " << l.W.rows() << ' ' << l.W.cols() << ' ';
+                for (int r = 0; r < l.W.rows(); ++r)
+                    for (int c = 0; c < l.W.cols(); ++c)
+                        ofs << l.W.at(r, c) << ' ';
+                ofs << '\n';
+
+                ofs << "b " << l.vb.rows() << ' ';
+                for (int j = 0; j < l.vb.rows(); ++j)
+                    ofs << l.vb.at(j, 0) << ' ';
+                ofs << '\n';
+
+                ofs << "afn " << (int)l.a_fn << '\n';
+            }
+        }
     }
 
     void Model::apply_diffs(int l,
