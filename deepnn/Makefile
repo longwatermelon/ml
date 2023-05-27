@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -ggdb -Wall
+CXXFLAGS=-std=c++17 -ggdb -Wall -O3
 INC=-I../common/src -I../graph/src/
 LDFLAGS=-L../lib -lgraph -lSDL2 -lstb_image
 
