@@ -17,7 +17,7 @@ namespace nn
         for (size_t i = 1; i < m_layers.size(); ++i)
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);
-            m_layers[i].W.set(0.f);
+            m_layers[i].W.set((float)(rand() % 100) / 100.f - .5f);
 
             m_layers[i].vb = mt::vec(m_layers[i].n);
         }
@@ -27,18 +27,24 @@ namespace nn
     {
         m_layers[0].n = X.rows();
         m_layers[1].W = mt::mat(m_layers[1].W.rows(), m_layers[0].n);
-        m_layers[1].W.m_data = {
-            { 1, 1, 1, 1 },
-            { 2, 2, 2, 2 }
-        };
 
         for (int i = 0; i < epochs; ++i)
         {
             forward_prop(X);
-            if ((i + 1) % 1000 == 0)
+            if ((i + 1) % 100 == 0)
                 printf("Iteration %d: %f\n", i + 1, cost(Y));
             back_prop(Y, a);
         }
+    }
+
+    std::vector<float> Model::predict(const mt::mat &X)
+    {
+        forward_prop(X);
+
+        std::vector<float> res;
+        for (int i = 0; i < m_layers.back().A.rows(); ++i)
+            res.emplace_back(m_layers.back().A.at(i, 0));
+        return res;
     }
 
     void Model::forward_prop(const mt::mat &X)
@@ -102,7 +108,7 @@ namespace nn
         for (int i = 0; i < dZ_prev.cols(); ++i)
         {
             for (int j = 0; j < dZ_prev.rows(); ++j)
-                d_vb.atref(j, 0) += dZ_prev.at(i, j);
+                d_vb.atref(j, 0) += dZ_prev.at(j, i);
         }
 
         for (int i = 0; i < d_vb.rows(); ++i)

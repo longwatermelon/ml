@@ -33,6 +33,7 @@ namespace nn
         ~Model() = default;
 
         void train(const mt::mat &X, const mt::mat &Y, int epochs, float a);
+        std::vector<float> predict(const mt::mat &X);
 
         Layer layer(int i) const { return m_layers[i]; }
 

@@ -1,14 +1,14 @@
 CXX=g++
 CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=-I../common/src -I../graph/src/
-LDFLAGS=-L../lib -lgraph -lSDL2
+LDFLAGS=-L../lib -lgraph -lSDL2 -lstb_image
 
 SRC=$(wildcard src/*.cpp)
 OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
 
 .PHONY: graph
 
-all: cats
+all: digits
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^

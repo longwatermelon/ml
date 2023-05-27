@@ -2,6 +2,7 @@
 #include <cctype>
 #include <vector>
 #include <cstdio>
+#include <iostream>
 
 namespace mt
 {
@@ -98,8 +99,16 @@ namespace mt
             printf("%dx%d\n", rows(), cols());
         }
 
-        float at(int r, int c) const { return m_data[c][r]; }
-        float& atref(int r, int c) { return m_data[c][r]; }
+        float at(int r, int c) const { check(r, c); return m_data[c][r]; }
+        float& atref(int r, int c) { check(r, c); return m_data[c][r]; }
+        void check(int r, int c) const
+        {
+            if (r < 0 || r >= rows() || c < 0 || c >= cols())
+            {
+                std::cerr << "Error in indexing mt::mat\n";
+                exit(EXIT_FAILURE);
+            }
+        }
 
         int rows() const { return m_data[0].size(); }
         int cols() const { return m_data.size(); }
