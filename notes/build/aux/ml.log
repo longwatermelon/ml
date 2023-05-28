@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Arch Linux) (preloaded format=pdflatex 2023.4.3)  28 MAY 2023 10:30
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Arch Linux) (preloaded format=pdflatex 2023.4.3)  28 MAY 2023 10:49
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -360,13 +360,13 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
  [1
 
-{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] [4{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
-<images/nn-intuition.png, id=384, 760.8425pt x 482.80376pt>
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] [2] [3] [4] [5{/usr/share/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
+<images/nn-intuition.png, id=400, 760.8425pt x 482.80376pt>
 File: images/nn-intuition.png Graphic file (type png)
 <use images/nn-intuition.png>
 Package pdftex.def Info: images/nn-intuition.png  used on input line 260.
 (pdftex.def)             Requested size: 380.42032pt x 241.40129pt.
- [5 <./images/nn-intuition.png>]
+ [6 <./images/nn-intuition.png>]
 ./ml.tex:351: Double superscript.
 <recently read> ^
                  
@@ -381,114 +381,125 @@ l.351 \end{align*}
                   
 I treat `x^1^2' essentially like `x^1{}^2'.
 
-[6]
-<images/cnn-filter-volume.png, id=397, 999.735pt x 368.37625pt>
+[7]
+<images/cnn-filter-volume.png, id=414, 999.735pt x 368.37625pt>
 File: images/cnn-filter-volume.png Graphic file (type png)
 <use images/cnn-filter-volume.png>
 Package pdftex.def Info: images/cnn-filter-volume.png  used on input line 460.
 (pdftex.def)             Requested size: 499.86627pt x 184.18767pt.
- [7 <./images/cnn-filter-volume.png>]
-<images/max-pooling.png, id=405, 1006.76125pt x 368.37625pt>
+ [8 <./images/cnn-filter-volume.png>]
+<images/max-pooling.png, id=421, 1006.76125pt x 368.37625pt>
 File: images/max-pooling.png Graphic file (type png)
 <use images/max-pooling.png>
 Package pdftex.def Info: images/max-pooling.png  used on input line 542.
 (pdftex.def)             Requested size: 503.3794pt x 184.18767pt.
- [8 <./images/max-pooling.png>]
-<./images//purity.png, id=417, 312.16624pt x 75.28125pt>
+<images/cnn-example.png, id=422, 1323.94624pt x 623.32875pt>
+File: images/cnn-example.png Graphic file (type png)
+<use images/cnn-example.png>
+Package pdftex.def Info: images/cnn-example.png  used on input line 569.
+(pdftex.def)             Requested size: 529.56912pt x 249.32707pt.
+
+Overfull \hbox (5.16893pt too wide) in paragraph at lines 569--570
+[][] 
+ []
+
+[9 <./images/max-pooling.png> <./images/cnn-example.png>]
+<./images//purity.png, id=430, 312.16624pt x 75.28125pt>
 File: ./images//purity.png Graphic file (type png)
 <use ./images//purity.png>
-Package pdftex.def Info: ./images//purity.png  used on input line 606.
+Package pdftex.def Info: ./images//purity.png  used on input line 621.
 (pdftex.def)             Requested size: 312.16548pt x 75.28105pt.
-<./images//entropy.png, id=418, 296.10625pt x 207.77625pt>
+<./images//entropy.png, id=431, 296.10625pt x 207.77625pt>
 File: ./images//entropy.png Graphic file (type png)
 <use ./images//entropy.png>
-Package pdftex.def Info: ./images//entropy.png  used on input line 612.
+Package pdftex.def Info: ./images//entropy.png  used on input line 627.
 (pdftex.def)             Requested size: 296.10551pt x 207.77573pt.
-<./images//split.png, id=419, 814.04124pt x 279.0425pt>
+ [10 <./images//purity.png (PNG copy)> <./images//entropy.png (PNG copy)>]
+<./images//split.png, id=442, 814.04124pt x 279.0425pt>
 File: ./images//split.png Graphic file (type png)
 <use ./images//split.png>
-Package pdftex.def Info: ./images//split.png  used on input line 626.
+Package pdftex.def Info: ./images//split.png  used on input line 641.
 (pdftex.def)             Requested size: 488.42851pt x 167.42679pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 628--630
+Underfull \hbox (badness 10000) in paragraph at lines 643--645
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 637--638
+Underfull \hbox (badness 10000) in paragraph at lines 652--653
 
  []
 
-<./images//information-gain.png, id=420, 272.01625pt x 204.765pt>
+<./images//information-gain.png, id=443, 272.01625pt x 204.765pt>
 File: ./images//information-gain.png Graphic file (type png)
 <use ./images//information-gain.png>
-Package pdftex.def Info: ./images//information-gain.png  used on input line 641.
+Package pdftex.def Info: ./images//information-gain.png  used on input line 656.
 (pdftex.def)             Requested size: 272.01558pt x 204.76448pt.
-[9 <./images//purity.png (PNG copy)> <./images//entropy.png (PNG copy)> <./images//split.png (PNG copy)>]
-<./images//decision-tree.png, id=426, 442.65375pt x 318.18875pt>
+<./images//decision-tree.png, id=444, 442.65375pt x 318.18875pt>
 File: ./images//decision-tree.png Graphic file (type png)
 <use ./images//decision-tree.png>
-Package pdftex.def Info: ./images//decision-tree.png  used on input line 667.
+Package pdftex.def Info: ./images//decision-tree.png  used on input line 682.
 (pdftex.def)             Requested size: 221.32632pt x 159.09398pt.
-
-Underfull \hbox (badness 10000) in paragraph at lines 675--677
+[11 <./images//split.png (PNG copy)> <./images//information-gain.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 690--692
 
  []
 
-<./images//continuous-tree.png, id=427, 629.35126pt x 234.8775pt>
+<./images//continuous-tree.png, id=453, 629.35126pt x 234.8775pt>
 File: ./images//continuous-tree.png Graphic file (type png)
 <use ./images//continuous-tree.png>
-Package pdftex.def Info: ./images//continuous-tree.png  used on input line 680.
+Package pdftex.def Info: ./images//continuous-tree.png  used on input line 695.
 (pdftex.def)             Requested size: 440.54288pt x 164.41312pt.
-[10 <./images//information-gain.png (PNG copy)> <./images//decision-tree.png (PNG copy)> <./images//continuous-tree.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 716--718
+
+Underfull \hbox (badness 10000) in paragraph at lines 731--733
 
  []
 
-<images/clusters.png, id=436, 600.2425pt x 460.72125pt>
+[12 <./images//decision-tree.png (PNG copy)> <./images//continuous-tree.png (PNG copy)>]
+<images/clusters.png, id=458, 600.2425pt x 460.72125pt>
 File: images/clusters.png Graphic file (type png)
 <use images/clusters.png>
-Package pdftex.def Info: images/clusters.png  used on input line 735.
+Package pdftex.def Info: images/clusters.png  used on input line 750.
 (pdftex.def)             Requested size: 300.12051pt x 230.36006pt.
-<images/cluster-finished.png, id=437, 745.78625pt x 460.72125pt>
+<images/cluster-finished.png, id=459, 745.78625pt x 460.72125pt>
 File: images/cluster-finished.png Graphic file (type png)
 <use images/cluster-finished.png>
-Package pdftex.def Info: images/cluster-finished.png  used on input line 746.
+Package pdftex.def Info: images/cluster-finished.png  used on input line 761.
 (pdftex.def)             Requested size: 372.89221pt x 230.36006pt.
-[11 <./images/clusters.png (PNG copy)>]
-<./images//elbow.png, id=442, 442.65375pt x 309.155pt>
+ [13 <./images/clusters.png (PNG copy)> <./images/cluster-finished.png (PNG copy)>]
+<./images//elbow.png, id=465, 442.65375pt x 309.155pt>
 File: ./images//elbow.png Graphic file (type png)
 <use ./images//elbow.png>
-Package pdftex.def Info: ./images//elbow.png  used on input line 772.
+Package pdftex.def Info: ./images//elbow.png  used on input line 787.
 (pdftex.def)             Requested size: 265.59428pt x 185.49442pt.
-<images/normal-distribution.png, id=443, 491.8375pt x 268.00125pt>
+<images/normal-distribution.png, id=466, 491.8375pt x 268.00125pt>
 File: images/normal-distribution.png Graphic file (type png)
 <use images/normal-distribution.png>
-Package pdftex.def Info: images/normal-distribution.png  used on input line 790.
+Package pdftex.def Info: images/normal-distribution.png  used on input line 805.
 (pdftex.def)             Requested size: 491.83629pt x 268.00058pt.
- [12 <./images/cluster-finished.png (PNG copy)> <./images//elbow.png (PNG copy)>] [13 <./images/normal-distribution.png (PNG copy)>]
-<./images//movies.png, id=453, 751.80875pt x 270.00874pt>
+ [14 <./images//elbow.png (PNG copy)> <./images/normal-distribution.png (PNG copy)>]
+<./images//movies.png, id=471, 751.80875pt x 270.00874pt>
 File: ./images//movies.png Graphic file (type png)
 <use ./images//movies.png>
-Package pdftex.def Info: ./images//movies.png  used on input line 885.
+Package pdftex.def Info: ./images//movies.png  used on input line 900.
 (pdftex.def)             Requested size: 375.90344pt x 135.00403pt.
- [14 <./images//movies.png (PNG copy)>] [15] (build/aux/ml.aux)
+ [15] [16 <./images//movies.png (PNG copy)>] (build/aux/ml.aux)
 Package rerunfilecheck Info: File `ml.out' has not changed.
-(rerunfilecheck)             Checksum: 47930BE54EB61738EC8E164CACD9979C;9258.
+(rerunfilecheck)             Checksum: 3300CAFADE5CE8355C00C5FA0F8882E6;9585.
  ) 
 Here is how much of TeX's memory you used:
- 10241 strings out of 476025
- 161720 string characters out of 5796533
- 1886388 words of memory out of 5000000
- 30456 multiletter control sequences out of 15000+600000
+ 10253 strings out of 476025
+ 161989 string characters out of 5796533
+ 1887388 words of memory out of 5000000
+ 30464 multiletter control sequences out of 15000+600000
  521249 words of font info for 64 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 75i,11n,76p,302b,449s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 75i,11n,76p,302b,446s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-dist/fonts/type1/public/cm-super/sfrm1200.pfb>
-Output written on build/aux/ml.pdf (15 pages, 1177932 bytes).
+Output written on build/aux/ml.pdf (16 pages, 1528988 bytes).
 PDF statistics:
- 540 PDF objects out of 1000 (max. 8388607)
- 475 compressed objects within 5 object streams
- 87 named destinations out of 1000 (max. 500000)
- 535 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 558 PDF objects out of 1000 (max. 8388607)
+ 490 compressed objects within 5 object streams
+ 90 named destinations out of 1000 (max. 500000)
+ 556 words of extra memory for PDF output out of 10000 (max. 10000000)
 

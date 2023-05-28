@@ -562,6 +562,21 @@ the pooling layer has no parameters to learn.
 A fully connected layer is just a regular deepnn layer. $W$ dimensions $n^{[l]} \times n^{[l-1]}$,
 $\bm b$ dimensions $n^{[l]}$.
 
+\subsubsection{Complete cnn example}
+
+Digit recognition example:
+
+\includegraphics[scale=.4]{images/cnn-example.png}
+
+\subsubsection{Why convolutions}
+
+Each filter only needs to learn its own parameters, and then can be applied anywhere on the
+data (for example, in edge detection, a vertical edge filter is able to detect vertical edges
+anywhere on the image after only learning a few parameters.
+
+Each output depends on less inputs compared to a normal neural network, which improves
+performance.
+
 \subsection{Improving model}
 
 Cross validation: split data into training and test, use test data to determine how well the model generalizes

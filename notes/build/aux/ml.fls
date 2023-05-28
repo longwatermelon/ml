@@ -634,6 +634,11 @@ INPUT ./images/max-pooling.png
 INPUT images/max-pooling.png
 INPUT ./images/max-pooling.png
 INPUT ./images/max-pooling.png
+INPUT ./images/cnn-example.png
+INPUT ./images/cnn-example.png
+INPUT images/cnn-example.png
+INPUT ./images/cnn-example.png
+INPUT ./images/cnn-example.png
 INPUT ./images//purity.png
 INPUT ./images//purity.png
 INPUT ./images//purity.png
