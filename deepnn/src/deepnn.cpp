@@ -20,11 +20,6 @@ namespace nn
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);
             m_layers[i].W.foreach([random_init_range](float &elem){ elem = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range; });
-
-/*             for (int r = 0; r < m_layers[i].W.rows(); ++r) */
-/*                 for (int c = 0; c < m_layers[i].W.cols(); ++c) */
-/*                     m_layers[i].W.atref(r, c) = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range; */
-
             m_layers[i].vb = mt::vec(m_layers[i].n);
         }
     }
