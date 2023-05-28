@@ -10,7 +10,7 @@ static const auto sigmoid = [](float z){ return 1.f / (1.f + std::exp(-z)); };
 
 namespace nn
 {
-    Model::Model(const std::vector<Layer> &layers)
+    Model::Model(const std::vector<Layer> &layers, float random_init_range)
         : m_layers(layers)
     {
         // Input layer
@@ -22,7 +22,7 @@ namespace nn
 
             for (int r = 0; r < m_layers[i].W.rows(); ++r)
                 for (int c = 0; c < m_layers[i].W.cols(); ++c)
-                    m_layers[i].W.atref(r, c) = (float)(rand() % 100) / 100.f - .5f;
+                    m_layers[i].W.atref(r, c) = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range;
 
             m_layers[i].vb = mt::vec(m_layers[i].n);
         }
@@ -74,7 +74,7 @@ namespace nn
         }
     }
 
-    void Model::train(const mt::mat &X, const mt::mat &Y, int epochs, float a)
+    void Model::train(const mt::mat &X, const mt::mat &Y, int epochs, float a, int print_intervals)
     {
         m_layers[0].n = X.rows();
         m_layers[1].W = mt::mat(m_layers[1].W.rows(), m_layers[0].n);
@@ -82,7 +82,7 @@ namespace nn
         for (int i = 0; i < epochs; ++i)
         {
             forward_prop(X);
-            if ((i + 1) % 100 == 0)
+            if ((i + 1) % print_intervals == 0)
                 printf("Iteration %d: %f\n", i + 1, cost(Y));
             back_prop(Y, a);
         }

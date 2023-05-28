@@ -30,11 +30,11 @@ namespace nn
     class Model
     {
     public:
-        Model(const std::vector<Layer> &layers);
+        Model(const std::vector<Layer> &layers, float random_init_range = 1.f);
         Model(const std::string &src);
         ~Model() = default;
 
-        void train(const mt::mat &X, const mt::mat &Y, int epochs, float a);
+        void train(const mt::mat &X, const mt::mat &Y, int epochs, float a, int print_intervals = 100);
         std::vector<float> predict(const mt::mat &X);
 
         void save_params(const std::string &fp);

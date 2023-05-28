@@ -44,3 +44,5 @@
 \contentsline {subsubsection}{\numberline {5.3.4}Mean normalization}{12}{subsubsection.5.3.4}%
 \contentsline {subsubsection}{\numberline {5.3.5}Finding related items}{12}{subsubsection.5.3.5}%
 \contentsline {subsubsection}{\numberline {5.3.6}Content based filtering}{12}{subsubsection.5.3.6}%
+\contentsline {subsection}{\numberline {5.4}Reinforcement learning}{12}{subsection.5.4}%
+\contentsline {subsubsection}{\numberline {5.4.1}State action value function}{12}{subsubsection.5.4.1}%
