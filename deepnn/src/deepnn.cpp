@@ -19,10 +19,11 @@ namespace nn
         for (size_t i = 1; i < m_layers.size(); ++i)
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);
+            m_layers[i].W.foreach([random_init_range](float &elem){ elem = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range; });
 
-            for (int r = 0; r < m_layers[i].W.rows(); ++r)
-                for (int c = 0; c < m_layers[i].W.cols(); ++c)
-                    m_layers[i].W.atref(r, c) = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range;
+/*             for (int r = 0; r < m_layers[i].W.rows(); ++r) */
+/*                 for (int c = 0; c < m_layers[i].W.cols(); ++c) */
+/*                     m_layers[i].W.atref(r, c) = ((float)(rand() % 1000) / 1000.f - .5f) * random_init_range; */
 
             m_layers[i].vb = mt::vec(m_layers[i].n);
         }
@@ -145,25 +146,17 @@ namespace nn
                 dW_prev;
 
         // Output layer
-        for (int r = 0; r < m_layers.back().A.rows(); ++r)
-        {
-            for (int c = 0; c < m_layers.back().A.cols(); ++c)
-            {
-                dZ_prev.atref(r, c) = m_layers.back().A.atref(r, c) - Y.at(r, c);
-            }
-        }
+        dZ_prev.foreach([&](int r, int c){
+            dZ_prev.atref(r, c) = m_layers.back().A.atref(r, c) - Y.at(r, c);
+        });
         dW_prev = (dZ_prev * m_layers[m_layers.size() - 2].A.transpose()) * (1.f / Y.cols());
 
         mt::vec d_vb(dZ_prev.rows());
         d_vb.set(0.f);
-        for (int i = 0; i < dZ_prev.cols(); ++i)
-        {
-            for (int j = 0; j < dZ_prev.rows(); ++j)
-                d_vb.atref(j, 0) += dZ_prev.at(j, i);
-        }
-
-        for (int i = 0; i < d_vb.rows(); ++i)
-            d_vb.atref(i, 0) /= Y.cols();
+        dZ_prev.foreach([&](int r, int c){
+            d_vb.atref(r, 0) += dZ_prev.at(r, c);
+        });
+        d_vb.foreach([&Y](float &elem){ elem /= Y.cols(); });
 
         dWs.emplace_back(dW_prev);
         d_vbs.emplace_back(d_vb);
@@ -175,25 +168,16 @@ namespace nn
             mt::mat right = gprime(i, m_layers[i].Z);
             // Element-wise product left * right
             mt::mat dZ(left.rows(), left.cols());
-            for (int r = 0; r < left.rows(); ++r)
-            {
-                for (int c = 0; c < left.cols(); ++c)
-                {
-                    dZ.atref(r, c) = left.at(r, c) * right.at(r, c);
-                }
-            }
+            dZ.foreach([&dZ, &left, &right](int r, int c){
+                dZ.atref(r, c) = left.at(r, c) * right.at(r, c);
+            });
 
             mt::mat dW = (dZ * m_layers[i - 1].A.transpose()) * (1.f / Y.cols());
 
             d_vb = mt::vec(dZ.rows());
             d_vb.set(0.f);
-            for (int j = 0; j < dZ.cols(); ++j)
-            {
-                for (int k = 0; k < dZ.rows(); ++k)
-                    d_vb.atref(k, 0) += dZ.at(k, j);
-            }
-            for (int j = 0; j < d_vb.rows(); ++j)
-                d_vb.atref(j, 0) /= dZ.cols();
+            dZ.foreach([&dZ, &d_vb](int r, int c){ d_vb.atref(r, 0) += dZ.at(r, c); });
+            d_vb.foreach([&dZ](float &elem){ elem /= dZ.cols(); });
 
             dWs.insert(dWs.begin(), dW);
             d_vbs.insert(d_vbs.begin(), d_vb);

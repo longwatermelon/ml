@@ -3,6 +3,7 @@
 #include <vector>
 #include <cstdio>
 #include <iostream>
+#include <functional>
 
 namespace mt
 {
@@ -80,6 +81,28 @@ namespace mt
             }
 
             return res;
+        }
+
+        void foreach(const std::function<void(int, int)> &fn)
+        {
+            for (int r = 0; r < rows(); ++r)
+            {
+                for (int c = 0; c < cols(); ++c)
+                {
+                    fn(r, c);
+                }
+            }
+        }
+
+        void foreach(const std::function<void(float&)> &fn)
+        {
+            for (int r = 0; r < rows(); ++r)
+            {
+                for (int c = 0; c < cols(); ++c)
+                {
+                    fn(atref(r, c));
+                }
+            }
         }
 
         void print() const
