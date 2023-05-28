@@ -59,12 +59,14 @@ namespace mt
         mat operator+(mat other) const
         {
             mat res = *this;
-            for (int r = 0; r < other.rows(); ++r)
-            {
-                for (int c = 0; c < other.cols(); ++c)
-                    res.atref(r, c) += other.at(r, c);
-            }
+            foreach([&res, &other](int r, int c){ res.atref(r, c) += other.at(r, c); });
+            return res;
+        }
 
+        mat operator-(mat other) const
+        {
+            mat res = *this;
+            foreach([&res, &other](int r, int c){ res.atref(r, c) -= other.at(r, c); });
             return res;
         }
 
@@ -83,7 +85,25 @@ namespace mt
             return res;
         }
 
+        mat element_wise_mul(mat other) const
+        {
+            mat res = *this;
+            foreach([&res, &other](int r, int c){ res.atref(r, c) *= other.at(r, c); });
+            return res;
+        };
+
         void foreach(const std::function<void(int, int)> &fn)
+        {
+            for (int r = 0; r < rows(); ++r)
+            {
+                for (int c = 0; c < cols(); ++c)
+                {
+                    fn(r, c);
+                }
+            }
+        }
+
+        void foreach(const std::function<void(int, int)> &fn) const
         {
             for (int r = 0; r < rows(); ++r)
             {

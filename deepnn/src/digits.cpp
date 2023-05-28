@@ -70,6 +70,7 @@ int main()
     }
 
     model.train(X, Y, 2000, 2.f);
+    model.save_params("new-digit-params");
 
     std::vector<float> test0 = from_image("data/digits/test0.png");
     std::vector<float> test1 = from_image("data/digits/test1.png");

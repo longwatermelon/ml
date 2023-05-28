@@ -10,6 +10,120 @@ static const auto sigmoid = [](float z){ return 1.f / (1.f + std::exp(-z)); };
 
 namespace nn
 {
+    static std::function<float(float)> get_afn(Activation a)
+    {
+        std::function<float(float)> fn;
+        switch (a)
+        {
+            case Activation::Linear:
+                fn = [](float z){ return z; };
+                break;
+            case Activation::Sigmoid:
+                fn = sigmoid;
+                break;
+            case Activation::Relu:
+                fn = [](float z){ return std::max(0.f, z); };
+                break;
+            case Activation::Tanh:
+                fn = [](float z){ return (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z)); };
+                break;
+        }
+        return fn;
+    }
+
+    static mt::mat gprime(const Layer &l)
+    {
+        switch (l.a_fn)
+        {
+        case Activation::Linear:
+        {
+            mt::mat res = l.Z;
+            res.set(1.f);
+            return res;
+        } break;
+        case Activation::Sigmoid:
+        {
+            mt::mat g = l.Z;
+            g.set(0.f);
+            for (int r = 0; r < l.Z.rows(); ++r)
+            {
+                for (int c = 0; c < l.Z.cols(); ++c)
+                {
+                    float g_rc = sigmoid(l.Z.at(r, c));
+                    g.atref(r, c) = g_rc * (1.f - g_rc);
+                }
+            }
+
+            return g;
+        } break;
+        case Activation::Relu:
+        {
+            mt::mat res = l.Z;
+            res.set(0.f);
+            for (int r = 0; r < l.Z.rows(); ++r)
+            {
+                for (int c = 0; c < l.Z.cols(); ++c)
+                {
+                    if (l.Z.at(r, c) >= 0.f)
+                        res.atref(r, c) = 1.f;
+                }
+            }
+
+            return res;
+        } break;
+        case Activation::Tanh:
+        {
+            mt::mat res = l.Z;
+            for (int r = 0; r < l.Z.rows(); ++r)
+            {
+                for (int c = 0; c < l.Z.cols(); ++c)
+                {
+                    float z = l.Z.at(r, c);
+                    float tanh = (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z));
+                    res.atref(r, c) = 1.f - tanh * tanh;
+                }
+            }
+
+            return res;
+        } break;
+        }
+
+        mt::mat tmp;
+        tmp.set(0.f);
+        return tmp;
+    }
+
+
+    void dense_forward_prop(Layer &l, Layer &back_l, int m)
+    {
+        l.A = mt::mat(l.n, m);
+        std::function<float(float)> afn = get_afn(l.a_fn);
+
+        l.Z = l.W * back_l.A;
+        l.Z.foreach([&](int r, int c){
+            l.Z.atref(r, c) += l.vb.at(r, 0);
+            l.A.atref(r, c) = afn(l.Z.at(r, c));
+        });
+    }
+
+    std::pair<mt::mat, mt::vec> dense_back_prop(Layer &l, Layer *bl, Layer *fl, const mt::mat &Y)
+    {
+        if (!fl)
+            l.dZ = l.A - Y;
+        else
+        {
+            mt::mat left = fl->W.transpose() * fl->dZ;
+            mt::mat right = gprime(l);
+            l.dZ = left.element_wise_mul(right);
+        }
+
+        mt::mat dW = l.dZ * bl->A.transpose() * (1.f / Y.cols());
+        mt::vec d_vb(l.dZ.rows());
+        l.dZ.foreach([&l, &d_vb](int r, int c){ d_vb.atref(r, 0) += l.dZ.at(r, c); });
+
+        return { dW, d_vb };
+    }
+
     Model::Model(const std::vector<Layer> &layers, float random_init_range)
         : m_layers(layers)
     {
@@ -70,6 +184,33 @@ namespace nn
         }
     }
 
+    void Model::forward_prop(const mt::mat &X)
+    {
+        m_layers[0].A = X;
+
+        for (size_t i = 1; i < m_layers.size(); ++i)
+        {
+            dense_forward_prop(m_layers[i], m_layers[i - 1], X.cols());
+        }
+    }
+
+    void Model::back_prop(const mt::mat &Y, float a)
+    {
+        std::vector<std::pair<mt::mat, mt::vec>> diffs;
+        for (size_t i = m_layers.size() - 1; i > 0; --i)
+        {
+            std::pair<mt::mat, mt::vec> diff = dense_back_prop(
+                m_layers[i], &m_layers[i - 1],
+                i == m_layers.size() - 1 ? nullptr : &m_layers[i + 1],
+                Y
+            );
+            diffs.insert(diffs.begin(), diff);
+        }
+
+        for (size_t i = 1; i < m_layers.size(); ++i)
+            apply_diffs(i, diffs[i - 1].first, diffs[i - 1].second, a);
+    }
+
     void Model::train(const mt::mat &X, const mt::mat &Y, int epochs, float a, int print_intervals)
     {
         m_layers[0].n = X.rows();
@@ -92,97 +233,6 @@ namespace nn
         for (int i = 0; i < m_layers.back().A.rows(); ++i)
             res.emplace_back(m_layers.back().A.at(i, 0));
         return res;
-    }
-
-    void Model::forward_prop(const mt::mat &X)
-    {
-        m_layers[0].A = X;
-        int m = X.cols();
-
-        for (size_t i = 1; i < m_layers.size(); ++i)
-        {
-            mt::mat A(m_layers[i].n, X.cols());
-
-            std::function<float(float)> activation_fn;
-            switch (m_layers[i].a_fn)
-            {
-            case Activation::Linear:
-                activation_fn = [](float z){ return z; };
-                break;
-            case Activation::Sigmoid:
-                activation_fn = sigmoid;
-                break;
-            case Activation::Relu:
-                activation_fn = [](float z){ return std::max(0.f, z); };
-                break;
-            case Activation::Tanh:
-                activation_fn = [](float z){ return (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z)); };
-                break;
-            }
-
-            mt::mat Z = m_layers[i].W * m_layers[i - 1].A;
-            for (int c = 0; c < m; ++c)
-                for (int r = 0; r < m_layers[i].vb.rows(); ++r)
-                {
-                    Z.atref(r, c) += m_layers[i].vb.at(r, 0);
-                    A.atref(r, c) = activation_fn(Z.at(r, c));
-                }
-
-            m_layers[i].Z = Z;
-            m_layers[i].A = A;
-        }
-    }
-
-    void Model::back_prop(const mt::mat &Y, float a)
-    {
-        std::vector<mt::mat> dWs;
-        std::vector<mt::vec> d_vbs;
-        mt::mat dZ_prev = m_layers.back().A,
-                dW_prev;
-
-        // Output layer
-        dZ_prev.foreach([&](int r, int c){
-            dZ_prev.atref(r, c) = m_layers.back().A.atref(r, c) - Y.at(r, c);
-        });
-        dW_prev = (dZ_prev * m_layers[m_layers.size() - 2].A.transpose()) * (1.f / Y.cols());
-
-        mt::vec d_vb(dZ_prev.rows());
-        d_vb.set(0.f);
-        dZ_prev.foreach([&](int r, int c){
-            d_vb.atref(r, 0) += dZ_prev.at(r, c);
-        });
-        d_vb.foreach([&Y](float &elem){ elem /= Y.cols(); });
-
-        dWs.emplace_back(dW_prev);
-        d_vbs.emplace_back(d_vb);
-
-        // Only hidden layers
-        for (int i = m_layers.size() - 2; i > 0; --i)
-        {
-            mt::mat left = m_layers[i + 1].W.transpose() * dZ_prev;
-            mt::mat right = gprime(i, m_layers[i].Z);
-            // Element-wise product left * right
-            mt::mat dZ(left.rows(), left.cols());
-            dZ.foreach([&dZ, &left, &right](int r, int c){
-                dZ.atref(r, c) = left.at(r, c) * right.at(r, c);
-            });
-
-            mt::mat dW = (dZ * m_layers[i - 1].A.transpose()) * (1.f / Y.cols());
-
-            d_vb = mt::vec(dZ.rows());
-            d_vb.set(0.f);
-            dZ.foreach([&dZ, &d_vb](int r, int c){ d_vb.atref(r, 0) += dZ.at(r, c); });
-            d_vb.foreach([&dZ](float &elem){ elem /= dZ.cols(); });
-
-            dWs.insert(dWs.begin(), dW);
-            d_vbs.insert(d_vbs.begin(), d_vb);
-            /* apply_diffs(i, dW, d_vb); */
-            dW_prev = dW;
-            dZ_prev = dZ;
-        }
-
-        for (size_t i = 1; i < m_layers.size(); ++i)
-            apply_diffs(i, dWs[i - 1], d_vbs[i - 1], a);
     }
 
     void Model::save_params(const std::string &fp)
@@ -224,67 +274,6 @@ namespace nn
             m_layers[l].vb.atref(i, 0) -= a * db.at(i, 0);
     }
 
-    mt::mat Model::gprime(int l, const mt::mat &Z)
-    {
-        switch (m_layers[l].a_fn)
-        {
-        case Activation::Linear:
-        {
-            mt::mat res = Z;
-            res.set(1.f);
-            return res;
-        } break;
-        case Activation::Sigmoid:
-        {
-            mt::mat g = Z;
-            g.set(0.f);
-            for (int r = 0; r < Z.rows(); ++r)
-            {
-                for (int c = 0; c < Z.cols(); ++c)
-                {
-                    float g_rc = sigmoid(Z.at(r, c));
-                    g.atref(r, c) = g_rc * (1.f - g_rc);
-                }
-            }
-
-            return g;
-        } break;
-        case Activation::Relu:
-        {
-            mt::mat res = Z;
-            res.set(0.f);
-            for (int r = 0; r < Z.rows(); ++r)
-            {
-                for (int c = 0; c < Z.cols(); ++c)
-                {
-                    if (Z.at(r, c) >= 0.f)
-                        res.atref(r, c) = 1.f;
-                }
-            }
-
-            return res;
-        } break;
-        case Activation::Tanh:
-        {
-            mt::mat res = Z;
-            for (int r = 0; r < Z.rows(); ++r)
-            {
-                for (int c = 0; c < Z.cols(); ++c)
-                {
-                    float z = Z.at(r, c);
-                    float tanh = (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z));
-                    res.atref(r, c) = 1.f - tanh * tanh;
-                }
-            }
-
-            return res;
-        } break;
-        }
-
-        mt::mat tmp;
-        tmp.set(0.f);
-        return tmp;
-    }
 
     float Model::cost(const mt::mat &Y)
     {
