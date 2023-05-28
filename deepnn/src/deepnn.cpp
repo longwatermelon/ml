@@ -45,45 +45,30 @@ namespace nn
         {
             mt::mat g = l.Z;
             g.set(0.f);
-            for (int r = 0; r < l.Z.rows(); ++r)
-            {
-                for (int c = 0; c < l.Z.cols(); ++c)
-                {
-                    float g_rc = sigmoid(l.Z.at(r, c));
-                    g.atref(r, c) = g_rc * (1.f - g_rc);
-                }
-            }
-
+            l.Z.foreach([&](int r, int c){
+                float g_rc = sigmoid(l.Z.at(r, c));
+                g.atref(r, c) = g_rc * (1.f - g_rc);
+            });
             return g;
         } break;
         case Activation::Relu:
         {
             mt::mat res = l.Z;
             res.set(0.f);
-            for (int r = 0; r < l.Z.rows(); ++r)
-            {
-                for (int c = 0; c < l.Z.cols(); ++c)
-                {
-                    if (l.Z.at(r, c) >= 0.f)
-                        res.atref(r, c) = 1.f;
-                }
-            }
-
+            l.Z.foreach([&](int r, int c){
+                if (l.Z.at(r, c) >= 0.f)
+                    res.atref(r, c) = 1.f;
+            });
             return res;
         } break;
         case Activation::Tanh:
         {
             mt::mat res = l.Z;
-            for (int r = 0; r < l.Z.rows(); ++r)
-            {
-                for (int c = 0; c < l.Z.cols(); ++c)
-                {
-                    float z = l.Z.at(r, c);
-                    float tanh = (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z));
-                    res.atref(r, c) = 1.f - tanh * tanh;
-                }
-            }
-
+            l.Z.foreach([&](int r, int c){
+                float z = l.Z.at(r, c);
+                float tanh = (std::exp(z) - std::exp(-z)) / (std::exp(z) + std::exp(-z));
+                res.atref(r, c) = 1.f - tanh * tanh;
+            });
             return res;
         } break;
         }
@@ -278,13 +263,9 @@ namespace nn
     float Model::cost(const mt::mat &Y)
     {
         float sum = 0.f;
-        for (int i = 0; i < Y.cols(); ++i)
-        {
-            for (int j = 0; j < Y.rows(); ++j)
-            {
-                sum += Y.at(j, i) * std::log(m_layers.back().A.at(j, i));
-            }
-        }
+        Y.foreach([&](int r, int c){
+            sum += Y.at(r, c) * std::log(m_layers.back().A.at(r, c));
+        });
 
         return -sum;
     }
