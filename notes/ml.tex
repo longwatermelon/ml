@@ -350,74 +350,217 @@ For hidden layers:
     \dif \bm b^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i
 \end{align*}
 
-% $n_{\ell}$ = num layers excluding input
+\subsection{Convolutional neural network}
 
-% $n^{[\ell]}_n$ = n neurons in layer $\ell$
+\subsubsection{Edge detection}
 
-% $n_f$ = num features
+Starting with vertical edge detection: Vertical edges can be detected by applying
+a "filter" to an image. ex. with a 6x6 grayscale image convolved with a 3x3 filter:
 
-% $\vec{W}$ is a vector (length $n_{\ell}$) of matrices of size $n^{[\ell]}_n \times n^{[\ell-1]}_n$
+\[
+    \begin{pmatrix}
+        1 & 1 & 1 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0\\
+        1 & 1 & 1 & 0 & 0 & 0
+    \end{pmatrix}
+    *
+    \begin{pmatrix}
+        1 & 0 & -1\\
+        1 & 0 & -1\\
+        1 & 0 & -1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        0 & 3 & 3 & 0\\
+        0 & 3 & 3 & 0\\
+        0 & 3 & 3 & 0\\
+        0 & 3 & 3 & 0
+    \end{pmatrix}
+\]
 
-% $\vec{x}$ is a vector of outputs from each neuron in previous layer
+To convolve the image, place the top left corner of the filter in the top left corner of
+the image. The sum of the element wise multiplication between the filter and the area of
+the image it covers is the top left element of the output matrix. Shift the filter one over
+and repeat, and when the right edge of the filter reaches the right edge of the image shift
+the filter down one and to the left edge of the image and repeat the process again.
 
-% $\vec{b}$ is a vector (length $n_{\ell}$), holds a bias value for each layer
+The filter shown only detects left to right light to dark correctly, and given an image where
+the colors are inversed, the output matrix would have inversed values as well.
 
-% $Z$ and $A$: vector (length $n_{\ell}$) of vectors (length $n^{[\ell]}_n$)
+\[
+    \begin{pmatrix}
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1
+    \end{pmatrix}
+    *
+    \begin{pmatrix}
+        1 & 0 & -1\\
+        1 & 0 & -1\\
+        1 & 0 & -1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+        0 & -3 & -3 & 0\\
+        0 & -3 & -3 & 0\\
+        0 & -3 & -3 & 0\\
+        0 & -3 & -3 & 0
+    \end{pmatrix}
+\]
 
-% $g$: activation function
+A convolutional neural network would be able to learn values for the filter that would be
+more optimal than hand-coded ones:
 
-% $1 \leq i \leq n_{\ell}$
+\[
+    \begin{pmatrix}
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1\\
+        0 & 0 & 0 & 1 & 1 & 1
+    \end{pmatrix}
+    *
+    \begin{pmatrix}
+        w_1 & w_2 & w_3\\
+        w_4 & w_5 & w_6\\
+        w_7 & w_8 & w_9
+    \end{pmatrix}
+\]
 
-% $a$ (activation) = scalar output of a single neuron
+\subsubsection{Padding}
 
-% Superscript $[i]$ is used to notate information relating to the $i$th layer in a neural network.
+An issue with convolution is that the image shrinks every convolution, and edge information
+is used much less than center information because more areas overlap with center
+pixels than edge pixels. Given input image of size $n \times n$ and filter of size $f
+\times f$, the output image size is $(n-f+1) \times (n-f+1)$.
 
-% \subsection{Choosing an activation function}
+Padding is just adding extra border pixels around the image which are usually
+set as 0, with thickness denoted as $p$. The image has new dimensions $(n + 2p) \times
+(n + 2p)$ for any $p > 0$, so to get the original image back $2p = f - 1 \rightarrow p = (f-1)/2$.
+Because of the division by 2, $f$ is usually odd.
 
-% sigmoid: $g(z) = \frac{1}{1 + e^{-z}}$
+\subsubsection{Strided convolution}
 
-% tanh: $g(z) = \frac{e^z - e^{-z}}{e^z + e^{-z}}$
+Instead of only taking one step at a time when moving the filter across the image, the filter
+moves with some set stride (ex. 2 instead of the default 1)
 
-% linear: $g(z) = z$
+The output image dimensions in strided convolution are
+$(\frac{n+2p-f}{s}+1) \times (\frac{n+2p-f}{s}+1)$, and the padding to ensure
+same output dimensions is $p = \frac{(n-1)s+f-n}{2}$.
 
-% ReLU: $g(z) = \max(0, z)$
+\subsubsection{Convolution over a volume}
 
-% Leaky ReLU: $g(z) = \max(\epsilon z, z)$ where $\epsilon$ is a small nonzero positive value $<$ 1
+\includegraphics[scale=.5]{images/cnn-filter-volume.png}
 
-% \subsubsection*{For output layer}
+Essentially the same as convolution over a 2D matrix. The number of channels
+in the filter and the image have to be the same (3 in this case).
 
-% Binary classification, y = 0 or 1: use sigmoid
+Multiple filters can be used by convolving the input image with each filter and then stacking
+all the output images together. For example, given two filters and one input image,
+the output matrix size will be 4x4x2, because there are two different filtered 2D output
+matrices.
 
-% Regression, $-\infty \leq y \leq \infty$: use linear activation function
+\subsubsection{One layer of a cnn}
 
-% Regression, y $\geq$ 0: use ReLU
+Recall from forward prop:
+\begin{gather*}
+    Z^{[1]} = W^{[1]} A^{[0]} + \bm b^{[1]}\\
+    A^{[1]} = g(Z^{[1]})
+\end{gather*}
 
-% \subsubsection*{For hidden layer}
+where $A^{[0]}$ is analogous to $X$. The input 6x6x3 image is $X$, the filter is $W$,
+$\bm b$ is added to the output 4x4 matrix (element wise) which becomes $Z$, and then some
+activation function $g$ is applied to that $Z$, giving the current layer's $A$. The number
+of filters can be seen as the number of features.
 
-% ReLU is most common
+\subsubsection{Cnn notation}
 
-% \subsection{Training a model}
-% \subsubsection{Forward propagation}
+Superscript $[l]$ means relating to layer $l$.
 
-% Input $A^{[\ell-1]}$, output $A^{[\ell]}$, cache $Z^{[\ell]}$, $W^{[\ell]}$, $\vec{b}^{[\ell]}$
+$f^{[l]}$ = filter size ($f \times f$)
 
-% \begin{align*}
-%     Z^{[\ell]} &= W^{[\ell]} A^{[\ell-1]} + \vec{b}^{[\ell]}\\
-%     A^{[\ell]} &= g^{[\ell]}(Z^{[\ell]})
-% \end{align*}
+$p^{[l]}$ = padding thickness
 
-% Up to $A^{[n_{\ell}]}$, in which case $\hat{y} = A^{[n_{\ell}]}_0$ assuming output layer has one unit
+$s^{[l]}$ = stride
 
-% \subsubsection{Back propagation}
+Input dimensions are $n_H^{[l-1]} \times n_W^{[l-1]} \times n_c^{[l-1]}$.
 
-% Input $\dif a^{[\ell]}$, output $\dif a^{[\ell-1]}$, $\dif W^{[\ell-1]}$, $\dif \vec{b}^{[\ell-1]}$
+Output dimensions are $n_H^{[l]} \times n_W^{[l]} \times n_c^{[l]}$.
 
-% \begin{align*}
-%     \dif Z^{[\ell]} &= \dif A^{[\ell]} \cdot g'^{[\ell]}(Z^{[\ell]})\\
-%     \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} \cdot A^{[\ell-1] T}\\
-%     \dif \vec{b}^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i\\
-%     \dif A^{[\ell-1]} &= W^{[\ell] T} \cdot \dif Z^{[\ell]}
-% \end{align*}
+$n^{[l]}$ = $\frac{n^{[l-1]}+2p^{[l]}-f^{[l]}}{s^{[l]}} + 1$, which is applicable to $n_H$ and $n_W$.
+
+Each filter is $f^{[l]} \times f^{[l]} \times n_c^{[l-1]}$
+
+Activations $a^{[l]}$ are $n_H^{[l]} \times n_W^{[l]} \times n_c^{[l]}$.
+
+Vectorized: $A^{[l]}$ = $m \times n_H^{[l]} \times n_W^{[l]} \times n_c^{[l]}$
+
+Weights $w^{[l]}$ are $f^{[l]} \times f^{[l]} \times n_c^{[l-1]}$
+
+Vectorized: $W^{[l]}$ = $f^{[l]} \times f^{[l]} \times n_c^{[l-1]} \times n_c^{[l]}$
+
+Bias $\bm b$ is just a vector of length $n_c^{[l]}$, though it becomes more convenient
+to represent it as $1 \times 1 \times 1 \times n_c^{[l]}$ later.
+
+\subsubsection{Example cnn (not vectorized)}
+
+Input image $39 \times 39 \times 3$, first layer uses a set of 10 $3 \times 3$ filters,
+second layer uses a set of 20 $5 \times 5$ filters, third layer uses 40 $5 \times 5$
+filters. All layers use no padding, and stride is chosen arbitrarily.
+
+Input image is $39 \times 39 \times 3$, so $n_W^{[0]}$ = $n_H^{[0]} = 39$
+and $n_c^{[0]} = 3$.
+
+For first layer, $f^{[1]}$ = 3, $s^{[1]}$ = 1, $p^{[1]}$ = 0. Because there are 10 filters,
+there will be 10 channels in the first layer output, or $n_c^{[1]}$ = 10, and the dimensions
+of a single channel in the first layer's output is calculated with $n^{[l]}$ =
+$\frac{n^{[l-1]}+2p^{[l]}-f^{[l]}}{s^{[l]}} + 1$, which gives 37 for both width and height.
+The activations will then be $37 \times 37 \times 10$.
+
+For the second layer, $f^{[2]}$ = 5, $s^{[2]}$ = 2, $p^{[2]}$ = 0, $n_c^{[2]}$ = 20. The
+output volume will then have dimensions of $17 \times 17 \times 20$, where 17 comes from
+the $n_W$ and $n_H$ calculation and $20$ is $n_c$.
+
+For the third layer, $f^{[3]}$ = 5, $s^{[2]}$ = 2, $p^{[2]}$ = 0. The output volume
+then has dimensions of $7 \times 7 \times 40$.
+
+After the last layer of filters has been processed, flatten out the final output volume
+(in this case the $7 \times 7 \times 40$ volume) and feed it to a logistic/softmax regression.
+
+A general trend is that the width and height of each channel in a volume of some layer will
+be smaller than the previous layer's, while the number of channels increases as the layers go on.
+
+\subsubsection{Pooling layers}
+
+\includegraphics[scale=.5]{images/max-pooling.png}
+
+Max pooling takes the largest number in each shaded region and puts it in the corresponding
+color in the resulting $2 \times 2$ matrix. The hyperparameters can be represented as $f$ = 2,
+$s$ = 2.
+
+Max pooling can be helpful because it identifies important features in an image while also
+reducing its size, which is computationally less expensive when running the cnn.
+
+Average pooling takes the average of all the values in each shaded region instead of the
+largest.
+
+In pooling layers, there are no parameters to learn, the only parameters a pooling layer
+has is its hyperparameters $f$ and $s$.
+
+Convolutional and pooling layers are usually grouped together into a single layer because
+the pooling layer has no parameters to learn.
+
+\subsubsection{Fully connected layer}
+
+A fully connected layer is just a regular deepnn layer. $W$ dimensions $n^{[l]} \times n^{[l-1]}$,
+$\bm b$ dimensions $n^{[l]}$.
 
 \subsection{Improving model}
 
