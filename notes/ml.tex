@@ -35,14 +35,6 @@
 
 \pagebreak
 
-\section{Notation}
-
-Superscript $(i)$ indicates relation to training example $i$.
-
-Superscript $[i]$ indicates relation to neural network layer $i$.
-
-Matrices are indexed by $M_{rc}$, $r$ = row, $c$ = col.
-
 \section{Regression}
 
 Superscript $(i)$ indicates relation to training example $i$.
@@ -349,6 +341,37 @@ For hidden layers:
     \dif W^{[\ell]} &= \frac{1}{m} \dif Z^{[\ell]} A^{[\ell-1]T}\\
     \dif \bm b^{[\ell]} &= \frac{1}{m} \sum_i \dif Z^{[\ell]}_i
 \end{align*}
+
+\subsubsection{Back propagation derivation}
+
+Using loss function $L(a,y) = -y\log a - (1-y)\log (1-a)$:
+
+$dz$ (output layer)
+\begin{gather*}
+    \frac{dL}{dz} = \frac{dL}{da} \frac{da}{dz}\\
+    \frac{da}{dz} = \frac{d}{dz} g(z) = g'(z)\\
+    \frac{dL}{da} = -\frac{y}{a} + \frac{1-y}{1-a}\\
+    \frac{dL}{dz} = \left(-\frac{y}{a} + \frac{1-y}{1-a}\right)\left(a(1-a)\right) = a - y
+\end{gather*}
+
+$dz$ (hidden layer)
+\begin{gather*}
+    \frac{dL}{dz^{[l]}} = \frac{dL}{dz^{[l+1]}} \frac{dz^{[l+1]}}{dz^{[l]}}\\
+    z^{[l+1]} = w^{[l+1]}a^{[l]} + b^{[l+1]}\\
+    \frac{dz^{[l+1]}}{dz^{[l]}} = w^{[l+1]}\frac{da^{[l]}}{dz^{[l]}}\\
+    \frac{dL}{dz^{[l]}} = \frac{dL}{dz^{[l+1]}} w^{[l+1]} \frac{da^{[l]}}{dz^{[l]}} =
+    \frac{dL}{dz^{[l+1]}} w^{[l+1]} \sigma'(z^{[l]})
+\end{gather*}
+
+which in simplified notation is $dz^{[l]} = dz^{[l+1]} w^{[l+1]} \sigma'(z^{[l]})$.
+
+$dw$
+\[ \frac{dL}{dw^{[l]}} = (a^{[l]}-y)a^{[l-1]} = dz^{[l]}a^{[l-1]} \]
+
+$db$
+\[ \frac{dL}{db^{[l]}} = a^{[l]}-y = dz^{[l]} \]
+
+$\frac{dL}{dw}$ and $\frac{dL}{db}$ come from the loss function in the regression section.
 
 \subsection{Convolutional neural network}
 
