@@ -112,9 +112,6 @@ namespace nn
     Model::Model(const std::vector<Layer> &layers, float random_init_range)
         : m_layers(layers)
     {
-        // Input layer
-        m_layers.insert(m_layers.begin(), Layer(0, Activation::Linear));
-        m_layers[0].n = 1;
         for (size_t i = 1; i < m_layers.size(); ++i)
         {
             m_layers[i].W = mt::mat(m_layers[i].n, m_layers[i - 1].n);

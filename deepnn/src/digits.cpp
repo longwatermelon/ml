@@ -28,13 +28,6 @@ int main()
 {
     srand(1);
 
-    nn::Model model({
-        nn::Layer(25, nn::Activation::Sigmoid),
-        nn::Layer(15, nn::Activation::Sigmoid),
-        nn::Layer(2, nn::Activation::Sigmoid)
-    });
-    /* nn::Model model("digits-params"); */
-
     std::vector<std::vector<float>> images;
 
     for (int i = 0; i < ZEROES; ++i)
@@ -54,7 +47,7 @@ int main()
         }
     }
 
-    mt::mat Y(model.m_layers.back().n, m);
+    mt::mat Y(2, m);
     for (int c = 0; c < m; ++c)
     {
         if (c <= ZEROES - 1) // Zero
@@ -68,6 +61,13 @@ int main()
             Y.atref(1, c) = 1.f;
         }
     }
+
+    nn::Model model({
+        nn::Layer(nf),
+        nn::Layer(25, nn::Activation::Sigmoid),
+        nn::Layer(15, nn::Activation::Sigmoid),
+        nn::Layer(2, nn::Activation::Sigmoid)
+    });
 
     model.train(X, Y, 2000, 2.f);
     model.save_params("new-digit-params");

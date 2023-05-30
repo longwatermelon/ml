@@ -16,13 +16,15 @@ namespace nn
     struct Layer
     {
         Layer() = default;
+        Layer(int n)
+            : n(n) {}
         Layer(int n, Activation a_fn)
             : n(n), a_fn(a_fn) {}
 
         int n;
         mt::mat W;
         mt::vec vb;
-        Activation a_fn;
+        Activation a_fn{ Activation::Linear };
 
         // Forward prop
         mt::mat A, Z;
