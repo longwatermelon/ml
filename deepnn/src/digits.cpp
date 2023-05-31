@@ -62,15 +62,15 @@ int main()
         }
     }
 
-    nn::Model model({
-        nn::Layer(nf),
-        nn::Layer(25, nn::Activation::Sigmoid),
-        nn::Layer(15, nn::Activation::Sigmoid),
-        nn::Layer(2, nn::Activation::Sigmoid)
-    });
+    nn::Model model = nn::Model("new-digit-params");
+    /* model.add(std::make_unique<nn::Layer>(nf)); */
+    /* model.add(std::make_unique<nn::Layer>(25, nn::Activation::Sigmoid)); */
+    /* model.add(std::make_unique<nn::Layer>(15, nn::Activation::Sigmoid)); */
+    /* model.add(std::make_unique<nn::Layer>(2, nn::Activation::Sigmoid)); */
 
-    model.train(X, Y, 2000, 2.f);
-    model.save_params("new-digit-params");
+    /* model = nn::Model("new-digit-params"); */
+    /* model.train(X, Y, 2000, 2.f); */
+    /* model.save_params("new-digit-params"); */
 
     std::vector<float> test0 = from_image("data/digits/test0.png");
     std::vector<float> test1 = from_image("data/digits/test1.png");
