@@ -146,11 +146,11 @@ namespace mt
         float& atref(int r, int c) { check(r, c); return m_data[c][r]; }
         void check(int r, int c) const
         {
-            if (r < 0 || r >= rows() || c < 0 || c >= cols())
-            {
-                std::cerr << "Error in indexing mt::mat\n";
-                exit(EXIT_FAILURE);
-            }
+            /* if (r < 0 || r >= rows() || c < 0 || c >= cols()) */
+            /* { */
+            /*     std::cerr << "Error in indexing mt::mat\n"; */
+            /*     exit(EXIT_FAILURE); */
+            /* } */
         }
 
         int rows() const { return m_data[0].size(); }

@@ -14,12 +14,32 @@ namespace nn
         Tanh = 3
     };
 
+    enum class LayerType
+    {
+        DENSE
+    };
+
+    struct ParamDiff
+    {
+        LayerType type;
+
+        // Dense
+        mt::mat dense_dW;
+        mt::vec dense_db;
+    };
+
     struct Layer
     {
-        Layer() = default;
-        Layer(int n)
+        virtual ~Layer() = default;
+        virtual LayerType type() const = 0;
+    };
+
+    struct Dense : Layer
+    {
+        Dense() = default;
+        Dense(int n)
             : n(n) {}
-        Layer(int n, Activation a_fn)
+        Dense(int n, Activation a_fn)
             : n(n), a_fn(a_fn) {}
 
         int n;
@@ -32,14 +52,17 @@ namespace nn
 
         // Back prop
         mt::mat dZ;
+
+        void forward_prop(const Dense *back_l, int m);
+        // If front_l == nullptr it is assumed l is the last layer.
+        // Y and back_l are only used if front_l == nullptr.
+        // Returns dW, d_vb
+        ParamDiff back_prop(const Dense *behind, const Dense *front,
+                     const mt::mat &Y = mt::mat(0, 0));
+
+        LayerType type() const override { return LayerType::DENSE; }
     };
 
-    void dense_forward_prop(Layer *l, const Layer *back_l, int m);
-    // If front_l == nullptr it is assumed l is the last layer.
-    // Y and back_l are only used if front_l == nullptr.
-    // Returns dW, d_vb
-    std::pair<mt::mat, mt::vec> dense_back_prop(Layer *l, Layer *back_l, Layer *front_l,
-                         const mt::mat &Y = mt::mat(0, 0));
 
     class Model
     {
@@ -66,11 +89,7 @@ namespace nn
         const Layer *layer(int i) const { return m_layers[i].get(); }
 
     private:
-        void apply_diffs(int l,
-                const mt::mat &dW,
-                const mt::vec &db,
-                float a
-        );
+        void apply_diffs(int l, const ParamDiff &diff, float a);
 
         float cost(const mt::mat &Y);
 
