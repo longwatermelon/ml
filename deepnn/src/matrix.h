@@ -125,6 +125,19 @@ namespace mt
             }
         }
 
+        mat rot180() const
+        {
+            mat res = *this;
+            for (int r = 0; r < rows(); ++r)
+            {
+                for (int c = 0; c < cols(); ++c)
+                {
+                    res.atref(rows() - 1 - r, c) = at(r, c);
+                }
+            }
+            return res;
+        }
+
         void print() const
         {
             for (int r = 0; r < rows(); ++r)

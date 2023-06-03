@@ -366,12 +366,13 @@ $dz$ (hidden layer)
 which in simplified notation is $dz^{[l]} = dz^{[l+1]} w^{[l+1]} \sigma'(z^{[l]})$.
 
 $dw$
-\[ \frac{dL}{dw^{[l]}} = (a^{[l]}-y)a^{[l-1]} = dz^{[l]}a^{[l-1]} \]
+\[ \frac{dL}{dw^{[l]}} = \frac{dL}{dz^{[l]}} \frac{dz^{[l]}}{dw^{[l]}} = dz^{[l]} a^{[l-1]} \]
+
+because
+\[ z = w \cdot a + b \rightarrow \frac{dz}{dw} = a \]
 
 $db$
-\[ \frac{dL}{db^{[l]}} = a^{[l]}-y = dz^{[l]} \]
-
-$\frac{dL}{dw}$ and $\frac{dL}{db}$ come from the loss function in the regression section.
+\[ \frac{dL}{db^{[l]}} = \frac{dL}{dz^{[l]}} \frac{dz^{[l]}}{db^{[l]}} = dz^{[l]} \]
 
 \subsection{Convolutional neural network}
 
@@ -591,6 +592,14 @@ Digit recognition example:
 
 \includegraphics[scale=.4]{images/cnn-example.png}
 
+\subsubsection{Forward prop}
+
+$e$th example, $n$th layer $l$ channel, $j$th layer $l-1$ channel
+\begin{gather*}
+    Z^{[l]}_{en} = \sum_{c=0}^{n_c^{[l-1]}}\text{convolve}(A^{[l-1]}_{ec},W^{[l]}_{cn}) + \bm b^{[l]}_n\\
+    A^{[l]} = g(Z^{[l]})
+\end{gather*}
+
 \subsubsection{Why convolutions}
 
 Each filter only needs to learn its own parameters, and then can be applied anywhere on the
@@ -599,6 +608,8 @@ anywhere on the image after only learning a few parameters.
 
 Each output depends on less inputs compared to a normal neural network, which improves
 performance.
+
+\pagebreak
 
 \subsection{Improving model}
 
@@ -632,6 +643,115 @@ If $J_{cv}$ is high, get more data
 \subsubsection{Adding data}
 
 Data augmentation: add data with distortions (ex. distorted letters in a letter recognition program)
+
+\section{Cnn back prop}
+
+$A^l$ and $Z^l$ have dimensions $m \times n_c^l \times n_h^l \times n_w^l$
+
+$P^l$ is the pooled $A^l$ with dimensions $m \times n_c^l \times n^l_{ph} \times n^l_{pw}$,
+and is equal to $A^l$ if there is no pooling.
+
+$F^l$ is the flattened $P^l$ with length $m n_c^l n_{ph}^l n_{pw}^l$
+
+$0 \le e \le m$
+
+$0 \le n \le n_c^l$
+
+$0 \le u \le n_H^l$
+
+$0 \le v \le n_W^l$
+
+$n_{ph}^l = n_H^l/p^l_H$
+
+$n_{pw}^l = n_W^l/p^l_W$
+
+$p^l_H$ = pooling height in layer $l$
+
+$p^l_W$ = pooling width in layer $l$
+
+Assume that all pooling layers use max pooling, and that the last layer $L$ is a dense layer with
+a single softmax neuron.
+
+\subsection{Deriving $\frac{dL}{db}$ for forward feeding into dense layer}
+
+Using chain rule:
+\begin{gather*}
+    \frac{dL}{db^l_n} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l}
+                        \frac{dL}{dZ^l_{enuv}} \frac{dZ^l_{enuv}}{db^l_n}\\
+    \frac{dL}{dZ^l_{enuv}} = \frac{dL}{dA^l_{enuv}} \frac{dA^l_{enuv}}{db^l_n}
+\end{gather*}
+
+\subsubsection{$\frac{dL}{dA^l_{enuv}}$}
+
+\textbf{If $A^l_{enuv}$ is the max out of the elements in its pool, or there is no pooling layer:}
+
+$P^l_{enyx} = A^l_{enu_{max}v_{max}}$, where $x = \floor(v_{max}/p_{W})$, $y = \floor(u_{max}/p_H)$
+\[ \frac{dL}{dA^l_{enuv}} = \frac{dL}{dA^l_{enu_{max}v_{max}}} = \frac{dL}{dP^l_{enyx}} \]
+
+$F^l_k = P^l_{enyx}$, where $k = (n_c^l n_{pm}^l n_{pw}^l)e + (n_{ph}^l n_{pw}^l) n + n_{pw}^l y + x$
+\[ \cdots = \frac{dL}{dP^l_{enyx}} = \frac{dL}{dF^l_k} \]
+
+Since $\frac{dL}{dA^l_{enu_{max}v_{max}}}$ = $\frac{dL}{dF_k}$, it might be helpful to calculate
+$\frac{dL}{dF_k}$:
+\[ \frac{dL}{dF^l_k} = \sum_{i=0}^{n^L} \frac{dL}{dZ^L_{ei}} \frac{dZ^L_{ei}}{dF^l_k} \]
+
+From $Z^L_{ei} = \sum_{j=0}^{k_{max}} (W^L_{ij} F^l_j) + \bm b_i$:
+\begin{gather*}
+    \frac{dZ_{ei}}{dF^l_k} = W_{ik}\\
+    \frac{dL}{dF^l_k} = \sum_{i=0}^{n^L} \frac{dL}{dZ^L_{ei}} W_{ik}
+\end{gather*}
+
+With $\frac{dL}{dF^l_k}$ solved, it is now possible to solve for $\frac{dL}{dA^l_{enuv}}$ in
+the case that $dA^l_{enuv}$ is the largest in its pool.
+\begin{gather*}
+    \frac{dL}{dF^l} = W^{l T} \cdot \frac{dL}{dZ^L}\\
+    \frac{dL}{dP^l} = \frac{dL}{dF^l}\text{.reshape}(P^l\text{.shape})
+\end{gather*}
+
+\textbf{If $A^l_{enuv}$ is not the largest in its pool:}
+
+This part is not applicable for when there is no pooling done.
+
+Because $P$ only holds the maximum value in each pool for $A$, changes in $A^l_{enuv}$ when $A^l_{enuv}$
+is not the largest value will not affect $dL/dP$ and therefore $dL/dA$, which gives
+\[
+    \frac{dL}{dA^l_{enuv}} =
+    \left\{\begin{array}{@{}l@{}}
+            \frac{dL}{dP^l_{enyx}} \text{ if $A^l_{enuv}$ is the largest in its pool}\\
+            0 \text{ otherwise}
+    \end{array}\right.\,
+\]
+
+\textbf{Calculating $\frac{dL}{dA^l_{enuv}}$}
+
+In forward propagation, cache $n$, $u_{max}$, and $v_{max}$ into some array $I$ with the same
+shape as $P^l$, which can be accessed with $I[n][y][x] = \begin{bmatrix}u_{max}\\v_{max}
+\end{bmatrix}$.
+
+Calculate $\frac{dL}{dP^l}$ using
+\begin{gather*}
+    \frac{dL}{dF^l} = W^{l T} \cdot \frac{dL}{dZ^L}\\
+    \frac{dL}{dP^l} = \frac{dL}{dF^l}\text{.reshape}(P^l\text{.shape})
+\end{gather*}
+
+and then iterate over all inputs to $\frac{dL}{dP^l}$ ($n$, $y$, $x$) and use
+\[ \frac{dL}{dA^l_{enu_{max}v_{max}}} = \frac{dL}{dP^l_{enyx}} \]
+
+where $u_{max}$ and $v_{max}$ are fetched from $I[n][y][x]$.
+
+For every $u \ne u_{max}$ and $v \ne v_{max}$, set $\frac{dL}{dA^l_{enuv}}$ to 0.
+
+\subsubsection{$\frac{dA^l_{enuv}}{dZ^l_{enuv}}$}
+
+\begin{gather*}
+    A = g(Z)\\
+    \frac{dA^l_{enuv}}{dZ^l_{enuv}} = g'(Z^l_{enuv})
+\end{gather*}
+
+\subsubsection{$\frac{dZ^l_{enuv}}{db^l_n}$}
+
+From $Z = \text{convolve}(P^{l-1},W^l) + b^l$ in forward prop:
+\[ \frac{dZ^l_{enuv}}{db^l_n} = 1 \]
 
 \section{Decision trees}
 

@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -ggdb -Wall -O3
+CXXFLAGS=-std=c++17 -ggdb -Wall
 INC=-I../common/src -I../graph/src/
 LDFLAGS=-L../lib -lgraph -lSDL2 -lstb_image
 
@@ -8,7 +8,7 @@ OBJS=$(addprefix obj/, $(SRC:.cpp=.o))
 
 .PHONY: graph
 
-all: digits
+all: digits-conv
 
 %: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(INC) -c $^
