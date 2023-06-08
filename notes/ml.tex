@@ -653,6 +653,9 @@ and is equal to $A^l$ if there is no pooling.
 
 $F^l$ is the flattened $P^l$ with length $m n_c^l n_{ph}^l n_{pw}^l$
 
+$W^l$ is the weights for the filters in layer $l$ with dimensions $n_c^l \times n_c^{l-1}
+\times f_H^l \times f_W^l$.
+
 $0 \le e \le m$
 
 $0 \le n \le n_c^l$
@@ -669,10 +672,20 @@ $p^l_H$ = pooling height in layer $l$
 
 $p^l_W$ = pooling width in layer $l$
 
+$0 \le c \le n_c^{l-1}$
+
+$0 \le p \le f_H^l$
+
+$0 \le q \le f_W^l$
+
+$0 \le r \le n^{l-1}_{ph}$
+
+$0 \le s \le n^{l-1}_{pw}$
+
 Assume that all pooling layers use max pooling, and that the last layer $L$ is a dense layer with
 a single softmax neuron.
 
-\subsection{Deriving $\frac{dL}{db}$ for forward feeding into dense layer}
+\subsection{$\frac{dL}{db}$}
 
 Using chain rule:
 \begin{gather*}
@@ -722,7 +735,7 @@ is not the largest value will not affect $dL/dP$ and therefore $dL/dA$, which gi
     \end{array}\right.\,
 \]
 
-\textbf{Calculating $\frac{dL}{dA^l_{enuv}}$}
+\textbf{Calculating $\frac{dL}{dA^l_{enuv}}$ (Conv $\rightarrow$ dense)}
 
 In forward propagation, cache $n$, $u_{max}$, and $v_{max}$ into some array $I$ with the same
 shape as $P^l$, which can be accessed with $I[n][y][x] = \begin{bmatrix}u_{max}\\v_{max}
@@ -741,6 +754,51 @@ where $u_{max}$ and $v_{max}$ are fetched from $I[n][y][x]$.
 
 For every $u \ne u_{max}$ and $v \ne v_{max}$, set $\frac{dL}{dA^l_{enuv}}$ to 0.
 
+\textbf{Calculating $\frac{dL}{dA^l_{enuv}}$ (Conv $\rightarrow$ conv)}
+
+Calculate $\frac{dL}{dP^l_{enyx}}$ using
+\[ \frac{dL}{dP^l_{ecrs}} = \sum_{n=0}^{n_c^l} \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l}
+\frac{dL}{dZ^{l+1}_{enuv}} \frac{dZ^{l+1}_{enuv}}{dP^l_{ecrs}} \]
+
+Only $\frac{dZ^{l+1}_{enuv}}{dP^l_{ecrs}}$ needs to be calculated because $\frac{dL}{dZ^{l+1}_{enuv}}$
+has already been calculated and should have been cached.
+
+For any $n, u, v$, there is a 3D region of $P^l_{ecrs}$ contributing to $Z^{l+1}_{enuv}$, and
+$\frac{dZ^{l+1}_{enuv}}{dP^{l}_{ecrs}} = W^{l+1}_{ncpq}$, where $p = r-u, q = s-v$ and $r = u
+\cdots u+4, s = v \cdots v + 4$.
+
+$\frac{dZ^{l+1}_{enuv}}{dP^{l}_{ecrs}}$ has shape $c_{max} \times r_{max} \times s_{max}
+\times n_{max} \times u_{max} \times v_{max}$.
+
+$\frac{dZ^{l+1}_{enuv}}{dP^{l}_{ecrs}}$ can be calculated in forward prop with
+\[ \frac{dZ^{l+1}_{enuv}}{dP^l_{e,0\cdots n^{l+1}_c,0\cdots f_H^{l+1},0 \cdots f_W^{l+1}}}
+= W^{l+1}\]
+
+\[ \frac{dL}{dP^{l}} = \sum_{e=0}^m \sum_{n=0}^{n_c^{l+1}} \sum_{u=0}^{n_H^{l+1}} \sum_{v=0}^{n_W^{l+1}}
+\frac{dL}{dZ^{l+1}_{enuv}} \frac{dZ^{l+1}_{enuv}}{dP^{l}_{ecrs}} \]
+
+During forward prop, cache $(c, i_{max}, j_{max})$ at which $A^l_{ci_{max}j_{max}}$ is the maximum
+in its pool.
+\[ I^l[n,r,s] = \begin{bmatrix}i_{max}\\j_{max}\end{bmatrix} \]
+
+where $r_{max} = i_{max}/2, s = j_{max}/2$.
+
+$\frac{dL}{dA^{l}_{ecij}}$ can then be calculated with
+\[ \frac{dL}{dA^l_{eci_{max}j_{max}}} = \frac{dL}{dP^l_{ecrs}} \]
+
+where $(c,r,s)$ are all iterated over for all their possible values, and $i_{max}, j_{max}$
+are obtained from $I^l[c,r,s]$.
+
+$\frac{dL}{dZ^l_{ecij}}$ can then be determined:
+\[ \frac{dL}{dZ^l_{ecij}} = \frac{dL}{dA^l_{ecij}} \frac{dA^l_{ecij}}{dZ^l_{ecij}} \]
+
+$\frac{dL}{dA^l}$ was calculated earlier, and $\frac{dA}{dZ}$ is just the activation function derivative of $Z$.
+
+From $z = wa + b$, $\frac{dZ^l_{ecij}}{db^l_c} = 1$.
+
+$\frac{dL}{db^l_c}$ can then be represented as
+\[ \frac{dL}{db^l_c} = \sum_{i=0}^{n_H^l} \sum_{j=0}^{n_W^l} \frac{dL}{dA^l_{ecij}} \frac{dA^l_{ecij}}{dZ^l_{ecij}} \]
+
 \subsubsection{$\frac{dA^l_{enuv}}{dZ^l_{enuv}}$}
 
 \begin{gather*}
@@ -752,6 +810,131 @@ For every $u \ne u_{max}$ and $v \ne v_{max}$, set $\frac{dL}{dA^l_{enuv}}$ to 0
 
 From $Z = \text{convolve}(P^{l-1},W^l) + b^l$ in forward prop:
 \[ \frac{dZ^l_{enuv}}{db^l_n} = 1 \]
+
+\subsection{$\frac{dL}{dW}$}
+
+\textbf{For conv $\rightarrow$ dense:}
+
+\[ \frac{dL}{dW^l_{ncpq}} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l} \frac{dL}{dZ^l_{enuv}}
+\frac{dZ^l_{enuv}}{dW^l_{ncpq}} \]
+
+From $Z^l = \text{convolve}(P^{l-1},W^l) + b^l$
+\[ \frac{dZ^l_{enuv}}{dW^l_{ncpq}} = P^{l-1}_{c,p+u,q+v} \]
+
+Substituted:
+\[ \frac{dL}{dW^l_{ncpq}} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l} \frac{dL}{dZ^l_{enuv}}
+P^{l-1}_{c,p+u,q+v} \]
+
+\textbf{For conv $\rightarrow$ conv:}
+
+Similar to conv to dense, except $\frac{dZ^l_{ecij}}{dW^l_{ncgh}} = A^{l-1}_{c,g+i,h+j}$.
+
+\subsection{Summary}
+
+Structure: Conv 1 $\rightarrow$ Conv 2 $\rightarrow$ Dense
+
+\subsubsection{db: conv 1 $\rightarrow$ conv 2}
+$l$ = 1
+
+$0 \le e < m$
+
+$0 \le c < n^l_c$
+
+$0 \le i < n_H^l$
+
+$0 \le j < n^l_W$
+
+$0 \le r < n_H^l/p_H^l$
+
+$0 \le s < n_W^l/p_W^l$
+
+$p_W^l$ = pooling window width
+
+$p_H^l$ = pooling window height
+
+\begin{gather*}
+    \frac{dL}{db^l_c} = \sum_{i=0}^{n^l_H} \sum_{j=0}^{n_W^l} \frac{dL}{dA^l_{ecij}}
+    \frac{dA^l_{ecij}}{dZ^l_{ecij}}\\
+    \frac{dL}{dA^l_{ec I^l[c,r,s].i_{max} I^l[c,r,s].j_{max}}} = \frac{dL}{dP^l_{ecrs}}\\
+    \frac{dL}{dA^l_{ec i_{\text{not max}} j_{\text{not max}}}} = 0\\
+    I^l[c,r,s] = \begin{bmatrix}i_{max}\\j_{max}\end{bmatrix}\\
+    \frac{dA^l_{ecij}}{dZ^l_{ecij}} = g'(Z^l_{ecij})
+\end{gather*}
+
+$I$ is determined during forward prop.
+
+\subsubsection{db: conv 2 $\rightarrow$ dense}
+$l$ = 2
+
+$0 \le e < m$
+
+$0 \le n < n_c^l$
+
+$0 \le u < n_H^l$
+
+$0 \le v < n_W^l$
+
+$y = u_{max}/p^l_H$
+
+$x = v_{max}/p^l_W$
+
+$p_W^l$ = pooling window width
+
+$p_H^l$ = pooling window height
+
+\begin{gather*}
+    \frac{dL}{db^l_n} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l} \frac{dL}{dZ^l_{enuv}}\\
+    \frac{dL}{dZ^l_{enuv}} = \frac{dL}{dA^l_{enuv}} \frac{dA^l_{enuv}}{dZ^l_{enuv}}\\
+    \frac{dL}{dA^l_{enuv}} = \left\{\begin{array}{@{}l@{}}
+            \frac{dL}{dP^l_{enyx}} \text{ if $A^l_{enuv}$ is the largest in its pool}\\
+            0 \text{ otherwise}
+    \end{array}\right.\,\\
+    \frac{dL}{dP^l} = \frac{dL}{dF^l}.\text{reshape}(P^l.\text{shape})\\
+    \frac{dL}{dF^l} = W^{l,T} \frac{dL}{dZ^L}\\
+    \frac{dA^l_{enuv}}{dZ^l_{enuv}} = g'(Z^l_{enuv})
+\end{gather*}
+
+\subsubsection{dw: conv 1 $\rightarrow$ conv 2}
+$l = 1$
+
+$0 \le n < n_c^l$
+
+$0 \le c < n_c^{l-1}$
+
+$0 \le p < f_H^l$
+
+$0 \le q < f_W^l$
+
+$0 \le u < n_H^l$
+
+$0 \le v < n_W^l$
+
+\begin{gather*}
+    \frac{dL}{dW^l_{ncpq}} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l} \frac{dL}{dZ^l_{enuv}}
+    \frac{dZ^l_{enuv}}{dW^l_{ncpq}}\\
+    \frac{dZ^l_{enuv}}{dW^l_{ncpq}} = P^{l-1}_{c,p+u,q+v}\\
+\end{gather*}
+
+\subsubsection{dw: conv 2 $\rightarrow$ dense}
+$l = 2$
+
+$0 \le n < n_c^l$
+
+$0 \le c < n_c^{l-1}$
+
+$0 \le g < f_H^l$
+
+$0 \le h < f_W^l$
+
+$0 \le u < n_H^l$
+
+$0 \le v < n_W^l$
+
+\begin{gather*}
+    \frac{dL}{dW^l_{ncgh}} = \sum_{u=0}^{n_H^l} \sum_{v=0}^{n_W^l} \frac{dL}{dZ^l_{enuv}}
+    \frac{dZ^l_{enuv}}{dW^l_{ncgh}}\\
+    \frac{dZ^l_{enuv}}{dW^l_{ncgh}} = A^{l-1}_{c,g+i,h+j}\\
+\end{gather*}
 
 \section{Decision trees}
 
