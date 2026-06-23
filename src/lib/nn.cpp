@@ -27,7 +27,7 @@ static Matrix apply_act(Activation act, const Matrix &Z) {
         }
         return A;
     }
-    default: assert(false);
+    default: __builtin_unreachable();
     }
 }
 
