@@ -15,7 +15,7 @@ struct Layer {
     Layer(int n, int n_prev, Activation act);
 
     // updates Z, A
-    void forward(Matrix A_prev);
+    void forward(const Matrix &A_prev);
 };
 
 class Nn {

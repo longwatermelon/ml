@@ -32,7 +32,7 @@ static Matrix apply_act(Activation act, const Matrix &Z) {
 }
 
 // updates Z, A
-void Layer::forward(Matrix A_prev) {
+void Layer::forward(const Matrix &A_prev) {
     this->Z = this->W * A_prev;
     // broadcast b column-wise
     for (int i = 0; i < this->Z.cols; ++i) {
