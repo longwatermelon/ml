@@ -8,6 +8,8 @@ struct Matrix {
     int rows, cols;
     vec2<double> data;
 
+    Matrix() = default;
+
     Matrix(int rows, int cols)
         : rows(rows), cols(cols),
           data((assert(rows >= 0 && cols >= 0), vec2<double>(rows, cols))) {}
