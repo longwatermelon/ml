@@ -5,7 +5,7 @@
 #include <stdexcept>
 
 // build a matrix from a brace literal, every row must be the same length
-Matrix::Matrix(std::initializer_list<std::initializer_list<double>> init)
+Matrix::Matrix(initializer_list<initializer_list<double>> init)
     : rows(sz(init)), cols(init.size() ? sz(*init.begin()) : 0),
       data(vec2<double>(rows, cols)) {
     int i = 0;
@@ -328,7 +328,7 @@ Matrix Matrix::get_col(int j) const {
 // ---- element-wise function application ----
 
 // return a copy with f applied to every entry
-Matrix Matrix::apply(const std::function<double(double)> &f) const {
+Matrix Matrix::apply(const function<double(double)> &f) const {
     Matrix m(rows, cols);
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
@@ -337,7 +337,7 @@ Matrix Matrix::apply(const std::function<double(double)> &f) const {
 }
 
 // apply f to every entry in place
-Matrix &Matrix::apply_inplace(const std::function<double(double)> &f) {
+Matrix &Matrix::apply_inplace(const function<double(double)> &f) {
     for (int i = 0; i < rows; i++)
         for (int j = 0; j < cols; j++)
             data[i][j] = f(data[i][j]);
@@ -396,12 +396,12 @@ double Matrix::determinant() const {
         // find the row with the largest pivot in this column
         int pivot = col;
         for (int i = col + 1; i < n; i++)
-            if (std::fabs(a[i][col]) > std::fabs(a[pivot][col]))
+            if (fabs(a[i][col]) > fabs(a[pivot][col]))
                 pivot = i;
         if (a[pivot][col] == 0.0)
             return 0.0; // singular, determinant is zero
         if (pivot != col) {
-            std::swap(a[pivot], a[col]);
+            swap(a[pivot], a[col]);
             det = -det; // row swap flips the sign
         }
         det *= a[col][col];
@@ -425,14 +425,14 @@ Matrix Matrix::inverse() const {
         // pick the largest pivot for numerical stability
         int pivot = col;
         for (int i = col + 1; i < n; i++)
-            if (std::fabs(a[i][col]) > std::fabs(a[pivot][col]))
+            if (fabs(a[i][col]) > fabs(a[pivot][col]))
                 pivot = i;
         // a zero pivot after partial pivoting means the column is all zero
         if (a[pivot][col] == 0.0)
-            throw std::runtime_error("matrix is singular, no inverse");
+            throw runtime_error("matrix is singular, no inverse");
         if (pivot != col) {
-            std::swap(a[pivot], a[col]);
-            std::swap(inv.data[pivot], inv.data[col]);
+            swap(a[pivot], a[col]);
+            swap(inv.data[pivot], inv.data[col]);
         }
         // scale the pivot row so the pivot becomes 1
         double p = a[col][col];
@@ -471,12 +471,12 @@ Matrix Matrix::pow(int e) const {
 // ---- output ----
 
 // print rows on separate lines with aligned columns
-std::ostream &operator<<(std::ostream &os, const Matrix &m) {
+ostream &operator<<(ostream &os, const Matrix &m) {
     for (int i = 0; i < m.rows; i++) {
         for (int j = 0; j < m.cols; j++) {
             if (j)
                 os << ' ';
-            os << std::setw(10) << m.data[i][j];
+            os << setw(10) << m.data[i][j];
         }
         os << '\n';
     }
