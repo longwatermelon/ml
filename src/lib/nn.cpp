@@ -27,6 +27,7 @@ static Matrix apply_act(Activation act, const Matrix &Z) {
         }
         return A;
     }
+    default: assert(false);
     }
 }
 
@@ -44,7 +45,7 @@ void Layer::forward(Matrix A_prev) {
 }
 
 Nn::Nn(const vec<pair<int, Activation>> &layers) {
-    // placeholder n_prev for layer 0, layer 0 gets reshaped by X in the forward pass
+    // placeholder n_prev for layer 0, it doesn't matter; A = X in forward pass.
     int n_prev = 1;
     for (auto &[n, act] : layers) {
         m_layers.push_back(Layer(n, n_prev, act));
@@ -53,10 +54,10 @@ Nn::Nn(const vec<pair<int, Activation>> &layers) {
 }
 
 void Nn::forward(Matrix X) {
-    // reshape by # examples in X
-    m_layers[0] = Layer(m_layers[0].n, X.cols, m_layers[0].act);
+    // receive input into network
     m_layers[0].A = X;
 
+    // forward
     for (int i = 1; i < sz(m_layers); ++i) {
         m_layers[i].forward(m_layers[i-1].A);
     }
