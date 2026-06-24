@@ -1,0 +1,106 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{indentfirst}
+\usepackage{amsfonts}
+\geometry{legalpaper, portrait, margin=0.5in}
+\usepackage{color}   %May be necessary if you want to color links
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=black,  %choose some color if you want links to stand out
+}
+\usepackage[siunitx]{circuitikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{decorations.markings}
+\graphicspath{ {./images/} }
+\usepackage{enumitem}
+\usepackage{outlines}
+\begin{document}
+\newcommand*\dif{\mathop{}\!\mathrm{d}}
+\renewcommand{\mod}{\,\operatorname{mod}\,}
+\setlength{\parindent}{0pt}
+
+\setlist[enumerate]{noitemsep, topsep=0pt, itemindent=\parindent}
+\setlist[itemize]{noitemsep, topsep=0pt, itemindent=\parindent}
+
+\newenvironment{subitemize}
+{ \begin{itemize}[leftmargin=\parindent] }
+{ \end{itemize} }
+
+\newenvironment{subenumerate}
+{ \begin{enumerate}[leftmargin=\parindent] }
+{ \end{enumerate} }
+
+\newenvironment{nopagebr}
+  {\par\nobreak\vfil\penalty0\vfilneg
+   \vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup
+   \prevdepth=\tpd}
+
+\newcommand{\bbr}{\mathbb{R}}
+\newcommand{\bbz}{\mathbb{Z}}
+\newcommand{\relu}{\operatorname{ReLU}}
+
+\pagebreak
+\begin{outline}
+
+\section{Fully connected neural net}
+
+\subsection{Forward prop}
+
+For layer $1 \le \ell \le L$, we have forward prop (assume single example):
+\begin{align*}
+    z^{[\ell]} &= W^{[\ell]} a^{[\ell-1]} + b^{[\ell]} \\
+    a^{[\ell]} &= \phi^{[\ell]}(z^{[\ell]})
+\end{align*}
+where $z^{[\ell]}$ is the pre-activation for layer $\ell$, and $a^{[\ell]}$ is the activation for layer $\ell$. Note we use $a^{[0]}=x$ (ie inputs) for consistency.\\
+
+Dimensions:
+\1 $W^{[\ell]} \in \bbr^{n^{[\ell]} \times n^{[\ell-1]}}$
+\1 $z^{[\ell]},a^{[\ell]},b^{[\ell]} \in \bbr^{n^{[\ell]}}$
+\\\0
+
+\textit{Note:} $z = Wx + b$ is not "the only correct choice" that has to be made. It's chosen because it allows for simple linear interactions between features; the $i$th neuron in layer $\ell$ mixes all neurons in layer $\ell-1$ using the $i$th row of $W$. Then, $+b$ lets each neuron shift in a constant direction which isn't achievable by the existing linear map $Wx$. Then, nonlinear activation functions allow features to interact with each other nonlinearly.
+\1 For example, $\relu(x_1+x_2-1)$ makes changing $x_1$ only matter when $x_1+x_2>1$. The influence of $x_1$ depends on $x_2$.
+\0
+
+\subsection{Backprop}
+
+Now, for backward prop, for layer $1 \le \ell < L$, we have $\displaystyle \frac{\partial J}{\partial a^{[\ell]}}$ calculated for us by layer $\ell+1$ (base case $\ell=L$ grabs it directly from the model's eval loss (for example, $\displaystyle J=\frac{1}{2} (a^{[L]}-y)^2$ gives $\displaystyle \frac{\partial J}{\partial a^{[L]}} = a^{[L]}-y$)). Assume single example again:
+\[ \frac{\partial J}{\partial z^{[\ell]}} = \frac{\partial J}{\partial a^{[\ell]}} \odot \frac{\partial a^{[\ell]}}{\partial z^{[\ell]}} = \boxed{\frac{\partial J}{\partial a^{[\ell]}} \odot \phi'^{[\ell]}\left(z^{[\ell]}\right)} \]
+For $\displaystyle \frac{\partial J}{\partial W^{[\ell]}}$, chain rule gets a bit difficult; $\displaystyle \frac{\partial J}{\partial z^{[\ell]}} \in \bbr^{n^{[\ell]}}$, but $\displaystyle \frac{\partial z^{[\ell]}}{\partial W^{[\ell]}} \in \bbr^{n^{[\ell]} \times n^{[\ell]} \times n^{[\ell-1]}}$. We can do this by recovering the matrix form from individual components. Given that $z_p = W_p a^{[\ell-1]} + b_p$,
+\[ \frac{\partial J}{\partial W^{[\ell]}_{pq}} = \frac{\partial J}{\partial z^{[\ell]}_p} \frac{\partial z^{[\ell]}_p}{\partial W^{[\ell]}_{pq}} = \frac{\partial J}{\partial z^{[\ell]}_p} \cdot a^{[\ell-1]}_q \]
+So for row $p$, we use the same $\displaystyle \frac{\partial J}{\partial z^{[\ell]}_p}$ value and multiply against a row of $a^{[\ell-1]}$. By inspection, recover that:
+\[ \frac{\partial J}{\partial W^{[\ell]}} = \boxed{\frac{\partial J}{\partial z^{[\ell]}} \left(a^{[\ell-1]}\right)^T} \]
+
+For $\displaystyle \frac{\partial J}{\partial b^{[\ell]}}$, it gets easy:
+\[ \frac{\partial J}{\partial b^{[\ell]}} = \frac{\partial J}{\partial z^{[\ell]}} \frac{\partial z^{[\ell]}}{\partial b^{[\ell]}} = \frac{\partial J}{\partial z^{[\ell]}} \cdot 1 = \boxed{\frac{\partial J}{\partial z^{[\ell]}}} \]
+
+Finally, propagate $\displaystyle \frac{\partial J}{\partial a^{[\ell-1]}}$. For a fixed $q$,
+\[ \frac{\partial J}{\partial a^{[\ell-1]}_q} = \sum_p \frac{\partial J}{\partial z^{[\ell]}_p} \frac{\partial z^{[\ell]}_p}{\partial a^{[\ell-1]}_q} = \sum_p \frac{\partial J}{\partial z^{[\ell]}_p} W^{[\ell]}_{pq} \]
+
+So for the $q$th row (or entry, technically) of $\displaystyle \frac{\partial J}{\partial a^{[\ell-1]}}$, take column $q$ in $W^{[\ell]}$, and fill the $\displaystyle \frac{\partial J}{\partial a^{[\ell-1]}_q}$ value with $\displaystyle \frac{\partial J}{\partial z^{[\ell]}} \cdot W^{[\ell]}_{:,q}$ (aka dot product against column $q$ of $W$). This is the same as $\displaystyle (W^{[\ell]}_{:,q})^T \frac{\partial J}{\partial z^{[\ell]}}$; we essentially make $W^{[\ell]}_{:,q}$ a row vector and treat it as a $1 \times n^{[\ell]}$ matrix to achieve the same dot product via "matmul". Parallelize this across the rows of $\displaystyle \frac{\partial J}{\partial a^{[\ell-1]}}$ and get
+\[ \frac{\partial J}{\partial a^{[\ell-1]}} = \boxed{(W^{[\ell]})^T \frac{\partial J}{\partial z^{[\ell]}}} \]
+
+Of course, the point is mainly that we get $\displaystyle \frac{\partial J}{\partial W^{[\ell]}}$ and $\displaystyle \frac{\partial J}{\partial b^{[\ell]}}$; everything else is to serve this. Update parameters for every layer:
+\begin{align*}
+    W^{[\ell]} &:= W^{[\ell]} - \alpha \frac{\partial J}{\partial W^{[\ell]}} \\
+    b^{[\ell]} &:= b^{[\ell]} - \alpha \frac{\partial J}{\partial b^{[\ell]}}
+\end{align*}
+
+\subsection{Batching}
+
+Adding functionality to feed in multiple examples to the network instead of a single one is nearly identical for everything. We stack examples as columns; previously, we had individual column vectors for a single example, so we simply stack them together and make a matrix this time. Since the network mostly processes each example independently, forward prop and backprop essentially parallelize across examples independently pretty easily. However, some elements like $W$ and $b$ interact with all examples and thus need slightly different backprop:
+\begin{align*}
+    \frac{\partial J}{\partial W^{[\ell]}} &= \frac{\partial J}{\partial Z^{[\ell]}} \left(A^{[\ell-1]}\right)^T \\
+    \frac{\partial J}{\partial b^{[\ell]}} &= \sum_i \frac{\partial J}{\partial Z^{[\ell]}_{:,i}}
+\end{align*}
+
+Also, make sure $J$ has some kind of normalization along number of examples so numbers don't change scale over different batch sizes.
+
+\end{outline}
+\end{document}

@@ -1,0 +1,88 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{indentfirst}
+\usepackage{amsfonts}
+\geometry{legalpaper, portrait, margin=0.5in}
+\usepackage{color}   %May be necessary if you want to color links
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=black,  %choose some color if you want links to stand out
+}
+\usepackage[siunitx]{circuitikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{decorations.markings}
+\graphicspath{ {./images/} }
+\usepackage{enumitem}
+\usepackage{outlines}
+\begin{document}
+\newcommand*\dif{\mathop{}\!\mathrm{d}}
+\renewcommand{\mod}{\,\operatorname{mod}\,}
+\setlength{\parindent}{0pt}
+
+\setlist[enumerate]{noitemsep, topsep=0pt, itemindent=\parindent}
+\setlist[itemize]{noitemsep, topsep=0pt, itemindent=\parindent}
+
+\newenvironment{subitemize}
+{ \begin{itemize}[leftmargin=\parindent] }
+{ \end{itemize} }
+
+\newenvironment{subenumerate}
+{ \begin{enumerate}[leftmargin=\parindent] }
+{ \end{enumerate} }
+
+\newenvironment{nopagebr}
+  {\par\nobreak\vfil\penalty0\vfilneg
+   \vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup
+   \prevdepth=\tpd}
+
+\newcommand{\bbr}{\mathbb{R}}
+
+\pagebreak
+\begin{outline}
+
+\section{Problem}
+
+We have a probability distribution $P$. How do we measure how close $Q$'s probabilities are to $P$'s?
+
+\section{Solution}
+
+We'll do this by scoring how well $Q$ predicts events that occur according to $P$; over infinite trials, only distributions equal to $P$ should predict events sampled from $P$ the best. ($P$ scoring $P$ the best is \textbf{not} a universal guarantee under all "scoring functions" --- only proper ones exhibit that behavior --- the point of this writeup is to \textbf{find} such a scoring function which makes $P$ predict $P$ the best.) \\
+
+We'll find a function $f(p)$ where: given that an event $x$ occurred and an observer predicted that it would happen with probability $p$, how well did they predict this would happen? Then, we'll score a distribution based on its \textbf{expected value} of $f$ over its possible outcomes (ie, distribution score is $\mathbb E_{x \sim P} [f(Q(x))]$ for samples drawn from $P$, evaluating distribution $Q$).\\
+
+Given that we know this, $f$ must satisfy the following conditions:
+\1 \textbf{Differentiable}: basically, $f$ is a normal-feeling function. This is required for the next condition.
+\1 \textbf{Proper}: if $P,Q$ predict event $x$ occurs with probabilities $p_x,q_x$ respectively, the distribution score $\displaystyle \sum_x (p_x f(q_x))$ must be maximized at only $q=p$.
+\1 \textbf{(Arbitrarily imposed) local}: this is the arbitrary assumption that specifically leads us to KL vs. a different divergence like Brier or spherical. We're assuming that the score of a prediction for a single realized outcome doesn't depend on any other predictions.
+\\\0
+
+The propriety condition carries the entire path to narrowing down what $f$ can be (working with discrete distributions, but continuous distributions structurally follow the same proof):
+\1 Use Lagrange multipliers: we want to maximize $\displaystyle G(q) = \sum_x (p_x f(q_x))$ with the constraint $\displaystyle \sum_x q_x = 1$.
+\1 $\displaystyle \mathcal L = \sum_x (p_x f(q_x)) - \lambda \left(\sum_x q_x - 1\right)$
+\1 Now we need $\nabla_q \mathcal L = 0$; do this component-wise. For each component $q_x$, $\displaystyle \frac{\partial \mathcal L}{\partial q_x} = p_x f'(q_x) - \lambda$. With $\nabla_q \mathcal L = 0$, we have $p_x f'(q_x) = \lambda$.
+\1 Our propriety condition says at optimum, $q=p$, so $p_x f'(p_x) = \lambda$. Across all possible distributions $p$ that exist, this must be true; we'll show that $\lambda$ is constant across distributions to get a nice general $t f'(t) = \lambda$ form (currently $\lambda$ is a function of $P$ by our setup).
+\2 Assume $\ge 3$ outcomes; construct a "base set" of distributions with probability vectors $(a,b,1-a-b)$ for all $a+b<1$. Denote $g(t)=t f'(t)$ (just shorthand for readability); then, $g(a)=\lambda(P)$ and $g(b)=\lambda(P)$, so $g(a)=g(b)$. So any distribution $P'$ that contains a probability that exists inside a base set distribution satisfies $\lambda(P')=\lambda(P)$.
+\2 Utilize this to complete the base set: for unconnected $(a,b)$ pairs where $a+b \ge 1$, connect $(a,c)$ and $(c,b)$ where $a+c<1$ and $c+b<1$; both are guaranteed to exist from the $a+b<1$ base set. This shows $g(a)=g(c)=g(b)$, and thus $g(a)=g(b)$.
+\2 So $g(a)=g(b)$ for all $(a,b) \in (0,1) \times (0,1)$, which means all $\lambda$ across all distributions with $\ge 3$ outcomes are equal as well.
+\2 \textit{Note}: for 2 outcomes, we can't fully connect all $(a,b)$ pairs, only $(a,1-a)$ pairs; $\log$ still works for reasons aside from the continued proof below, but is no longer uniquely required.
+\1 So $t f'(t) = \lambda$ for $t \in (0,1]$; a single $\lambda$ value for all possible $t$.
+\1 The ODE $\displaystyle f'(t) = \frac{\lambda}{t}$ gives solutions $f(t)=\lambda \log t + c$. So: all functions $f$ of the form $f(t)=\lambda \log t + c$ gives a critical point at $q=p$ in the function $\displaystyle G(q) = \sum_x (p_x f(q_x))$. But of these functions $f$, which give a global max at $q=p$ --- not just a critical point?
+\2 If $G$ is concave and $q=p$ is a critical point, then $q=p$ is \textbf{the} global max (top of the dome).
+\2 $G$ is concave iff $f$ is. $\displaystyle f'(t) = \frac{\lambda}{t} \implies f''(t) = -\frac{\lambda}{t^2}$. $t^2$ is always positive, so for concavity ($f'' < 0$), we need $\lambda > 0$.
+\1 So finally: $\displaystyle \boxed{f(p) = \lambda \log p + c \quad (\lambda > 0)}$.
+\\\0
+
+Now, $G_p(q)$ (denoting $G(q)$ with $p$ as the probabilities sampled from) is essentially \textbf{cross-entropy loss}: except since loss functions standardly have higher = worse, cross-entropy is actually $H(p,q) = -G_p(q)$:
+\[ \boxed{H(p,q) = -\sum_x p_x \log(q_x)} \]
+
+KL divergence calibrates the best possible score to be zero, by subtracting the best possible cross-entropy score (which is the entropy of $P$):
+\[ D_{KL}(P||Q) = \mathbb E_{x \sim P} [\log P(x)] - \mathbb E_{x \sim P} [\log Q(x)] = \boxed{\mathbb E_{x \sim P} \left[\log \frac{P(x)}{Q(x)}\right]} \]
+
+\end{outline}
+\end{document}
