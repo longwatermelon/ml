@@ -54,7 +54,7 @@ However, the limit definition of the derivative $\displaystyle \lim_{h \rightarr
 
 \section{Solution}
 
-\underline{\textbf{Big-picture idea}}: we'll hard-code a set of primitive functions along with its derivatives with respect to each of its arguments: a primitive function $f(a_0,...,a_{n-1})$ hard-codes $n$ derivative functions $d_{f,i} = \displaystyle \frac{\partial f}{\partial a_i}$ for each $i$. Then, we'll represent bigger functions (like $J(\theta)$, which involves a full forward pass and then a cost function on the network's final output) as simply compositions of these primitive functions; the gradient $\nabla_\theta J$ is computable via chain rule across these smaller primitives. \\
+\underline{\textbf{Big-picture idea}}: we'll hard-code a set of primitive functions along with its derivatives with respect to each of its arguments: a primitive function $f(a_0,...,a_{n-1})$ hard-codes $n$ derivative functions (one for each positional argument) $d_{f,i} = \displaystyle \frac{\partial f}{\partial a_i}$ for each $i$. Then, we'll represent bigger functions (like $J(\theta)$, which involves a full forward pass and then a cost function on the network's final output) as simply compositions of these primitive functions; the gradient $\nabla_\theta J$ is computable via chain rule across these smaller primitives. \\
 
 Construct a computational graph that's centered around primitive functions: each node represents a function call.
 \1 Each node $u$ owns:
@@ -70,7 +70,7 @@ The graph and its nodes are all constructed as computation occurs. Then, we can 
 \1 Then, suppose we're sitting at node $v$. For each unique child $u \in \text{adj}(v)$ (no repeats):
 \2 We need to do $\displaystyle \frac{\partial J}{\partial \hat u} += \frac{\partial J}{\partial \hat v} \frac{\partial \hat v}{\partial \hat u}$. (notice that needing $\displaystyle \frac{\partial J}{\partial \hat v}$ to be finalized is why topo traversal is important --- $v$ shouldn't explore children before $v$ has finished computing its gradient.)
 \2 Obviously, $\displaystyle \frac{\partial J}{\partial \hat u} = \text{grad}(u)$ and $\displaystyle \frac{\partial J}{\partial \hat v} = \text{grad}(v)$. But what's $\displaystyle \frac{\partial \hat v}{\partial \hat u}$?
-\2 Since $\hat v = f_v(\hat{\text{adj}(v)})$, we get $\displaystyle \frac{\partial \hat v}{\partial \hat u} = \frac{\partial}{\partial \hat u} f_v(\hat{\text{adj}(v)}) = \sum_{i : \text{adj}(v)[i] = u} \left(d_{f_v, i}(\hat{\text{adj}(v)})\right)$. The summation comes from multivariate chain rule: we explore every positional arg path which changes with $\hat u$, and total change wrt $\hat u$ is all those changes added up.
+\2 Since $\hat v = f_v(\hat{\text{adj}(v)})$, we get $\displaystyle \frac{\partial \hat v}{\partial \hat u} = \frac{\partial}{\partial \hat u} f_v(\hat{\text{adj}(v)}) = \sum_{i : \text{adj}(v)[i] = u} \left(d_{f_v, i}(\hat{\text{adj}(v)})\right)$. The summation comes from multivariate chain rule: we explore every positional arg which changes with $\hat u$, and total change wrt $\hat u$ is all those changes added up.
 \2 So to sum it up, we just do $\displaystyle \boxed{\text{grad}(u) += \text{grad}(v) \cdot \sum_{i : \text{adj}(v)[i] = u} \left(d_{f_v, i}(\hat{\text{adj}(v)})\right)}$.
 \1 We continue traversing until we've finished at the leaves. Then, we pick out the gradients of the nodes we care about (aka the nodes $t_i$ such that $\hat t_i = \theta_i$, which gives us $\displaystyle \frac{\partial J}{\partial \theta_i}$).
 \\\0
