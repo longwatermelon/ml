@@ -59,21 +59,32 @@ However, the limit definition of the derivative $\displaystyle \lim_{h \rightarr
 Construct a computational graph that's centered around primitive functions: each node represents a function call.
 \1 Each node $u$ owns:
 \2 A \textbf{primitive function} $f_u$ (which primitive function it is: addition, multiplication, relu --- these must be hard-coded)
-\2 An \textbf{arg list} $\text{adj}(u)$ (the nodes whose results are used as arguments for this node's fn) --- this is the node's adjacency list
+\2 An \textbf{arg list} $\text{adj}(u)$ (the nodes whose results are used as arguments for this node's fn) --- this is the node's adjacency list, store edges in order of the positional args.
 \2 A cached \textbf{result} $\hat{u}$ (the value as a result of its function taking in its args)
-\2 A cached \textbf{gradient} $\text{grad}(u)$ (which will be used in backprop; if this node represents $\hat u = f_u(\text{adj}(u))$, then the gradient value holds $\displaystyle \frac{\partial \text{root}}{\partial \hat u}$)
+\2 A cached \textbf{gradient} $\text{grad}(u)$ (which will be used in backprop; if this node represents $\hat u = f_u(\hat{\text{adj}(u)})$, then the gradient value holds $\displaystyle \frac{\partial \text{root}}{\partial \hat u}$)
 \1 This will form a DAG where the cost function call $J$ roots the DAG, and the parameters $\theta_i$ are the leaves of the DAG.
 \\\0
 
 The graph and its nodes are all constructed as computation occurs. Then, we can start from any node $s$ and compute $\displaystyle \frac{\partial \hat s}{\partial \hat u}$ for all $u$ reachable from $s$. We must traverse the graph in topological order when computing gradients.
 \1 In our neural network case, we'd want to start from node $s$ where $J=\hat s$ and end at all nodes $t_i$ where $\theta_i = \hat t_i$, in order to compute $\nabla_\theta J$. Obviously, $\displaystyle \frac{\partial J}{\partial J} = 1$ to start, and initialize all grad values to zero.
-\1 Then, suppose we're sitting at node $v$. For each unique child $u \in \text{adj}(v)$ (no repeats):
-\2 We need to do $\displaystyle \frac{\partial J}{\partial \hat u} += \frac{\partial J}{\partial \hat v} \frac{\partial \hat v}{\partial \hat u}$. (notice that needing $\displaystyle \frac{\partial J}{\partial \hat v}$ to be finalized is why topo traversal is important --- $v$ shouldn't explore children before $v$ has finished computing its gradient.)
-\2 Obviously, $\displaystyle \frac{\partial J}{\partial \hat u} = \text{grad}(u)$ and $\displaystyle \frac{\partial J}{\partial \hat v} = \text{grad}(v)$. But what's $\displaystyle \frac{\partial \hat v}{\partial \hat u}$?
-\2 Since $\hat v = f_v(\hat{\text{adj}(v)})$, we get $\displaystyle \frac{\partial \hat v}{\partial \hat u} = \frac{\partial}{\partial \hat u} f_v(\hat{\text{adj}(v)}) = \sum_{i : \text{adj}(v)[i] = u} \left(d_{f_v, i}(\hat{\text{adj}(v)})\right)$. The summation comes from multivariate chain rule: we explore every positional arg which changes with $\hat u$, and total change wrt $\hat u$ is all those changes added up.
-\2 So to sum it up, we just do $\displaystyle \boxed{\text{grad}(u) += \text{grad}(v) \cdot \sum_{i : \text{adj}(v)[i] = u} \left(d_{f_v, i}(\hat{\text{adj}(v)})\right)}$.
-\1 We continue traversing until we've finished at the leaves. Then, we pick out the gradients of the nodes we care about (aka the nodes $t_i$ such that $\hat t_i = \theta_i$, which gives us $\displaystyle \frac{\partial J}{\partial \theta_i}$).
+\1 Then, suppose we're sitting at node $v$. For each edge that exists in $\text{adj}(v)$, let the child be $u$, and suppose it's specifically passed in as the $i$th positional argument which is denoted as $a_i = \hat{u}$. $a_i$ only appears as the $i$th argument, even if $u$ appears among multiple positional args; $\displaystyle \frac{\partial J}{\partial \hat{u}} += \sum_{a_i} \frac{\partial J}{\partial a_i}$ for a single parent by multivariate chain rule, and we do this for all parents of $u$ for the full $\displaystyle \frac{\partial J}{\partial \hat u}$.
+\2 We need to find $\displaystyle \frac{\partial J}{\partial a_i} = \frac{\partial J}{\partial \hat v} \frac{\partial \hat v}{\partial a_i}$. Equivalently: $\displaystyle \frac{\partial J}{\partial a_i} = \text{grad}(v) \frac{\partial \hat v}{\partial a_i}$. (notice: needing $\displaystyle \frac{\partial J}{\partial \hat v}$ to be finalized is why we need topo traversal --- $v$ can't explore children before $\text{grad}(v)$ is finalized.) But what's $\displaystyle \frac{\partial \hat v}{\partial a_i}$?
+\2 Remember that $\hat v = f_v(\hat{\text{adj}(v)})$, so differentiating both sides w.r.t the positional arg, we get
+\[ \frac{\partial \hat v}{\partial a_i} = \frac{\partial}{\partial a_i} f_v(\hat{\text{adj}(v)}) = d_{f_v, i}(\hat{\text{adj}(v)})\]
+\2 So then in the end, we do $\displaystyle \boxed{\text{grad}(u) += \text{grad}(v) \cdot d_{f_v, i}(\hat{\text{adj}(v)})}$.
+\1 We traverse until we've finished at the leaves. Then, we pick out the gradients of the nodes we care about (aka the nodes $t_i$ such that $\hat t_i = \theta_i$, which gives us $\displaystyle \frac{\partial J}{\partial \theta_i}$).
+\0
+
+\section{Specializing for matmuls}
+
+The core operation in a neural net --- matmuls --- generate a gigantic autograd graph. Our primitives are just too simple. We need to elevate them to represent larger primitive operations. We'll have to make some optimizations; if we naively try $C = \text{matmul}(A,B) = AB$, then $d_{\text{matmul},i}$ gives us a giant 4D Jacobian, where $\displaystyle \frac{\partial C}{\partial A}$ for example would have a matrix of $\displaystyle \frac{\partial C_{ij}}{\partial A_{i' j'}}$ for all $i',j'$ given a fixed $i,j$ --- a matrix of partials for \textbf{each} entry in $C$. \\
+
+So we'll just compute the chain rule directly, to avoid constructing such a Jacobian. If you do the algebra and simplify, we can define a new function $g$ that directly gives us the gradient wrt the positional arg we want (denoting gradient matrix $\displaystyle G = \frac{\partial J}{\partial C}$):
+\1 $\displaystyle \frac{\partial J}{\partial A} = g_{\text{matmul},0}(G,A,B) = GB^t$
+\1 $\displaystyle \frac{\partial J}{\partial B} = g_{\text{matmul},1}(G,A,B) = A^t G$
 \\\0
+
+So in practice, if you're doing tensor autograd, replace $d_{f_v,i}(\text{pos-args})$ with $g_{f_v,i}(\text{grad}(v), \text{pos-args})$ --- if visiting child $u$ from parent $v$, do $\boxed{\text{grad}(u) += g_{f_v,i}\left(\text{grad}(v), \hat{\text{adj}(v)}\right)}$.
 
 \end{outline}
 \end{document}

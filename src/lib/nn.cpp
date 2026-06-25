@@ -31,7 +31,8 @@ static Matrix apply_act(Activation act, const Matrix &Z) {
     }
 }
 
-// updates Z, A
+
+// forward pass using prev layer's output --- updates Z, A
 void Layer::forward(const Matrix &A_prev) {
     this->Z = this->W * A_prev;
     // broadcast b column-wise
@@ -53,6 +54,7 @@ Nn::Nn(const vec<pair<int, Activation>> &layers) {
     }
 }
 
+// forward prop
 void Nn::forward(Matrix X) {
     // receive input into network
     m_layers[0].A = X;

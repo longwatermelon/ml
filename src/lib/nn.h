@@ -14,7 +14,7 @@ struct Layer {
 
     Layer(int n, int n_prev, Activation act);
 
-    // updates Z, A
+    // forward pass using prev layer's output --- updates Z, A
     void forward(const Matrix &A_prev);
 };
 
@@ -24,5 +24,6 @@ class Nn {
 public:
     Nn(const vec<pair<int, Activation>> &layers);
 
+    // forward prop
     void forward(Matrix X);
 };
