@@ -15,8 +15,8 @@ vec<int> shape2stride(const vec<int> &shape) {
     int prod = 1;
     vec<int> stride(sz(shape));
     for (int i = sz(shape)-1; i >= 0; --i) {
-        prod *= shape[i];
         stride[i] = prod;
+        prod *= shape[i];
     }
     return stride;
 }
@@ -45,7 +45,7 @@ Tensor::Tensor(const vec2<double> &data_2d) {
 // tensor with given shape, filled with value
 Tensor::Tensor(const vec<int> &shape, double value) {
     this->shape = shape;
-    stride = shape;
+    stride = shape2stride(shape);
     int n = numel(shape);
     data = vec<double>(n, value);
 }
