@@ -51,7 +51,10 @@ struct Tensor {
     Tensor apply(const std::function<double(double)> &f) const;
     // applies function between two tensors, auto-broadcasts up to one tensor if needed
     Tensor apply(const Tensor &o, const std::function<double(double, double)> &f) const;
+    // apply to this, return ref to this
     Tensor &apply_inplace(const std::function<double(double)> &f);
+    // apply to this, return ref to this
+    Tensor &apply_inplace(const Tensor &o, const std::function<double(double, double)> &f);
 
     // reductions
     Tensor sum(int axis, bool keepdims = true) const;

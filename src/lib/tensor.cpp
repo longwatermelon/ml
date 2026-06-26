@@ -176,10 +176,12 @@ double Tensor::at(const vec<int> &ind) const {
 
 // element-wise sum
 Tensor Tensor::operator+(const Tensor &o) const {
+    return apply(o, [](double x, double y){return x+y;});
 }
 
 // element-wise difference
 Tensor Tensor::operator-(const Tensor &o) const {
+    return apply(o, [](double x, double y){return x-y;});
 }
 
 // in-place element-wise addition
@@ -192,10 +194,12 @@ Tensor &Tensor::operator-=(const Tensor &o) {
 
 // element-wise product
 Tensor Tensor::hadamard(const Tensor &o) const {
+    return apply(o, [](double x, double y){return x*y;});
 }
 
 // element-wise division
 Tensor Tensor::ediv(const Tensor &o) const {
+    return apply(o, [](double x, double y){return x/y;});
 }
 
 // negate every element
@@ -247,6 +251,32 @@ Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)
 
 // apply f to every element in place
 Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
+    vec<int> cur(sz(shape), 0);
+    do {
+        at(cur) = f(at(cur));
+    } while (advance_ind(cur, shape));
+
+    return *this;
+}
+
+// apply to this, return ref to this
+Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double, double)> &f) {
+    Tensor oth = o;
+
+    // broadcast to match shapes
+    vec<int> parent = parent_shape(shape, oth.shape);
+    broadcast(parent);
+    oth.broadcast(parent);
+
+    // apply function
+    Tensor result(parent, 0.);
+    vec<int> cur(sz(parent), 0.);
+    do {
+        result.at(cur) = f(at(cur), oth.at(cur));
+    } while (advance_ind(cur, parent));
+    *this = result;
+
+    return *this;
 }
 
 // ---- reductions ----
