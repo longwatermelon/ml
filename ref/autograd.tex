@@ -75,16 +75,40 @@ The graph and its nodes are all constructed as computation occurs. Then, we can 
 \1 We traverse until we've finished at the leaves. Then, we pick out the gradients of the nodes we care about (aka the nodes $t_i$ such that $\hat t_i = \theta_i$, which gives us $\displaystyle \frac{\partial J}{\partial \theta_i}$).
 \0
 
-\section{Specializing for matmuls}
+\section{Extending to tensors}
 
-The core operation in a neural net --- matmuls --- generate a gigantic autograd graph. Our primitives are just too simple. We need to elevate them to represent larger primitive operations. We'll have to make some optimizations; if we naively try $C = \text{matmul}(A,B) = AB$, then $d_{\text{matmul},i}$ gives us a giant 4D Jacobian, where $\displaystyle \frac{\partial C}{\partial A}$ for example would have a matrix of $\displaystyle \frac{\partial C_{ij}}{\partial A_{i' j'}}$ for all $i',j'$ given a fixed $i,j$ --- a matrix of partials for \textbf{each} entry in $C$. \\
+Any tensor operations generate giant autograd graphs, and switching our "level of primitives" from scalars to tensors reveals another problem: $C = \text{matmul}(A,B) = AB$ for example gives a giant 4D Jacobian for $d_{\text{matmul},i}$, where something like $\displaystyle \frac{\partial C}{\partial A}$ would have a matrix of $\displaystyle \frac{\partial C_{ij}}{\partial A_{i' j'}}$ for all $i',j'$ given a fixed $i,j$ --- a matrix of partials for \textbf{each} entry in $C$. So: we'll fold $d_{f_v,i}$ into a broader chain rule function: $\displaystyle g_{f_v,i} = \frac{\partial J}{\partial \hat v} d_{f_v,i}$ (tensor contraction, not scalar multiplication). We'll figure out what $\displaystyle \frac{\partial J}{\partial \hat v} d_{f_v,i}$ is for each of our hard-coded primitives in order to directly compute our result without touching any intermediates. \\
 
-So we'll just compute the chain rule directly, to avoid constructing such a Jacobian. If you do the algebra and simplify, we can define a new function $g$ that directly gives us the gradient wrt the positional arg we want (denoting gradient matrix $\displaystyle G = \frac{\partial J}{\partial C}$):
-\1 $\displaystyle \frac{\partial J}{\partial A} = g_{\text{matmul},0}(G,A,B) = GB^t$
-\1 $\displaystyle \frac{\partial J}{\partial B} = g_{\text{matmul},1}(G,A,B) = A^t G$
+Also, at the tensor level, we'll be doing broadcasting (common example: broadcasting $b$ across the columns of $WX$). The idea is that inside $g$, the ops naturally broadcast, yielding a broadcast gradient internally; then, reduce the broadcasted gradient back to the shape of $\hat u$ to collect the gradient contributions of each original entry.
+\1 For example, when we broadcast $b$ across the columns of $WX$ by creating the broadcasted tensor $B$, changing any $b_i$ entry changes all $B_{ij}$ for $0 \le j < \text{cols}(WX)$. So $J$'s change wrt a small $b_i$ change is just the sum of all the ways $b_i$'s change reaches $J$: via all the same exact changes in $B_{ij}$ in that row $i$.
 \\\0
 
-So in practice, if you're doing tensor autograd, replace $d_{f_v,i}(\text{pos-args})$ with $g_{f_v,i}(\text{grad}(v), \text{pos-args})$ --- if visiting child $u$ from parent $v$, do $\boxed{\text{grad}(u) += g_{f_v,i}\left(\text{grad}(v), \hat{\text{adj}(v)}\right)}$.
+So in practice, if you're doing tensor autograd, replace $d_{f_v,i}(\text{pos-args})$ with $g_{f_v,i}(\text{grad}(v), \text{pos-args})$ --- if visiting child $u$ from parent $v$, do $\boxed{\text{grad}(u) += g_{f_v,i}\left(\text{grad}(v), \hat{\text{adj}(v)}\right)}$. \\
+
+In practice, these might be the primitives pre-defined for a simple FNN ($G = \displaystyle \frac{\partial J}{\partial \text{result}}$, always, and $g_{f,i}$ always implicitly un-broadcasts its result at the end to match the dimensions of $a_i$):
+\1 \textbf{Matmul}: $C = AB$, derived via the vector-Jacobian product.
+\2 $g_{\text{matmul},0}(G,A,B) = GB^t$
+\2 $g_{\text{matmul},1}(G,A,B) = A^t G$
+\1 \textbf{Add}: $C = A+B$. These element-wise ops are simpler to derive; for example, think $\displaystyle \frac{\partial J}{\partial A_{ij}} = \frac{\partial J}{\partial C_{ij}} \frac{\partial C_{ij}}{\partial A_{ij}} = \frac{\partial J}{\partial C_{ij}} \cdot 1$, so $\displaystyle \frac{\partial J}{\partial A} = G$.
+\2 $g_{\text{add},0}(G,A,B) = G$
+\2 $g_{\text{add},1}(G,A,B) = G$
+\1 \textbf{Element-wise mul}: $C = A \odot B$. Think $\displaystyle \frac{\partial J}{\partial C_{ij}} \frac{\partial C_{ij}}{\partial A_{ij}} = G_{ij} \cdot B_{ij}$.
+\2 $g_{\text{mul},0}(G,A,B) = G \odot B$
+\2 $g_{\text{mul},1}(G,A,B) = G \odot A$
+\1 \textbf{Element-wise division}: $C = A \oslash B$. Think element-wise quotient rule for the second one.
+\2 $g_{\text{div},0}(G,A,B) = G \oslash B$
+\2 $g_{\text{div},1}(G,A,B) = -G \odot A \oslash B^{\odot 2}$
+\1 \textbf{ReLU}: $B = \text{ReLU}(A)$. Think $\displaystyle \frac{\partial J}{\partial B_{ij}} \frac{\partial B_{ij}}{\partial A_{ij}} = G_{ij} \cdot \text{ReLU}'(A_{ij})$.
+\2 $g_{\text{ReLU},0}(G,A) = G \odot 1[A>0]$
+\1 \textbf{Exp}: $B = \exp(A)$.
+\2 $g_{\exp,0}(G,A) = G \odot \exp(A)$
+\1 \textbf{Log}: $B = \log(A)$. Think $\displaystyle \frac{\partial J}{\partial B_{ij}} \frac{\partial B_{ij}}{\partial A_{ij}} = G_{ij} \cdot \frac{1}{A_{ij}}$.
+\2 $g_{\log,0}(G,A) = G \odot A^{\odot (-1)}$
+\1 \textbf{Sum-reduce along axis $k$}: $B = \text{sum}(A, \text{axis}=k)$. For example for 2x2 $A$, $\displaystyle \frac{\partial J}{\partial A_{ij}} = \frac{\partial J}{\partial B_i} \frac{\partial B_i}{\partial A_{ij}} = G_i \cdot 1$. $G$ is const across all $j$ since $G$ depends on $i$, and $j$ is the sum-reduced axis, so just broadcast back to $\text{shape}(A)$.
+\2 $g_{\text{sum},0}(G,A) = \text{broadcast}(G, \text{shape}(A))$.
+\1 \textbf{Max-reduce along axis $k$}: $B = \text{max}(A, \text{axis}=k)$. Think of it like this: $A$ is composed of a bunch of vectors that stretch along axis $k$ (for example, if axis $k$ is rows, then all the vectors are rows). $B$ squashes axis $k$, only keeping the max. So changing an entry in $A$ only changes the corresponding $B$ entry of that $A$ axis-$k$ vector if that $A$ entry is the max of that axis-$k$ vector. To formalize this with gradients, in $\displaystyle \frac{\partial B}{\partial A}$, put a $1$ at the argmax pos for each axis $k$ vector, and $0$ otherwise. If multiple argmax positions, choose one.
+\2 Not going to formalize this with math --- just implement it programmatically, it'll be easier.
+\\\0
 
 \end{outline}
 \end{document}
