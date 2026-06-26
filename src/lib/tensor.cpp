@@ -270,7 +270,7 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
 
     // apply function
     Tensor result(parent, 0.);
-    vec<int> cur(sz(parent), 0.);
+    vec<int> cur(sz(parent), 0);
     do {
         result.at(cur) = f(at(cur), oth.at(cur));
     } while (advance_ind(cur, parent));
