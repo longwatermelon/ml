@@ -13,8 +13,7 @@ struct Tensor {
 
     Tensor(const vec<double> &data_1d);
     Tensor(const vec2<double> &data_2d);
-    static Tensor zeros(const vec<int> &shape);
-    static Tensor ones(const vec<int> &shape);
+    Tensor(const vec<int> &shape, double value);
 
     // shape ops
     void reshape(const vec<int> &new_shape);

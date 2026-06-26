@@ -1,6 +1,28 @@
 #include "tensor.h"
 #include <cassert>
 
+// # elements given shape
+static int numel(const vec<int> &shape) {
+    int prod = 1;
+    for (int i = 0; i < sz(shape); ++i) {
+        prod *= shape[i];
+    }
+    return prod;
+}
+
+// shape -> stride
+vec<int> shape2stride(const vec<int> &shape) {
+    int prod = 1;
+    vec<int> stride(sz(shape));
+    for (int i = sz(shape)-1; i >= 0; --i) {
+        prod *= shape[i];
+        stride[i] = prod;
+    }
+    return stride;
+}
+
+// ---- constructors ----
+
 // 1d tensor from a vector
 Tensor::Tensor(const vec<double> &data_1d) {
     shape = {sz(data_1d)};
@@ -20,18 +42,21 @@ Tensor::Tensor(const vec2<double> &data_2d) {
     }
 }
 
-// tensor of all zeros with the given shape
-Tensor Tensor::zeros(const vec<int> &shape) {
-}
-
-// tensor of all ones with the given shape
-Tensor Tensor::ones(const vec<int> &shape) {
+// tensor with given shape, filled with value
+Tensor::Tensor(const vec<int> &shape, double value) {
+    this->shape = shape;
+    stride = shape;
+    int n = numel(shape);
+    data = vec<double>(n, value);
 }
 
 // ---- shape ops ----
 
 // change shape without changing data
 void Tensor::reshape(const vec<int> &new_shape) {
+    assert(numel(shape) == numel(new_shape));
+    shape = new_shape;
+    stride = shape2stride(shape);
 }
 
 // broadcast dims of size 1 to match new_shape
