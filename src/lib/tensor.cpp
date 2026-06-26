@@ -96,7 +96,7 @@ Tensor::Tensor(const vec<int> &shape, double value) {
 
 // ---- shape ops ----
 
-// change shape without changing data
+// reinterpret same data with different shape
 void Tensor::reshape(const vec<int> &new_shape) {
     assert(numel(shape) == numel(new_shape));
     *this = materialize();
@@ -104,7 +104,7 @@ void Tensor::reshape(const vec<int> &new_shape) {
     stride = shape2stride(shape);
 }
 
-// broadcast dims of size 1 to match new_shape
+// broadcast shape to match new_shape
 void Tensor::broadcast(const vec<int> &new_shape) {
     pad_shape(new_shape);
     for (int i = 0; i < sz(shape); ++i) {
@@ -117,7 +117,7 @@ void Tensor::broadcast(const vec<int> &new_shape) {
     }
 }
 
-// sum-reduce to collect back into original shape
+// sum-reduce along all axes i where shape[i]=1
 void Tensor::unbroadcast(const vec<int> &target) {
     *this = materialize();
     assert(sz(target) <= sz(shape));
@@ -137,7 +137,7 @@ void Tensor::unbroadcast(const vec<int> &target) {
     }
 }
 
-// permute dimensions: re-order axis args
+// re-order axis arg order while maintaining semantic meaning of axes
 void Tensor::permute(const vec<int> &p) {
     // check that p is valid & a permutation
     assert(sz(p) == sz(shape));
@@ -158,7 +158,7 @@ void Tensor::permute(const vec<int> &p) {
     stride = new_stride;
 }
 
-// left-pads shape, recomputes stride
+// left-pad axes of current shape to match target shape's dimension cnt
 void Tensor::pad_shape(const vec<int> &target) {
     assert(sz(target) >= sz(shape));
     vec<int> ones(sz(target)-sz(shape), 1);
@@ -191,7 +191,7 @@ bool Tensor::is_contiguous() const {
 
 // ---- element access ----
 
-// mutable element access by multi-dim index
+// lvalue ref
 double &Tensor::at(const vec<int> &ind) {
     assert(sz(ind) == sz(shape));
 
@@ -205,7 +205,7 @@ double &Tensor::at(const vec<int> &ind) {
     return data[flat_ind];
 }
 
-// const element access by multi-dim index
+// rvalue
 double Tensor::at(const vec<int> &ind) const {
     assert(sz(ind) == sz(shape));
 
@@ -243,30 +243,30 @@ Tensor &Tensor::operator-=(const Tensor &o) {
     return *this;
 }
 
-// element-wise product
+// element-wise prod
 Tensor Tensor::hadamard(const Tensor &o) const {
     return apply(o, [](double x, double y){return x*y;});
 }
 
-// element-wise division
+// element-wise div
 Tensor Tensor::ediv(const Tensor &o) const {
     return apply(o, [](double x, double y){return x/y;});
 }
 
-// negate every element
+// unary negation
 Tensor Tensor::operator-() const {
     return apply([](double x) { return -x; });
 }
 
-// matmul on last two dims, batched over all leading dims
+// matmul on least significant two axes, parallelized across the rest
 Tensor Tensor::operator*(const Tensor &o) const {
 }
 
-// transpose last two dims
+// transpose on least significant two axes, parallelized across the rest
 Tensor Tensor::transpose() const {
 }
 
-// sum along an axis, shape[axis]=1 if keepdims, or axis is removed if not
+// sum-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.
 Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
@@ -307,17 +307,17 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     return t;
 }
 
-// index of the minimum along an axis, result has shape[axis]=1
+// return tensor of argmin indices along axis arrays
 Tensor Tensor::argmin(int axis) const {
 }
 
-// index of the maximum along an axis, result has shape[axis]=1
+// return tensor of argmax indices along axis arrays
 Tensor Tensor::argmax(int axis) const {
 }
 
 // ---- functionals ----
 
-// return a new tensor with f applied to every element
+// apply to copy of this
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
     Tensor out = *this;
     vec<int> cur(sz(shape), 0);
@@ -329,7 +329,7 @@ Tensor Tensor::apply(const std::function<double(double)> &f) const {
     return out;
 }
 
-// applies function between two tensors, auto-broadcasts up to one tensor if needed
+// applies function between two tensors, auto-broadcasts both tensors as needed
 Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)> &f) const {
     Tensor out = *this, oth = o;
 
@@ -348,7 +348,7 @@ Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)
     return out;
 }
 
-// apply f to every element in place
+// apply to this, return ref to this
 Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
     *this = materialize();
     vec<int> cur(sz(shape), 0);
@@ -359,7 +359,7 @@ Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
     return *this;
 }
 
-// apply to this, return ref to this
+// applies function between two tensors, store result in this, auto-broadcast both tensors as needed
 Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double, double)> &f) {
     Tensor oth = o;
 
