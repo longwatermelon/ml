@@ -18,17 +18,25 @@ struct Tensor {
     static Tensor zeros(const vec<int> &shape);
     static Tensor ones(const vec<int> &shape);
 
+    // shape ops
+    void reshape(const vec<int> &new_shape);
+    void broadcast(const vec<int> &new_shape);
+    // p[i]: shape[i] := shape[p[i]]
+    void permute(const vec<int> &p);
+
     // element access
     double &operator()(int i, int j);
     double operator()(int i, int j) const;
 
-    // element-wise arithmetic with another matrix
+    // element-wise arithmetic with another tensor
     Tensor operator+(const Tensor &o) const;
     Tensor operator-(const Tensor &o) const;
     Tensor &operator+=(const Tensor &o);
     Tensor &operator-=(const Tensor &o);
-    Tensor hadamard(const Tensor &o) const; // element-wise product
-    Tensor ediv(const Tensor &o) const;     // element-wise division
+    // element-wise prod
+    Tensor hadamard(const Tensor &o) const;
+    // element-wise div
+    Tensor ediv(const Tensor &o) const;
 
     // matrix ops --- operates on last two dims, parallelized across all previous dims
     Tensor operator*(const Tensor &o) const;
