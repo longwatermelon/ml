@@ -117,13 +117,23 @@ void Tensor::broadcast(const vec<int> &new_shape) {
     }
 }
 
-// sum-reduce along axes where target has size 1
+// sum-reduce to collect back into original shape
 void Tensor::unbroadcast(const vec<int> &target) {
     *this = materialize();
-    for (int i = 0; i < sz(target); ++i) {
-        if (target[i] != 1) continue;
+    assert(sz(target) <= sz(shape));
 
-        *this = sum(i, true);
+    // delete leading axes that broadcast padded in
+    int extra = sz(shape) - sz(target);
+    for (int i = 0; i < extra; ++i) {
+        *this = sum(0, false);
+    }
+
+    // reduce axes in target which expanded from size 1
+    for (int i = 0; i < sz(target); ++i) {
+        assert(target[i] == shape[i] || target[i] == 1);
+        if (target[i] == 1 && shape[i] > 1) {
+            *this = sum(i, true);
+        }
     }
 }
 
