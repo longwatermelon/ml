@@ -205,15 +205,13 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
 
     // set up surrounding ind iteration (excluding axis)
-    vec<int> cur(n-1, 0), limits(n-1);
-    int limits_ptr = 0;
-    for (int i = 0; i < n; ++i) {
-        if (i == axis) continue;
-        limits[limits_ptr] = shape[i];
-        limits_ptr++;
+    vec<int> cur(n-1, 0), limits = shape;
+    limits.erase(begin(limits) + axis);
+
+    vec<int> new_shape = limits;
+    if (keepdims) {
+        new_shape.insert(begin(new_shape) + axis, 1);
     }
-    vec<int> new_shape = shape;
-    new_shape[axis] = 1;
 
     // iterate over all axis-exclude inds, flatten axis
     Tensor t(new_shape, 0.);
