@@ -23,6 +23,10 @@ static vec<int> shape2stride(const vec<int> &shape) {
 
 // return if advance successful - false if can't advance anymore
 static bool advance_ind(vec<int> &cur, const vec<int> &limits) {
+    if (cur.empty()) {
+        return false;
+    }
+
     int ptr = sz(cur)-1;
     cur[ptr]++;
     while (cur[ptr] >= limits[ptr]) {
@@ -197,7 +201,7 @@ Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
 // ---- reductions ----
 
 // sum along an axis, result has shape[axis]=1
-void Tensor::sum(int axis, bool keepdims) {
+Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
 
     // set up surrounding ind iteration (excluding axis)
@@ -208,28 +212,33 @@ void Tensor::sum(int axis, bool keepdims) {
         limits[limits_ptr] = shape[i];
         limits_ptr++;
     }
+    vec<int> new_shape = shape;
+    new_shape[axis] = 1;
 
     // iterate over all axis-exclude inds, flatten axis
+    Tensor t(new_shape, 0.);
     while (true) {
+        // set up target (for t) and iter (for this)
         vec<int> target_pos = cur;
-        target_pos.insert(begin(target_pos) + axis, 0);
         vec<int> iter_pos = target_pos;
-        for (int i = 1; i < shape[axis]; ++i) {
-            iter_pos[axis] = i;
-            at(target_pos) += at(iter_pos);
+        iter_pos.insert(begin(iter_pos) + axis, 0);
+        if (keepdims) {
+            target_pos.insert(begin(target_pos) + axis, 0);
         }
 
+        // iter & sum into t
+        for (int i = 0; i < shape[axis]; ++i) {
+            iter_pos[axis] = i;
+            t.at(target_pos) += at(iter_pos);
+        }
+
+        // advance
         if (!advance_ind(cur, limits)) {
             break;
         }
     }
-    stride[axis] *= shape[axis];
-    shape[axis] = 1;
 
-    // keepdims?
-    if (!keepdims) {
-        reshape(limits);
-    }
+    return t;
 }
 
 // index of the minimum along an axis, result has shape[axis]=1
