@@ -138,7 +138,7 @@ void Tensor::unbroadcast(const vec<int> &target) {
 }
 
 // re-order axis arg order while maintaining semantic meaning of axes
-void Tensor::permute(const vec<int> &p) {
+Tensor Tensor::permute(const vec<int> &p) const {
     // check that p is valid & a permutation
     assert(sz(p) == sz(shape));
     int n = sz(p);
@@ -154,8 +154,10 @@ void Tensor::permute(const vec<int> &p) {
         new_shape[i] = shape[p[i]];
         new_stride[i] = stride[p[i]];
     }
-    shape = new_shape;
-    stride = new_stride;
+    Tensor out(new_shape, 0.);
+    out.stride = new_stride;
+    out.data = data;
+    return out;
 }
 
 // left-pad axes of current shape to match target shape's dimension cnt
@@ -326,6 +328,13 @@ Tensor Tensor::operator*(const Tensor &o) const {
 
 // transpose on least significant two axes, parallelized across the rest
 Tensor Tensor::transpose() const {
+    int n = sz(shape);
+    vec<int> p(n);
+    for (int i = 0; i < n; ++i) {
+        p[i] = i;
+    }
+    swap(p[n-2], p[n-1]);
+    return permute(p);
 }
 
 // sum-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.

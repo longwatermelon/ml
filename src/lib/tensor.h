@@ -34,7 +34,7 @@ struct Tensor {
     // sum-reduce along all axes i where shape[i]=1
     void unbroadcast(const vec<int> &shape);
     // re-order axis arg order while maintaining semantic meaning of axes
-    void permute(const vec<int> &p);
+    Tensor permute(const vec<int> &p) const;
     // left-pad axes of current shape to match target shape's dimension cnt
     void pad_shape(const vec<int> &target);
     // consolidate data, become contiguous again
