@@ -1,15 +1,17 @@
 #include "tensor.h"
 #include <cassert>
 
-// 1d tensor from a flat vector of ints
+// 1d tensor from a vector
 Tensor::Tensor(const vec<double> &data_1d) {
     shape = {sz(data_1d)};
+    stride = {1};
     data = data_1d;
 }
 
-// 2d tensor from a 2d vector of ints
+// 2d tensor from a 2d vector
 Tensor::Tensor(const vec2<double> &data_2d) {
     shape = {sz(data_2d), sz(data_2d[0])};
+    stride = {sz(data_2d[0]), 1};
     data.resize(shape[0] * shape[1]);
     for (int i = 0; i < shape[0]; ++i) {
         for (int j = 0; j < shape[1]; ++j) {
@@ -28,11 +30,11 @@ Tensor Tensor::ones(const vec<int> &shape) {
 
 // ---- shape ops ----
 
-// change shape without changing data, materializes if non-contiguous
+// change shape without changing data
 void Tensor::reshape(const vec<int> &new_shape) {
 }
 
-// broadcast dims of size 1 to match new_shape by zeroing their strides
+// broadcast dims of size 1 to match new_shape
 void Tensor::broadcast(const vec<int> &new_shape) {
 }
 
@@ -52,7 +54,7 @@ double &Tensor::at(const vec<int> &ind) {
 
     int flat_ind = 0;
     for (int i = 0; i < sz(ind); ++i) {
-        flat_ind += shape[i] * ind[i];
+        flat_ind += stride[i] * ind[i];
     }
 
     assert(0 <= flat_ind && flat_ind < sz(data));
@@ -65,7 +67,7 @@ double Tensor::at(const vec<int> &ind) const {
 
     int flat_ind = 0;
     for (int i = 0; i < sz(ind); ++i) {
-        flat_ind += shape[i] * ind[i];
+        flat_ind += stride[i] * ind[i];
     }
 
     assert(0 <= flat_ind && flat_ind < sz(data));

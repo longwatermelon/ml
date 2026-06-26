@@ -5,8 +5,8 @@
 #include <initializer_list>
 
 struct Tensor {
-    // data has prod(shape) elements
-    vec<int> shape;
+    // data has prod(shape) elements, shape and stride have same len
+    vec<int> shape, stride;
     vec<double> data;
 
     Tensor() = default;
