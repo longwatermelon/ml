@@ -127,6 +127,7 @@ void Tensor::permute(const vec<int> &p) {
 
 // left-pads shape, recomputes stride
 void Tensor::pad_shape(const vec<int> &target) {
+    assert(sz(target) >= sz(shape));
     vec<int> ones(sz(target)-sz(shape), 1);
     vec<int> strides(sz(target)-sz(shape), numel(shape));
     shape.insert(begin(shape), all(ones));
@@ -163,6 +164,7 @@ double &Tensor::at(const vec<int> &ind) {
 
     int flat_ind = 0;
     for (int i = 0; i < sz(ind); ++i) {
+        assert(0 <= ind[i] && ind[i] < shape[i]);
         flat_ind += stride[i] * ind[i];
     }
 
@@ -176,6 +178,7 @@ double Tensor::at(const vec<int> &ind) const {
 
     int flat_ind = 0;
     for (int i = 0; i < sz(ind); ++i) {
+        assert(0 <= ind[i] && ind[i] < shape[i]);
         flat_ind += stride[i] * ind[i];
     }
 
@@ -300,6 +303,7 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
 // sum along an axis, shape[axis]=1 if keepdims, or axis is removed if not
 Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
+    assert(0 <= axis && axis < n);
 
     // set up surrounding ind iteration (excluding axis)
     vec<int> cur(n-1, 0), limits = shape;
