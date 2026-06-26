@@ -262,22 +262,33 @@ Tensor Tensor::operator-() const {
 Tensor Tensor::operator*(const Tensor &o) const {
     Tensor lhs = *this, rhs = o;
 
-    // broadcasting
+    // must host matrices at minimum
     assert(sz(lhs.shape) >= 2 && sz(rhs.shape) >= 2);
-    vec<int> parent = parent_shape(lhs.shape, rhs.shape);
-    lhs.broadcast(parent);
-    rhs.broadcast(parent);
-    int nd = sz(parent);
 
     // check shape: lhs is matrices [..., n, m] and rhs is matrices [..., m, k]
-    assert(lhs.shape[nd-1] == rhs.shape[nd-2]);
-    int n = lhs.shape[nd-2];
-    int m = lhs.shape[nd-1];
-    int k = rhs.shape[nd-1];
+    assert(lhs.shape[sz(lhs.shape)-1] == rhs.shape[sz(rhs.shape)-2]);
+    int n = lhs.shape[sz(lhs.shape)-2];
+    int m = lhs.shape[sz(lhs.shape)-1];
+    int k = rhs.shape[sz(rhs.shape)-1];
+
+    // isolate batch shapes to be broadcasted together; we don't want to
+    // broadcast the matrix dimensions together
+    vec<int> lhs_batch_shape = lhs.shape, rhs_batch_shape = rhs.shape;
+    lhs_batch_shape.pop_back(); lhs_batch_shape.pop_back();
+    rhs_batch_shape.pop_back(); rhs_batch_shape.pop_back();
+    vec<int> batch_parent = parent_shape(lhs_batch_shape, rhs_batch_shape);
+
+    // broadcast lhs, rhs against their batch parents
+    // (matched matrix sizes, broadcast batch shapes)
+    vec<int> lhs_batch_parent = batch_parent, rhs_batch_parent = batch_parent;
+    lhs_batch_parent.push_back(n); lhs_batch_parent.push_back(m);
+    rhs_batch_parent.push_back(m); rhs_batch_parent.push_back(k);
+    lhs.broadcast(lhs_batch_parent);
+    rhs.broadcast(rhs_batch_parent);
+    int nd = sz(batch_parent)+2;
 
     // prep batch matmuls
-    vec<int> batch_cur(n-2, 0);
-    vec<int> batch_lim(begin(parent), end(parent)-2);
+    vec<int> batch_cur(nd-2, 0), batch_lim = batch_parent;
 
     // out tensor is batches of n*k matrices
     vec<int> out_shape = batch_lim;
@@ -298,12 +309,12 @@ Tensor Tensor::operator*(const Tensor &o) const {
             for (int j = 0; j < k; ++j) {
                 cur[nd-2] = i;
                 cur[nd-1] = j;
-                // vector dot: lhs row i, rhs col k
+                // vector dot: lhs row i, rhs col j
                 for (int x = 0; x < m; ++x) {
                     lhs_cur[nd-2] = i;
                     lhs_cur[nd-1] = x;
                     rhs_cur[nd-2] = x;
-                    rhs_cur[nd-1] = k;
+                    rhs_cur[nd-1] = j;
                     out.at(cur) += lhs.at(lhs_cur) * rhs.at(rhs_cur);
                 }
             }
