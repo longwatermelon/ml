@@ -5,15 +5,14 @@
 #include <initializer_list>
 
 struct Tensor {
-    // shape, stride must have same len
+    // data has prod(shape) elements
     vec<int> shape;
-    vec<int> stride;
     vec<double> data;
 
     Tensor() = default;
 
-    Tensor(const vec<int> &data_1d);
-    Tensor(const vec2<int> &data_2d);
+    Tensor(const vec<double> &data_1d);
+    Tensor(const vec2<double> &data_2d);
     static Tensor zeros(const vec<int> &shape);
     static Tensor ones(const vec<int> &shape);
 

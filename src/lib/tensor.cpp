@@ -1,16 +1,21 @@
 #include "tensor.h"
 #include <cassert>
-#include <algorithm>
 
 // 1d tensor from a flat vector of ints
-Tensor::Tensor(const vec<int> &data_1d)
-    : shape({sz(data_1d)}), stride({1}), data(sz(data_1d)) {
-    for (int i = 0; i < sz(data_1d); i++)
-        data[i] = data_1d[i];
+Tensor::Tensor(const vec<double> &data_1d) {
+    shape = {sz(data_1d)};
+    data = data_1d;
 }
 
 // 2d tensor from a 2d vector of ints
-Tensor::Tensor(const vec2<int> &data_2d) {
+Tensor::Tensor(const vec2<double> &data_2d) {
+    shape = {sz(data_2d), sz(data_2d[0])};
+    data.resize(shape[0] * shape[1]);
+    for (int i = 0; i < shape[0]; ++i) {
+        for (int j = 0; j < shape[1]; ++j) {
+            at({i,j}) = data_2d[i][j];
+        }
+    }
 }
 
 // tensor of all zeros with the given shape
@@ -43,10 +48,28 @@ void Tensor::permute(const vec<int> &p) {
 
 // mutable element access by multi-dim index
 double &Tensor::at(const vec<int> &ind) {
+    assert(sz(ind) == sz(shape));
+
+    int flat_ind = 0;
+    for (int i = 0; i < sz(ind); ++i) {
+        flat_ind += shape[i] * ind[i];
+    }
+
+    assert(0 <= flat_ind && flat_ind < sz(data));
+    return data[flat_ind];
 }
 
 // const element access by multi-dim index
 double Tensor::at(const vec<int> &ind) const {
+    assert(sz(ind) == sz(shape));
+
+    int flat_ind = 0;
+    for (int i = 0; i < sz(ind); ++i) {
+        flat_ind += shape[i] * ind[i];
+    }
+
+    assert(0 <= flat_ind && flat_ind < sz(data));
+    return data[flat_ind];
 }
 
 // ---- element-wise arithmetic ----
