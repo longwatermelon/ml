@@ -378,8 +378,33 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     return t;
 }
 
-// return tensor of argmax indices along axis arrays
+// return tensor of one-hot encoded argmaxes along axis arrays
 Tensor Tensor::argmax(int axis) const {
+    int n = sz(shape);
+    assert(0 <= axis && axis < n);
+
+    // iter over all other axes
+    vec<int> parent_cur(n-1, 0);
+    vec<int> parent_lim = shape;
+    parent_lim.erase(begin(parent_lim) + axis);
+    Tensor out(shape, 0.);
+    do {
+        // identify argmax
+        vec<int> cur = parent_cur;
+        cur.insert(begin(cur) + axis, 0);
+        vec<int> mx_ind = cur;
+        for (int i = 1; i < shape[axis]; ++i) {
+            cur[axis] = i;
+            if (at(cur) > at(mx_ind)) {
+                mx_ind = cur;
+            }
+        }
+
+        // set 1 in out at argmax
+        out.at(mx_ind) = 1.;
+    } while (advance_ind(parent_cur, parent_lim));
+
+    return out;
 }
 
 // ---- functionals ----
