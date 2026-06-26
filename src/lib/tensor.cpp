@@ -260,6 +260,57 @@ Tensor Tensor::operator-() const {
 
 // matmul on least significant two axes, parallelized across the rest
 Tensor Tensor::operator*(const Tensor &o) const {
+    Tensor lhs = *this, rhs = o;
+
+    // broadcasting
+    assert(sz(lhs.shape) >= 2 && sz(rhs.shape) >= 2);
+    vec<int> parent = parent_shape(lhs.shape, rhs.shape);
+    lhs.broadcast(parent);
+    rhs.broadcast(parent);
+    int nd = sz(parent);
+
+    // check shape: lhs is matrices [..., n, m] and rhs is matrices [..., m, k]
+    assert(lhs.shape[nd-1] == rhs.shape[nd-2]);
+    int n = lhs.shape[nd-2];
+    int m = lhs.shape[nd-1];
+    int k = rhs.shape[nd-1];
+
+    // prep batch matmuls
+    vec<int> batch_cur(n-2, 0);
+    vec<int> batch_lim(begin(parent), end(parent)-2);
+
+    // out tensor is batches of n*k matrices
+    vec<int> out_shape = batch_lim;
+    out_shape.push_back(n);
+    out_shape.push_back(k);
+    Tensor out(out_shape, 0.);
+
+    // batch matmuls
+    do {
+        // out matrix ptr
+        vec<int> cur = batch_cur;
+        cur.push_back(0);
+        cur.push_back(0);
+        vec<int> lhs_cur = cur;
+        vec<int> rhs_cur = cur;
+
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < k; ++j) {
+                cur[nd-2] = i;
+                cur[nd-1] = j;
+                // vector dot: lhs row i, rhs col k
+                for (int x = 0; x < m; ++x) {
+                    lhs_cur[nd-2] = i;
+                    lhs_cur[nd-1] = x;
+                    rhs_cur[nd-2] = x;
+                    rhs_cur[nd-1] = k;
+                    out.at(cur) += lhs.at(lhs_cur) * rhs.at(rhs_cur);
+                }
+            }
+        }
+    } while (advance_ind(batch_cur, batch_lim));
+
+    return out;
 }
 
 // transpose on least significant two axes, parallelized across the rest
