@@ -11,7 +11,7 @@ static int numel(const vec<int> &shape) {
 }
 
 // shape -> stride
-vec<int> shape2stride(const vec<int> &shape) {
+static vec<int> shape2stride(const vec<int> &shape) {
     int prod = 1;
     vec<int> stride(sz(shape));
     for (int i = sz(shape)-1; i >= 0; --i) {
@@ -19,6 +19,23 @@ vec<int> shape2stride(const vec<int> &shape) {
         prod *= shape[i];
     }
     return stride;
+}
+
+// return if advance successful - false if can't advance anymore
+static bool advance_ind(vec<int> &cur, const vec<int> &limits) {
+    int ptr = sz(cur)-1;
+    cur[ptr]++;
+    while (cur[ptr] >= limits[ptr]) {
+        if (ptr == 0) {
+            return false;
+        }
+
+        cur[ptr] = 0;
+        ptr--;
+        cur[ptr]++;
+    }
+
+    return true;
 }
 
 // ---- constructors ----
@@ -61,6 +78,15 @@ void Tensor::reshape(const vec<int> &new_shape) {
 
 // broadcast dims of size 1 to match new_shape
 void Tensor::broadcast(const vec<int> &new_shape) {
+    pad_shape(new_shape);
+    for (int i = 0; i < sz(shape); ++i) {
+        if (shape[i] == 1) {
+            stride[i] = 0;
+            shape[i] = new_shape[i];
+        } else {
+            assert(shape[i] == new_shape[i]);
+        }
+    }
 }
 
 // sum-reduce along axes where target has size 1
@@ -69,6 +95,24 @@ void Tensor::unbroadcast(const vec<int> &target) {
 
 // permute dimensions: new shape[i] = old shape[p[i]]
 void Tensor::permute(const vec<int> &p) {
+}
+
+// left-pads shape, recomputes stride
+void Tensor::pad_shape(const vec<int> &target) {
+    vec<int> ones(sz(target)-sz(shape), 1);
+    shape.insert(begin(shape), all(ones));
+    stride = shape2stride(shape);
+}
+
+// consolidate data, become contiguous again
+Tensor Tensor::make_contiguous() const {
+    int n = sz(shape);
+    vec<int> cur(n);
+    Tensor t(shape, 0.);
+    do {
+        t.at(cur) = at(cur);
+    } while (advance_ind(cur, shape));
+    return t;
 }
 
 // ---- element access ----
@@ -152,8 +196,40 @@ Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
 
 // ---- reductions ----
 
-// sum along an axis, result has shape[axis]=1 (keepdims)
-Tensor Tensor::sum(int axis) const {
+// sum along an axis, result has shape[axis]=1
+void Tensor::sum(int axis, bool keepdims) {
+    int n = sz(shape);
+
+    // set up surrounding ind iteration (excluding axis)
+    vec<int> cur(n-1, 0), limits(n-1);
+    int limits_ptr = 0;
+    for (int i = 0; i < n; ++i) {
+        if (i == axis) continue;
+        limits[limits_ptr] = shape[i];
+        limits_ptr++;
+    }
+
+    // iterate over all axis-exclude inds, flatten axis
+    while (true) {
+        vec<int> target_pos = cur;
+        target_pos.insert(begin(target_pos) + axis, 0);
+        vec<int> iter_pos = target_pos;
+        for (int i = 1; i < shape[axis]; ++i) {
+            iter_pos[axis] = i;
+            at(target_pos) += at(iter_pos);
+        }
+
+        if (!advance_ind(cur, limits)) {
+            break;
+        }
+    }
+    stride[axis] *= shape[axis];
+    shape[axis] = 1;
+
+    // keepdims?
+    if (!keepdims) {
+        reshape(limits);
+    }
 }
 
 // index of the minimum along an axis, result has shape[axis]=1

@@ -5,7 +5,6 @@
 #include <initializer_list>
 
 struct Tensor {
-    // data has prod(shape) elements, shape and stride have same len
     vec<int> shape, stride;
     vec<double> data;
 
@@ -22,6 +21,9 @@ struct Tensor {
     void unbroadcast(const vec<int> &shape);
     // p[i]: shape[i] := shape[p[i]]
     void permute(const vec<int> &p);
+    void pad_shape(const vec<int> &target);
+    // consolidate data, become contiguous again
+    Tensor make_contiguous() const;
 
     // element access
     double &at(const vec<int> &ind);
@@ -47,7 +49,7 @@ struct Tensor {
     Tensor &apply_inplace(const std::function<double(double)> &f);
 
     // reductions
-    Tensor sum(int axis) const;
+    void sum(int axis, bool keepdims = true);
     Tensor argmin(int axis) const;
     Tensor argmax(int axis) const;
 };
