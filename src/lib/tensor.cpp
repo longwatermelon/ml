@@ -139,6 +139,23 @@ void Tensor::unbroadcast(const vec<int> &target) {
 
 // permute dimensions: new shape[i] = old shape[p[i]]
 void Tensor::permute(const vec<int> &p) {
+    // check that p is valid & a permutation
+    assert(sz(p) == sz(shape));
+    int n = sz(p);
+    vec<int> sorted = p;
+    sort(all(sorted));
+    for (int i = 0; i < n; ++i) {
+        assert(sorted[i] == i);
+    }
+
+    // permute shape
+    *this = materialize();
+    vec<int> permuted(n);
+    for (int i = 0; i < n; ++i) {
+        permuted[i] = shape[p[i]];
+    }
+    shape = permuted;
+    stride = shape2stride(shape);
 }
 
 // left-pads shape, recomputes stride
