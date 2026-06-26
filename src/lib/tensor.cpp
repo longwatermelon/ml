@@ -65,7 +65,7 @@ static vec<int> parent_shape(const vec<int> &a, const vec<int> &b) {
     return parent;
 }
 
-// ---- constructors ----
+// ---- ctors ----
 
 // 1d tensor from a vector
 Tensor::Tensor(const vec<double> &data_1d) {
@@ -219,7 +219,7 @@ double Tensor::at(const vec<int> &ind) const {
     return data[flat_ind];
 }
 
-// ---- element-wise arithmetic ----
+// ---- arithmetic / operations ----
 
 // element-wise sum
 Tensor Tensor::operator+(const Tensor &o) const {
@@ -258,8 +258,6 @@ Tensor Tensor::operator-() const {
     return apply([](double x) { return -x; });
 }
 
-// ---- matrix ops ----
-
 // matmul on last two dims, batched over all leading dims
 Tensor Tensor::operator*(const Tensor &o) const {
 }
@@ -268,7 +266,56 @@ Tensor Tensor::operator*(const Tensor &o) const {
 Tensor Tensor::transpose() const {
 }
 
-// ---- element-wise function application ----
+// sum along an axis, shape[axis]=1 if keepdims, or axis is removed if not
+Tensor Tensor::sum(int axis, bool keepdims) const {
+    int n = sz(shape);
+    assert(0 <= axis && axis < n);
+
+    // set up surrounding ind iteration (excluding axis)
+    vec<int> cur(n-1, 0), limits = shape;
+    limits.erase(begin(limits) + axis);
+
+    // new summed tensor shape
+    vec<int> new_shape = limits;
+    if (keepdims) {
+        new_shape.insert(begin(new_shape) + axis, 1);
+    }
+    Tensor t(new_shape, 0.);
+
+    // iterate over all axis-exclude inds, flatten axis
+    while (true) {
+        // set up target (for t) and iter (for this)
+        vec<int> target_pos = cur;
+        vec<int> iter_pos = target_pos;
+        iter_pos.insert(begin(iter_pos) + axis, 0);
+        if (keepdims) {
+            target_pos.insert(begin(target_pos) + axis, 0);
+        }
+
+        // iter & sum into t
+        for (int i = 0; i < shape[axis]; ++i) {
+            iter_pos[axis] = i;
+            t.at(target_pos) += at(iter_pos);
+        }
+
+        // advance
+        if (!advance_ind(cur, limits)) {
+            break;
+        }
+    }
+
+    return t;
+}
+
+// index of the minimum along an axis, result has shape[axis]=1
+Tensor Tensor::argmin(int axis) const {
+}
+
+// index of the maximum along an axis, result has shape[axis]=1
+Tensor Tensor::argmax(int axis) const {
+}
+
+// ---- functionals ----
 
 // return a new tensor with f applied to every element
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
@@ -329,55 +376,4 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
     } while (advance_ind(cur, parent));
 
     return *this;
-}
-
-// ---- reductions ----
-
-// sum along an axis, shape[axis]=1 if keepdims, or axis is removed if not
-Tensor Tensor::sum(int axis, bool keepdims) const {
-    int n = sz(shape);
-    assert(0 <= axis && axis < n);
-
-    // set up surrounding ind iteration (excluding axis)
-    vec<int> cur(n-1, 0), limits = shape;
-    limits.erase(begin(limits) + axis);
-
-    // new summed tensor shape
-    vec<int> new_shape = limits;
-    if (keepdims) {
-        new_shape.insert(begin(new_shape) + axis, 1);
-    }
-    Tensor t(new_shape, 0.);
-
-    // iterate over all axis-exclude inds, flatten axis
-    while (true) {
-        // set up target (for t) and iter (for this)
-        vec<int> target_pos = cur;
-        vec<int> iter_pos = target_pos;
-        iter_pos.insert(begin(iter_pos) + axis, 0);
-        if (keepdims) {
-            target_pos.insert(begin(target_pos) + axis, 0);
-        }
-
-        // iter & sum into t
-        for (int i = 0; i < shape[axis]; ++i) {
-            iter_pos[axis] = i;
-            t.at(target_pos) += at(iter_pos);
-        }
-
-        // advance
-        if (!advance_ind(cur, limits)) {
-            break;
-        }
-    }
-
-    return t;
-}
-
-// index of the minimum along an axis, result has shape[axis]=1
-Tensor Tensor::argmin(int axis) const {
-}
-
-// index of the maximum along an axis, result has shape[axis]=1
-Tensor Tensor::argmax(int axis) const {
 }
