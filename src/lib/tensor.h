@@ -65,7 +65,7 @@ struct Tensor {
     Tensor &apply_inplace(const Tensor &o, const std::function<double(double, double)> &f);
 
     // reductions
-    Tensor sum(int axis, bool keepdims = true) const;
+    Tensor sum(int axis, bool keepdims) const;
     Tensor argmin(int axis) const;
     Tensor argmax(int axis) const;
 };

@@ -119,6 +119,12 @@ void Tensor::broadcast(const vec<int> &new_shape) {
 
 // sum-reduce along axes where target has size 1
 void Tensor::unbroadcast(const vec<int> &target) {
+    *this = materialize();
+    for (int i = 0; i < sz(target); ++i) {
+        if (target[i] != 1) continue;
+
+        *this = sum(i, true);
+    }
 }
 
 // permute dimensions: new shape[i] = old shape[p[i]]
