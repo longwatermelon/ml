@@ -104,8 +104,9 @@ void Tensor::permute(const vec<int> &p) {
 // left-pads shape, recomputes stride
 void Tensor::pad_shape(const vec<int> &target) {
     vec<int> ones(sz(target)-sz(shape), 1);
+    vec<int> strides(sz(target)-sz(shape), numel(shape));
     shape.insert(begin(shape), all(ones));
-    stride = shape2stride(shape);
+    stride.insert(begin(stride), all(strides));
 }
 
 // consolidate data, become contiguous again
@@ -200,7 +201,7 @@ Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
 
 // ---- reductions ----
 
-// sum along an axis, result has shape[axis]=1
+// sum along an axis, shape[axis]=1 if keepdims, or axis is removed if not
 Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
 

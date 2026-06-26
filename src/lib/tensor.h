@@ -5,6 +5,9 @@
 #include <initializer_list>
 
 struct Tensor {
+    // think of stride[i] denoting the number of elements in its sub-shapes below it.
+    // stride is how we index by sub-shapes as we go left in axes, instead of individual entries;
+    // individual entries are only sub-shapes for the least significant axis (the rightmost one).
     vec<int> shape, stride;
     vec<double> data;
 
