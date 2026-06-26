@@ -1,4 +1,4 @@
 # AGENTS
 
-Read README.md for repo context.
+Read @README.md for repo context.
 
