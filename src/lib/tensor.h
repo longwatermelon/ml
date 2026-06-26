@@ -67,8 +67,6 @@ struct Tensor {
     Tensor transpose() const;
     // sum-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.
     Tensor sum(int axis, bool keepdims) const;
-    // return tensor of argmin indices along axis arrays
-    Tensor argmin(int axis) const;
     // return tensor of argmax indices along axis arrays
     Tensor argmax(int axis) const;
 

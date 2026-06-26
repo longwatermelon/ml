@@ -378,10 +378,6 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     return t;
 }
 
-// return tensor of argmin indices along axis arrays
-Tensor Tensor::argmin(int axis) const {
-}
-
 // return tensor of argmax indices along axis arrays
 Tensor Tensor::argmax(int axis) const {
 }
