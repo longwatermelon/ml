@@ -210,13 +210,14 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     vec<int> cur(n-1, 0), limits = shape;
     limits.erase(begin(limits) + axis);
 
+    // new summed tensor shape
     vec<int> new_shape = limits;
     if (keepdims) {
         new_shape.insert(begin(new_shape) + axis, 1);
     }
+    Tensor t(new_shape, 0.);
 
     // iterate over all axis-exclude inds, flatten axis
-    Tensor t(new_shape, 0.);
     while (true) {
         // set up target (for t) and iter (for this)
         vec<int> target_pos = cur;
