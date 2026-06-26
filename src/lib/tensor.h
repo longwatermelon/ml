@@ -49,6 +49,8 @@ struct Tensor {
 
     // element-wise function application
     Tensor apply(const std::function<double(double)> &f) const;
+    // applies function between two tensors, auto-broadcasts up to one tensor if needed
+    Tensor apply(const Tensor &o, const std::function<double(double, double)> &f) const;
     Tensor &apply_inplace(const std::function<double(double)> &f);
 
     // reductions

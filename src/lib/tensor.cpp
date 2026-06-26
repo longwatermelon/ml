@@ -42,6 +42,29 @@ static bool advance_ind(vec<int> &cur, const vec<int> &limits) {
     return true;
 }
 
+// returns minimum possible sized shape that a,b can both broadcast to
+static vec<int> parent_shape(const vec<int> &a, const vec<int> &b) {
+    // pre-check: impossible to broadcast?
+    for (int i = 0; i < min(sz(a), sz(b)); ++i) {
+        int a_ind = sz(a)-1-i;
+        int b_ind = sz(b)-1-i;
+        assert(a[a_ind] == b[b_ind] || (a[a_ind] == 1 || b[b_ind] == 1));
+    }
+
+    // find parent shape
+    vec<int> parent(max(sz(a), sz(b)));
+    int aptr = sz(a)-1, bptr = sz(b)-1;
+    for (int i = sz(parent)-1; i >= 0; --i) {
+        parent[i] = max(
+            aptr < 0 ? 1 : a[aptr],
+            bptr < 0 ? 1 : b[bptr]
+        );
+        aptr--;
+        bptr--;
+    }
+    return parent;
+}
+
 // ---- constructors ----
 
 // 1d tensor from a vector
@@ -194,6 +217,32 @@ Tensor Tensor::transpose() const {
 
 // return a new tensor with f applied to every element
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
+    Tensor out = *this;
+    vec<int> cur(sz(shape), 0);
+    do {
+        out.at(cur) = f(out.at(cur));
+    } while (advance_ind(cur, shape));
+
+    return out;
+}
+
+// applies function between two tensors, auto-broadcasts up to one tensor if needed
+Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)> &f) const {
+    Tensor out = *this, oth = o;
+
+    // broadcast to match shapes
+    vec<int> parent = parent_shape(out.shape, oth.shape);
+    out.broadcast(parent);
+    oth.broadcast(parent);
+
+    // apply function, compute result
+    Tensor result(parent, 0.);
+    vec<int> cur(sz(parent), 0);
+    do {
+        result.at(cur) = f(out.at(cur), oth.at(cur));
+    } while (advance_ind(cur, parent));
+
+    return result;
 }
 
 // apply f to every element in place
