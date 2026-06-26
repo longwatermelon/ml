@@ -10,7 +10,7 @@ static int numel(const vec<int> &shape) {
     return prod;
 }
 
-// shape -> stride
+// shape -> stride, assume contiguous
 static vec<int> shape2stride(const vec<int> &shape) {
     int prod = 1;
     vec<int> stride(sz(shape));
@@ -76,6 +76,7 @@ Tensor::Tensor(const vec<int> &shape, double value) {
 // change shape without changing data
 void Tensor::reshape(const vec<int> &new_shape) {
     assert(numel(shape) == numel(new_shape));
+    *this = make_contiguous();
     shape = new_shape;
     stride = shape2stride(shape);
 }
