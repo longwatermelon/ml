@@ -4,6 +4,12 @@
 #include <functional>
 #include <initializer_list>
 
+/* 
+ * General policy regarding tensors: before any operations that modify the tensor itself, first materialize it.
+ * This avoids annoyances with accidentally modifying multiple entries in the non-contiguous tensor when we're
+ * only trying to modify one.
+*/
+
 struct Tensor {
     // think of stride[i] denoting the size taken up in the data vector by a sub-shape below it.
     // stride is how we index by sub-shapes as we go left in axes instead of individual entries;
@@ -26,7 +32,9 @@ struct Tensor {
     void permute(const vec<int> &p);
     void pad_shape(const vec<int> &target);
     // consolidate data, become contiguous again
-    Tensor make_contiguous() const;
+    Tensor materialize() const;
+    // return if tensor is contiguous
+    bool is_contiguous() const;
 
     // element access
     double &at(const vec<int> &ind);

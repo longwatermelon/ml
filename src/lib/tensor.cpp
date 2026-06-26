@@ -99,7 +99,7 @@ Tensor::Tensor(const vec<int> &shape, double value) {
 // change shape without changing data
 void Tensor::reshape(const vec<int> &new_shape) {
     assert(numel(shape) == numel(new_shape));
-    *this = make_contiguous();
+    *this = materialize();
     shape = new_shape;
     stride = shape2stride(shape);
 }
@@ -134,7 +134,13 @@ void Tensor::pad_shape(const vec<int> &target) {
 }
 
 // consolidate data, become contiguous again
-Tensor Tensor::make_contiguous() const {
+Tensor Tensor::materialize() const {
+    // skip materialize if already materialized
+    if (is_contiguous()) {
+        return *this;
+    }
+
+    // materialize
     int n = sz(shape);
     vec<int> cur(n);
     Tensor t(shape, 0.);
@@ -142,6 +148,11 @@ Tensor Tensor::make_contiguous() const {
         t.at(cur) = at(cur);
     } while (advance_ind(cur, shape));
     return t;
+}
+
+// return if tensor is contiguous
+bool Tensor::is_contiguous() const {
+    return stride == shape2stride(shape) && sz(data) == numel(shape);
 }
 
 // ---- element access ----
@@ -186,10 +197,14 @@ Tensor Tensor::operator-(const Tensor &o) const {
 
 // in-place element-wise addition
 Tensor &Tensor::operator+=(const Tensor &o) {
+    apply_inplace(o, [](double x, double y){return x+y;});
+    return *this;
 }
 
 // in-place element-wise subtraction
 Tensor &Tensor::operator-=(const Tensor &o) {
+    apply_inplace(o, [](double x, double y){return x-y;});
+    return *this;
 }
 
 // element-wise product
@@ -223,6 +238,7 @@ Tensor Tensor::transpose() const {
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
     Tensor out = *this;
     vec<int> cur(sz(shape), 0);
+    out = out.materialize();
     do {
         out.at(cur) = f(out.at(cur));
     } while (advance_ind(cur, shape));
@@ -240,17 +256,18 @@ Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)
     oth.broadcast(parent);
 
     // apply function, compute result
-    Tensor result(parent, 0.);
+    out = out.materialize();
     vec<int> cur(sz(parent), 0);
     do {
-        result.at(cur) = f(out.at(cur), oth.at(cur));
+        out.at(cur) = f(out.at(cur), oth.at(cur));
     } while (advance_ind(cur, parent));
 
-    return result;
+    return out;
 }
 
 // apply f to every element in place
 Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
+    *this = materialize();
     vec<int> cur(sz(shape), 0);
     do {
         at(cur) = f(at(cur));
@@ -269,12 +286,11 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
     oth.broadcast(parent);
 
     // apply function
-    Tensor result(parent, 0.);
+    *this = materialize();
     vec<int> cur(sz(parent), 0);
     do {
-        result.at(cur) = f(at(cur), oth.at(cur));
+        at(cur) = f(at(cur), oth.at(cur));
     } while (advance_ind(cur, parent));
-    *this = result;
 
     return *this;
 }
