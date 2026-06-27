@@ -1,6 +1,6 @@
 # README
 
-This repo is my ML playground - my own ML library plus demos that use it.
+This repo is my ML playground - my own ML library plus demos that use it. All of `src/` is my work; all of `data/` is GPT/Claude's work.
 
 File structure:
   * `src/`: demos that utilize the library. All `.cpp` files in here are individual programs.
