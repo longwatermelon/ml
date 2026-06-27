@@ -19,7 +19,7 @@ int main() {
 
     Tensor Yhat_argmax = Yhat.argmax(0);
     Tensor Ytest_argmax = Ytest.argmax(0);
-    Tensor share_mask = Yhat.hadamard(Ytest);
+    Tensor share_mask = Yhat_argmax.hadamard(Ytest_argmax);
     double count = share_mask.sum(0, false).sum(0, true).at({0});
     double accuracy = count / Ytest.shape[1];
     printf("accuracy: %f\n", accuracy);
