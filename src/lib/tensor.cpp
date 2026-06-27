@@ -469,3 +469,10 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
 
     return *this;
 }
+
+// ---- getters ----
+
+// # elements that exist in the tensor
+int Tensor::num_el() const {
+    return numel(shape);
+}

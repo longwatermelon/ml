@@ -80,4 +80,9 @@ struct Tensor {
     Tensor &apply_inplace(const std::function<double(double)> &f);
     // applies function between two tensors, store result in this, auto-broadcast both tensors as needed
     Tensor &apply_inplace(const Tensor &o, const std::function<double(double, double)> &f);
+
+    // ---- getters ----
+
+    // # elements that exist in the tensor
+    int num_el() const;
 };

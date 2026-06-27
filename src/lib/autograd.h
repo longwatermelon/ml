@@ -51,6 +51,7 @@ typedef shared_ptr<Value> ValuePtr;
 
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
+// assume all result fields are filled out.
 void compute_all_grads(ValuePtr root);
 
 namespace fns {

@@ -5,7 +5,7 @@ using namespace autograd;
 // ---- ctors ----
 
 // creates new node which points to existing nodes; compute result in place.
-// reduction functions MUST pass axis and keepdims - it's asserted.
+// if f_type is reduction, make sure to pass axis and keepdims.
 Value::Value(FnType f_type, const vec<ValuePtr> &adj, int axis, bool keepdims)
     : f_type(f_type), adj(adj), axis(axis), keepdims(keepdims) {
     compute_result();
@@ -133,7 +133,10 @@ void Value::add_child_grads() {
 
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
-void compute_all_grads(ValuePtr root) {
+// assume all result fields are filled out.
+void autograd::compute_all_grads(ValuePtr root) {
+    assert(root->result.num_el() == 1);
+
     // traverse dfs post-order (eval children before parents), then reverse to get topological order.
     vec<ValuePtr> nodes_ord;
     unordered_set<Value*> seen;
