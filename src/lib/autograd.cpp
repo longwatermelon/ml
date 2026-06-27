@@ -70,40 +70,81 @@ void compute_all_grads(shared_ptr<Value> root) {
 
 // matmul AB
 shared_ptr<Value> fns::matmul(shared_ptr<Value> A, shared_ptr<Value> B) {
+    return make_shared<Value>(
+        FnType::Matmul,
+        vec<shared_ptr<Value>>{A,B}
+    );
 }
 
 // add A+B
 shared_ptr<Value> fns::add(shared_ptr<Value> A, shared_ptr<Value> B) {
+    return make_shared<Value>(
+        FnType::Add,
+        vec<shared_ptr<Value>>{A,B}
+    );
 }
 
 // hadamard A \odot B
 shared_ptr<Value> fns::hadamard(shared_ptr<Value> A, shared_ptr<Value> B) {
+    return make_shared<Value>(
+        FnType::Hadamard,
+        vec<shared_ptr<Value>>{A,B}
+    );
 }
 
 // ediv A \oslash B
 shared_ptr<Value> fns::ediv(shared_ptr<Value> A, shared_ptr<Value> B) {
+    return make_shared<Value>(
+        FnType::Hadamard,
+        vec<shared_ptr<Value>>{A,B}
+    );
 }
 
 // relu A
 shared_ptr<Value> fns::relu(shared_ptr<Value> A) {
+    return make_shared<Value>(
+        FnType::Relu,
+        vec<shared_ptr<Value>>{A}
+    );
 }
 
 // exp A
 shared_ptr<Value> fns::exp(shared_ptr<Value> A) {
+    return make_shared<Value>(
+        FnType::Exp,
+        vec<shared_ptr<Value>>{A}
+    );
 }
 
 // log A
 shared_ptr<Value> fns::log(shared_ptr<Value> A) {
+    return make_shared<Value>(
+        FnType::Log,
+        vec<shared_ptr<Value>>{A}
+    );
 }
 
 // sum-reduce A (axis=k)
 shared_ptr<Value> fns::sum_reduce(shared_ptr<Value> A, int axis, bool keepdims) {
+    return make_shared<Value>(
+        FnType::SumReduce,
+        vec<shared_ptr<Value>>{A},
+        axis, keepdims
+    );
 }
 
 // max-reduce A (axis=k)
 shared_ptr<Value> fns::max_reduce(shared_ptr<Value> A, int axis, bool keepdims) {
+    return make_shared<Value>(
+        FnType::MaxReduce,
+        vec<shared_ptr<Value>>{A},
+        axis, keepdims
+    );
 }
 
 // leaf
 shared_ptr<Value> fns::leaf(Tensor result) {
+    shared_ptr<Value> leaf = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+    leaf->result = result;
+    return leaf;
 }
