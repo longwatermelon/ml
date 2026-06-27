@@ -51,59 +51,66 @@ void Value::compute_result() {
 // implements g_{fn, i}: partial of root wrt positional arg i.
 // axis field will be used if f_type is applicable.
 static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &args, int axis = -1) {
+    Tensor out;
     switch (f_type) {
     case FnType::Matmul:
         if (i == 0) {
             Tensor &B = args[1]->result;
-            return G * B.transpose();
+            out = G * B.transpose();
         } else if (i == 1) {
             Tensor &A = args[0]->result;
-            return A.transpose() * G;
+            out = A.transpose() * G;
         }
         break;
     case FnType::Add:
-        return G;
+        out = G;
+        break;
     case FnType::Hadamard:
-        return G.hadamard(args[1-i]->result);
+        out = G.hadamard(args[1-i]->result);
+        break;
     case FnType::Ediv: {
         Tensor &B = args[1]->result;
         if (i == 0) {
-            return G.ediv(B);
+            out = G.ediv(B);
         } else if (i == 1) {
             Tensor &A = args[0]->result;
             Tensor negG = G.apply([](double x){return -x;});
             Tensor bsq = B.apply([](double x){return x*x;});
-            return negG.hadamard(A).hadamard(bsq);
+            out = negG.hadamard(A).ediv(bsq);
         }
     } break;
     case FnType::Relu: {
         Tensor &A = args[0]->result;
         Tensor filter_A = A.apply([](double x){return x > 0 ? 1. : 0.;});
-        return G.hadamard(filter_A);
+        out = G.hadamard(filter_A);
     } break;
     case FnType::Exp: {
         Tensor &A = args[0]->result;
         Tensor exp_A = A.apply([](double x){return exp(x);});
-        return G.hadamard(exp_A);
+        out = G.hadamard(exp_A);
     } break;
     case FnType::Log: {
         Tensor &A = args[0]->result;
         Tensor inv_A = A.apply([](double x){return 1./x;});
-        return G.hadamard(inv_A);
+        out = G.hadamard(inv_A);
     } break;
     case FnType::SumReduce: {
         Tensor broadG = G;
         broadG.broadcast(args[0]->result.shape);
-        return broadG;
+        out = broadG;
     } break;
     case FnType::MaxReduce: {
-        return G.argmax(axis);
+        out = G;
+        out.broadcast(args[0]->result.shape);
+        out = out.hadamard(args[0]->result.argmax(axis));
     } break;
     case FnType::Leaf: {
     } break;
     }
 
-    __builtin_unreachable();
+    // collect gradients back to original shape, if broadcasted
+    out.unbroadcast(args[i]->result.shape);
+    return out;
 }
 
 // add chain rule contrib to grads of children in adj
