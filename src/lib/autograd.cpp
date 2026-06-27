@@ -5,7 +5,7 @@ using namespace autograd;
 
 // creates new node which points to existing nodes; compute result in place.
 // reduction functions MUST pass axis and keepdims - it's asserted.
-Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims)
+Value::Value(FnType f_type, const vec<ValuePtr> &adj, int axis, bool keepdims)
     : f_type(f_type), adj(adj), axis(axis), keepdims(keepdims) {
     compute_result();
 }
@@ -16,39 +16,30 @@ Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool ke
 void Value::compute_result() {
     switch (f_type) {
     case FnType::Add:
-        assert(sz(adj) == 2);
         result = adj[0]->result + adj[1]->result;
         break;
     case FnType::Ediv:
-        assert(sz(adj) == 2);
         result = adj[0]->result.ediv(adj[1]->result);
         break;
     case FnType::Exp:
-        assert(sz(adj) == 1);
         result = adj[0]->result.apply([](double x){return exp(x);});
         break;
     case FnType::Hadamard:
-        assert(sz(adj) == 2);
         result = adj[0]->result.hadamard(adj[1]->result);
         break;
     case FnType::Log:
-        assert(sz(adj) == 1);
         result = adj[0]->result.apply([](double x){return log(x);});
         break;
     case FnType::Matmul:
-        assert(sz(adj) == 2);
         result = adj[0]->result * adj[1]->result;
         break;
     case FnType::Relu:
-        assert(sz(adj) == 1);
         result = adj[0]->result.apply([](double x){return max(0., x);});
         break;
     case FnType::SumReduce:
-        assert(sz(adj) == 1);
         result = adj[0]->result.sum(axis, keepdims);
         break;
     case FnType::MaxReduce:
-        assert(sz(adj) == 1);
         // argmax mask via one-hot argmax odot with A, then reduce-sum to compress the axis
         result = adj[0]->result.argmax(axis).hadamard(adj[0]->result).sum(axis, keepdims);
         break;
@@ -57,94 +48,155 @@ void Value::compute_result() {
     }
 }
 
+// implements g_{fn, i}: partial of root wrt positional arg i.
+// axis field will be used if f_type is applicable.
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &args, int axis = -1) {
+    switch (f_type) {
+    case FnType::Matmul:
+        if (i == 0) {
+            Tensor &B = args[1]->result;
+            return G * B.transpose();
+        } else if (i == 1) {
+            Tensor &A = args[0]->result;
+            return A.transpose() * G;
+        }
+        break;
+    case FnType::Add:
+        return G;
+    case FnType::Hadamard:
+        return G.hadamard(args[1-i]->result);
+    case FnType::Ediv: {
+        Tensor &B = args[1]->result;
+        if (i == 0) {
+            return G.ediv(B);
+        } else if (i == 1) {
+            Tensor &A = args[0]->result;
+            Tensor negG = G.apply([](double x){return -x;});
+            Tensor bsq = B.apply([](double x){return x*x;});
+            return negG.hadamard(A).hadamard(bsq);
+        }
+    } break;
+    case FnType::Relu: {
+        Tensor &A = args[0]->result;
+        Tensor filter_A = A.apply([](double x){return x > 0 ? 1. : 0.;});
+        return G.hadamard(filter_A);
+    } break;
+    case FnType::Exp: {
+        Tensor &A = args[0]->result;
+        Tensor exp_A = A.apply([](double x){return exp(x);});
+        return G.hadamard(exp_A);
+    } break;
+    case FnType::Log: {
+        Tensor &A = args[0]->result;
+        Tensor inv_A = A.apply([](double x){return 1./x;});
+        return G.hadamard(inv_A);
+    } break;
+    case FnType::SumReduce: {
+        Tensor broadG = G;
+        broadG.broadcast(args[0]->result.shape);
+        return broadG;
+    } break;
+    case FnType::MaxReduce: {
+        return G.argmax(axis);
+    } break;
+    case FnType::Leaf: {
+    } break;
+    }
+
+    __builtin_unreachable();
+}
+
 // add chain rule contrib to grads of children in adj
 void Value::add_child_grads() {
+    for (int i = 0; i < sz(adj); ++i) {
+        adj[i]->grad += fn_g(f_type, i, grad, adj, axis);
+    }
 }
 
 // ---- public API ----
 
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
-void compute_all_grads(shared_ptr<Value> root) {
+void compute_all_grads(ValuePtr root) {
 }
 
 // matmul AB
-shared_ptr<Value> fns::matmul(shared_ptr<Value> A, shared_ptr<Value> B) {
+ValuePtr fns::matmul(ValuePtr A, ValuePtr B) {
     return make_shared<Value>(
         FnType::Matmul,
-        vec<shared_ptr<Value>>{A,B}
+        vec<ValuePtr>{A,B}
     );
 }
 
 // add A+B
-shared_ptr<Value> fns::add(shared_ptr<Value> A, shared_ptr<Value> B) {
+ValuePtr fns::add(ValuePtr A, ValuePtr B) {
     return make_shared<Value>(
         FnType::Add,
-        vec<shared_ptr<Value>>{A,B}
+        vec<ValuePtr>{A,B}
     );
 }
 
 // hadamard A \odot B
-shared_ptr<Value> fns::hadamard(shared_ptr<Value> A, shared_ptr<Value> B) {
+ValuePtr fns::hadamard(ValuePtr A, ValuePtr B) {
     return make_shared<Value>(
         FnType::Hadamard,
-        vec<shared_ptr<Value>>{A,B}
+        vec<ValuePtr>{A,B}
     );
 }
 
 // ediv A \oslash B
-shared_ptr<Value> fns::ediv(shared_ptr<Value> A, shared_ptr<Value> B) {
+ValuePtr fns::ediv(ValuePtr A, ValuePtr B) {
     return make_shared<Value>(
         FnType::Ediv,
-        vec<shared_ptr<Value>>{A,B}
+        vec<ValuePtr>{A,B}
     );
 }
 
 // relu A
-shared_ptr<Value> fns::relu(shared_ptr<Value> A) {
+ValuePtr fns::relu(ValuePtr A) {
     return make_shared<Value>(
         FnType::Relu,
-        vec<shared_ptr<Value>>{A}
+        vec<ValuePtr>{A}
     );
 }
 
 // exp A
-shared_ptr<Value> fns::exp(shared_ptr<Value> A) {
+ValuePtr fns::exp(ValuePtr A) {
     return make_shared<Value>(
         FnType::Exp,
-        vec<shared_ptr<Value>>{A}
+        vec<ValuePtr>{A}
     );
 }
 
 // log A
-shared_ptr<Value> fns::log(shared_ptr<Value> A) {
+ValuePtr fns::log(ValuePtr A) {
     return make_shared<Value>(
         FnType::Log,
-        vec<shared_ptr<Value>>{A}
+        vec<ValuePtr>{A}
     );
 }
 
 // sum-reduce A (axis=k)
-shared_ptr<Value> fns::sum_reduce(shared_ptr<Value> A, int axis, bool keepdims) {
+ValuePtr fns::sum_reduce(ValuePtr A, int axis, bool keepdims) {
     return make_shared<Value>(
         FnType::SumReduce,
-        vec<shared_ptr<Value>>{A},
+        vec<ValuePtr>{A},
         axis, keepdims
     );
 }
 
 // max-reduce A (axis=k)
-shared_ptr<Value> fns::max_reduce(shared_ptr<Value> A, int axis, bool keepdims) {
+ValuePtr fns::max_reduce(ValuePtr A, int axis, bool keepdims) {
     return make_shared<Value>(
         FnType::MaxReduce,
-        vec<shared_ptr<Value>>{A},
+        vec<ValuePtr>{A},
         axis, keepdims
     );
 }
 
 // leaf
-shared_ptr<Value> fns::leaf(Tensor result) {
-    shared_ptr<Value> leaf = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+ValuePtr fns::leaf(Tensor result) {
+    ValuePtr leaf = make_shared<Value>(FnType::Leaf, vec<ValuePtr>{});
     leaf->result = result;
     return leaf;
 }

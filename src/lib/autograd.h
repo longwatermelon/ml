@@ -47,31 +47,33 @@ struct Value {
     void add_child_grads();
 };
 
+typedef shared_ptr<Value> ValuePtr;
+
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
-void compute_all_grads(shared_ptr<Value> root);
+void compute_all_grads(ValuePtr root);
 
 namespace fns {
     // matmul AB
-    shared_ptr<Value> matmul(shared_ptr<Value> A, shared_ptr<Value> B);
+    ValuePtr matmul(ValuePtr A, ValuePtr B);
     // add A+B
-    shared_ptr<Value> add(shared_ptr<Value> A, shared_ptr<Value> B);
+    ValuePtr add(ValuePtr A, ValuePtr B);
     // hadamard A \odot B
-    shared_ptr<Value> hadamard(shared_ptr<Value> A, shared_ptr<Value> B);
+    ValuePtr hadamard(ValuePtr A, ValuePtr B);
     // ediv A \oslash B
-    shared_ptr<Value> ediv(shared_ptr<Value> A, shared_ptr<Value> B);
+    ValuePtr ediv(ValuePtr A, ValuePtr B);
     // relu A
-    shared_ptr<Value> relu(shared_ptr<Value> A);
+    ValuePtr relu(ValuePtr A);
     // exp A
-    shared_ptr<Value> exp(shared_ptr<Value> A);
+    ValuePtr exp(ValuePtr A);
     // log A
-    shared_ptr<Value> log(shared_ptr<Value> A);
+    ValuePtr log(ValuePtr A);
     // sum-reduce A (axis=k)
-    shared_ptr<Value> sum_reduce(shared_ptr<Value> A, int axis, bool keepdims);
+    ValuePtr sum_reduce(ValuePtr A, int axis, bool keepdims);
     // max-reduce A (axis=k)
-    shared_ptr<Value> max_reduce(shared_ptr<Value> A, int axis, bool keepdims);
+    ValuePtr max_reduce(ValuePtr A, int axis, bool keepdims);
     // leaf
-    shared_ptr<Value> leaf(Tensor result);
+    ValuePtr leaf(Tensor result);
 } // namespace fns
 
 } // namespace autograd
