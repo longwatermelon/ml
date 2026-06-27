@@ -133,6 +133,27 @@ void Value::add_child_grads() {
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
 void compute_all_grads(ValuePtr root) {
+    // determine topological node order
+    // also, set grads to zero
+    vec<ValuePtr> nodes_ord = {root};
+    auto dfs = [&](ValuePtr u, auto &&self) -> void {
+        // zero grad
+        u->grad = u->result.apply([](double x){return 0.;});
+
+        // advance topologically
+        for (int i = 0; i < sz(u->adj); ++i) {
+            nodes_ord.push_back(u->adj[i]);
+        }
+        for (int i = 0; i < sz(u->adj); ++i) {
+            self(u->adj[i], self);
+        }
+    };
+    dfs(root, dfs);
+
+    // evaluate edges in topo order
+    for (int i = 0; i < sz(nodes_ord); ++i) {
+        nodes_ord[i]->add_child_grads();
+    }
 }
 
 // matmul AB
