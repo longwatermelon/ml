@@ -15,7 +15,13 @@ enum class FnType {
     Log,
     SumReduce,
     MaxReduce,
+    Leaf, // serves a semantic purpose only, no functional one, since leaves don't have children
 };
+
+/*
+ * some notes:
+ * f_type only matters for computing result from children, and computing children grad from result.
+*/
 
 struct Value {
     FnType f_type;
@@ -28,12 +34,12 @@ struct Value {
 
     // ---- ctors ----
 
-    // pass in result for pure data nodes, like leaves.
-    // only use for non-reduction functions, will assert.
-    Value(FnType f_type, Tensor result = Tensor());
+    // for pure data nodes, like leaves.
+    Value(Tensor result);
 
-    // only use for reduction functions, will assert.
-    Value(FnType f_type, int axis, bool keepdims);
+    // creates new node which points to existing nodes; compute result in place.
+    // reduction functions MUST pass axis and keepdims - it's asserted.
+    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis = -1, bool keepdims = true);
 
     // ---- computation ----
 
@@ -41,6 +47,7 @@ struct Value {
     void compute_result();
 
     // add chain rule contrib to grads of children in adj
+    // root must be scalar. clears all reachable grads to 0 first.
     void add_child_grads();
 };
 
@@ -63,9 +70,9 @@ namespace fns {
     // log A
     shared_ptr<Value> log(shared_ptr<Value> A);
     // sum-reduce A (axis=k)
-    shared_ptr<Value> sum_reduce(shared_ptr<Value> A, int axis);
+    shared_ptr<Value> sum_reduce(shared_ptr<Value> A, int axis, bool keepdims);
     // max-reduce A (axis=k)
-    shared_ptr<Value> max_reduce(shared_ptr<Value> A, int axis);
+    shared_ptr<Value> max_reduce(shared_ptr<Value> A, int axis, bool keepdims);
 } // namespace fns
 
 } // namespace autograd
