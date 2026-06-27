@@ -55,11 +55,13 @@ Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
 
 // train nn over epochs (minibatching), with learning rate alpha and a loss
 void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss) {
+    assert(batch_size > 0);
+
     int m = X.shape[1];
     random_device rd;
     mt19937 g(rd());
 
-    for (int epoch = 0; epoch < epochs; ++epochs) {
+    for (int epoch = 0; epoch < epochs; ++epoch) {
         if (epoch % 10 == 0) {
             printf("\repoch %d/%d...", epoch+1, epochs);
             fflush(stdout);
@@ -69,7 +71,7 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
         // shuffle data order first
         vec<int> inds(m);
         iota(all(inds), 0);
-        shuffle(all(inds), rd);
+        shuffle(all(inds), g);
 
         for (int st = 0; st < m; st += batch_size) {
             int cur_batch = min(batch_size, m-st);
@@ -78,7 +80,7 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
             Tensor Xb({X.shape[0], cur_batch}, 0.);
             Tensor Yb({Y.shape[0], cur_batch}, 0.);
             for (int j = 0; j < cur_batch; ++j) {
-                int ind = inds[j];
+                int ind = inds[st+j];
                 for (int i = 0; i < Xb.shape[0]; ++i) {
                     Xb.at({i,j}) = X.at({i,ind});
                 }
