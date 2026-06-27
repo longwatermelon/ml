@@ -38,9 +38,6 @@ struct Value {
     // reduction functions MUST pass axis and keepdims - it's asserted.
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis = -1, bool keepdims = true);
 
-    // for pure data nodes
-    static Value leaf(Tensor result);
-
     // ---- computation ----
 
     // compute cached result, assuming adj results are all populated
@@ -73,6 +70,8 @@ namespace fns {
     shared_ptr<Value> sum_reduce(shared_ptr<Value> A, int axis, bool keepdims);
     // max-reduce A (axis=k)
     shared_ptr<Value> max_reduce(shared_ptr<Value> A, int axis, bool keepdims);
+    // leaf
+    shared_ptr<Value> leaf(Tensor result);
 } // namespace fns
 
 } // namespace autograd
