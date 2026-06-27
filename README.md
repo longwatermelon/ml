@@ -4,7 +4,7 @@ This repo is my ML playground - my own ML library "emel" plus demos that use it.
 
 File structure:
   * `src/`: demos that utilize the library. All `.cpp` files in here are individual programs.
-    - `src/fnn-demo.cpp`: demo of a simple fnn training run + inference on MNIST digits (`data/mnist-digits/`).
+    - `src/README.md`: docs on what each `src/*.cpp` example is demonstrating.
   - `src/emel/`: the core emel library code.
     - `src/emel/util.h`: helpers that shorten the code (important!).
     - `src/emel/tensor.{h,cpp}`: tensor class
