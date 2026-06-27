@@ -27,7 +27,7 @@ enum class Loss {
 };
 
 // compute loss
-double loss(const Tensor &Yhat, const Tensor &Y, Loss loss);
+double calc_loss(const Tensor &Yhat, const Tensor &Y, Loss loss);
 
 class Nn {
     vec<Layer> m_layers;

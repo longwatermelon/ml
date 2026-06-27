@@ -12,8 +12,15 @@ int main() {
     Tensor Xtest = Tensor::deserialize(read_file_bytes("data/mnist-digits/test_X.tensor"));
     Tensor Ytest = Tensor::deserialize(read_file_bytes("data/mnist-digits/test_Y.tensor"));
 
-    nn.train(Xtrain, Ytrain, 10, 32, 0.001, Loss::CrossEntropy);
+    nn.train(Xtrain, Ytrain, 10, 32, 0.15, Loss::CrossEntropy);
 
     Tensor Yhat = nn.predict(Xtest);
-    printf("test loss: %.6f\n", loss(Yhat, Ytest, Loss::CrossEntropy));
+    printf("test loss: %.6f\n", calc_loss(Yhat, Ytest, Loss::CrossEntropy));
+
+    Tensor Yhat_argmax = Yhat.argmax(0);
+    Tensor Ytest_argmax = Ytest.argmax(0);
+    Tensor share_mask = Yhat.hadamard(Ytest);
+    double count = share_mask.sum(0, false).sum(0, true).at({0});
+    double accuracy = count / Ytest.shape[1];
+    printf("accuracy: %f\n", accuracy);
 }

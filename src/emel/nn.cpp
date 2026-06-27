@@ -58,7 +58,7 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
     __builtin_unreachable();
 }
 
-double loss(const Tensor &Yhat, const Tensor &Y, Loss loss) {
+double calc_loss(const Tensor &Yhat, const Tensor &Y, Loss loss) {
     ag::ValuePtr out = apply_loss(
         loss,
         ag::fns::leaf(Y),
@@ -93,10 +93,10 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
     mt19937 g(0);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
-        if (epoch % 10 == 0) {
-            printf("\repoch %d/%d...", epoch+1, epochs);
-            fflush(stdout);
-        }
+        // eval
+        const Tensor &Yhat = predict(X);
+        printf("\repoch %d/%d... | loss = %.6f", epoch+1, epochs, calc_loss(Yhat, Y, loss));
+        fflush(stdout);
 
         // minibatching - process in chunks of batch_size
         // shuffle data order first
@@ -124,6 +124,7 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
             backward(loss, Yb, alpha);
         }
     }
+    putchar('\n');
 }
 
 // forward pass, returning activations of last layer
