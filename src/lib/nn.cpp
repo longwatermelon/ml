@@ -1,31 +1,30 @@
 #include "nn.h"
-#include <cmath>
 
-Layer::Layer(int n, int n_prev, Activation act) : n(n), act(act) {
-    this->W = Matrix(n, n_prev);
-    this->b = Matrix(n, 1);
+Layer::Layer(int n, int n_prev, Activation act) : act(act), n(n) {
+    this->W = Tensor({n, n_prev}, 0.);
+    this->b = Tensor({n, 1}, 0.);
 }
 
 // applies the activation to Z column-wise, returning A of the same shape
-static Matrix apply_act(Activation act, const Matrix &Z) {
+static Tensor apply_act(Activation act, const Tensor &Z) {
     switch (act) {
     case Activation::Linear:
         return Z;
     case Activation::Relu:
         return Z.apply([](double z){ return max(0., z); });
     case Activation::Softmax: {
-        // each column is one example's pre-activation vector, normalized independently
-        Matrix A(Z.rows, Z.cols);
-        for (int j = 0; j < Z.cols; j++) {
-            // subtract the column max for numerical stability before exp
-            Matrix col = Z.get_col(j);
-            double mx = col.max();
-            Matrix e = col.apply([mx](double z){ return exp(z - mx); });
-            double s = e.sum();
-            for (int i = 0; i < Z.rows; i++)
-                A(i, j) = e(i, 0) / s;
-        }
-        return A;
+        // // each column is one example's pre-activation vector, normalized independently
+        // Tensor A(Z.rows, Z.cols);
+        // for (int j = 0; j < Z.cols; j++) {
+        //     // subtract the column max for numerical stability before exp
+        //     Tensor col = Z.get_col(j);
+        //     double mx = col.max();
+        //     Tensor e = col.apply([mx](double z){ return exp(z - mx); });
+        //     double s = e.sum();
+        //     for (int i = 0; i < Z.rows; i++)
+        //         A(i, j) = e(i, 0) / s;
+        // }
+        return Z;
     }
     default: __builtin_unreachable();
     }
@@ -33,15 +32,8 @@ static Matrix apply_act(Activation act, const Matrix &Z) {
 
 
 // forward pass using prev layer's output --- updates Z, A
-void Layer::forward(const Matrix &A_prev) {
-    this->Z = this->W * A_prev;
-    // broadcast b column-wise
-    for (int i = 0; i < this->Z.cols; ++i) {
-        for (int j = 0; j < this->Z.rows; ++j) {
-            this->Z(j, i) += b(j, 0);
-        }
-    }
-
+void Layer::forward(const Tensor &A_prev) {
+    this->Z = this->W * A_prev + b;
     this->A = apply_act(this->act, this->Z);
 }
 
@@ -55,7 +47,7 @@ Nn::Nn(const vec<pair<int, Activation>> &layers) {
 }
 
 // forward prop
-void Nn::forward(Matrix X) {
+void Nn::forward(Tensor X) {
     // receive input into network
     m_layers[0].A = X;
 

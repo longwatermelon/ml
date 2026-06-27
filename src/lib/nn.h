@@ -1,5 +1,5 @@
 #pragma once
-#include "matrix.h"
+#include "tensor.h"
 
 enum class Activation {
     Linear,
@@ -10,12 +10,12 @@ enum class Activation {
 struct Layer {
     Activation act;
     int n;
-    Matrix W,Z,A,b;
+    Tensor W,Z,A,b;
 
     Layer(int n, int n_prev, Activation act);
 
     // forward pass using prev layer's output --- updates Z, A
-    void forward(const Matrix &A_prev);
+    void forward(const Tensor &A_prev);
 };
 
 class Nn {
@@ -25,5 +25,5 @@ public:
     Nn(const vec<pair<int, Activation>> &layers);
 
     // forward prop
-    void forward(Matrix X);
+    void forward(Tensor X);
 };
