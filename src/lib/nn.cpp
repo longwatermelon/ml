@@ -31,10 +31,10 @@ void Layer::forward(ag::ValuePtr A_prev) {
     this->A = apply_act(this->act, this->Z);
 }
 
-// construct with (neuron count, activation) info. not including input layer
-Nn::Nn(const vec<pair<int, Activation>> &layers) {
+// construct with (neuron count, activation) info, plus input layer's # features
+Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
     // placeholder input layer; doesn't matter, it's only a placeholder for A=X.
-    m_layers = {Layer(1,1,Activation::Linear)};
+    m_layers = {Layer(input_features,1,Activation::Linear)};
 
     // push hidden layers / output layer
     int n_prev = m_layers[0].n;
@@ -62,9 +62,11 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr y, ag::ValuePtr yhat) {
         ag::ValuePtr log_yhat = ag::fns::log(yhat);
         ag::ValuePtr ylogyhat = ag::fns::hadamard(y, log_yhat);
         ag::ValuePtr sum_per_example = ag::fns::sum_reduce(ylogyhat, 0, false);
-        ag::ValuePtr sum_overall = ag::fns::sum_reduce(sum_per_example, 0, false);
-        ag::ValuePtr neg_sum_overall = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), sum_overall);
-        return neg_sum_overall;
+        ag::ValuePtr sum_batch = ag::fns::sum_reduce(sum_per_example, 0, false);
+        int batch_sz = y->result.shape[1];
+        ag::ValuePtr avg_batch = ag::fns::ediv(sum_batch, ag::fns::leaf(Tensor({1},batch_sz)));
+        ag::ValuePtr neg_avg_batch = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), avg_batch);
+        return neg_avg_batch;
     } break;
     }
 }

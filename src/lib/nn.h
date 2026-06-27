@@ -28,8 +28,8 @@ class Nn {
     vec<Layer> m_layers;
 
 public:
-    // construct with (neuron count, activation) info. not including input layer
-    Nn(const vec<pair<int, Activation>> &layers);
+    // construct with (neuron count, activation) info, plus input layer's # features
+    Nn(int input_features, const vec<pair<int, Activation>> &layers);
 
 private:
     // forward prop
