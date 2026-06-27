@@ -28,12 +28,19 @@ class Nn {
     vec<Layer> m_layers;
 
 public:
+    // ---- public API ----
+
     // construct with (neuron count, activation) info, plus input layer's # features
     Nn(int input_features, const vec<pair<int, Activation>> &layers);
 
+    // train nn over epochs, with learning rate alpha and a loss
+    void train(const Tensor &X, const Tensor &Y, int epochs, double alpha, Loss loss);
+
 private:
+    // ---- internals ----
+
     // forward prop
     void forward(const Tensor &X);
     // back prop, labels y, learning rate alpha
-    void backward(Loss loss, const Tensor &y, double alpha);
+    void backward(Loss loss, const Tensor &Y, double alpha);
 };

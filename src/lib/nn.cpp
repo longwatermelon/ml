@@ -31,6 +31,8 @@ void Layer::forward(ag::ValuePtr A_prev) {
     this->A = apply_act(this->act, this->Z);
 }
 
+// ---- public API ----
+
 // construct with (neuron count, activation) info, plus input layer's # features
 Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
     // placeholder input layer; doesn't matter, it's only a placeholder for A=X.
@@ -44,6 +46,21 @@ Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
     }
 }
 
+// train nn over epochs, with learning rate alpha and a loss
+void Nn::train(const Tensor &X, const Tensor &Y, int epochs, double alpha, Loss loss) {
+    for (int i = 0; i < epochs; ++i) {
+        if (i % 10 == 0) {
+            printf("\repoch %d/%d...", i+1, epochs);
+            fflush(stdout);
+        }
+
+        forward(X);
+        backward(loss, Y, alpha);
+    }
+}
+
+// ---- internals ----
+
 // forward prop
 void Nn::forward(const Tensor &X) {
     // receive input into network
@@ -56,14 +73,14 @@ void Nn::forward(const Tensor &X) {
 }
 
 // apply loss to nn output
-static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr y, ag::ValuePtr yhat) {
+static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
     switch (loss) {
     case Loss::CrossEntropy: {
-        ag::ValuePtr log_yhat = ag::fns::log(yhat);
-        ag::ValuePtr ylogyhat = ag::fns::hadamard(y, log_yhat);
-        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(ylogyhat, 0, false);
+        ag::ValuePtr log_Yhat = ag::fns::log(Yhat);
+        ag::ValuePtr YlogYhat = ag::fns::hadamard(Y, log_Yhat);
+        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(YlogYhat, 0, false);
         ag::ValuePtr sum_batch = ag::fns::sum_reduce(sum_per_example, 0, false);
-        int batch_sz = y->result.shape[1];
+        int batch_sz = Y->result.shape[1];
         ag::ValuePtr avg_batch = ag::fns::ediv(sum_batch, ag::fns::leaf(Tensor({1},batch_sz)));
         ag::ValuePtr neg_avg_batch = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), avg_batch);
         return neg_avg_batch;
@@ -72,10 +89,10 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr y, ag::ValuePtr yhat) {
 }
 
 // back prop, labels y, learning rate alpha
-void Nn::backward(Loss loss, const Tensor &y, double alpha) {
+void Nn::backward(Loss loss, const Tensor &Y, double alpha) {
     // apply cost
-    ag::ValuePtr yhat = m_layers.back().A;
-    ag::ValuePtr cost = apply_loss(loss, ag::fns::leaf(y), yhat);
+    ag::ValuePtr Yhat = m_layers.back().A;
+    ag::ValuePtr cost = apply_loss(loss, ag::fns::leaf(Y), Yhat);
 
     // autograd gradients
     ag::compute_all_grads(cost);
