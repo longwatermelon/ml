@@ -15,9 +15,9 @@ static ag::ValuePtr apply_act(Activation act, ag::ValuePtr Z) {
     case Activation::Relu:
         return ag::fns::relu(Z);
     case Activation::Softmax: {
-        ag::ValuePtr argmax = ag::fns::max_reduce(Z, 1, true);
+        ag::ValuePtr argmax = ag::fns::max_reduce(Z, 0, true);
         ag::ValuePtr numerator = ag::fns::exp(ag::fns::add(Z, ag::fns::hadamard(ag::fns::leaf(Tensor({1}, -1.)), argmax)));
-        ag::ValuePtr sum = ag::fns::sum_reduce(numerator, 1, true);
+        ag::ValuePtr sum = ag::fns::sum_reduce(numerator, 0, true);
         ag::ValuePtr result = ag::fns::ediv(numerator, sum);
         return result;
     }
@@ -58,8 +58,10 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr y, ag::ValuePtr yhat) {
     case Loss::CrossEntropy: {
         ag::ValuePtr log_yhat = ag::fns::log(yhat);
         ag::ValuePtr ylogyhat = ag::fns::hadamard(y, log_yhat);
-        ag::ValuePtr sum = ag::fns::sum_reduce(ylogyhat, 1, true);
-        return sum;
+        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(ylogyhat, 0, false);
+        ag::ValuePtr sum_overall = ag::fns::sum_reduce(ylogyhat, 0, false);
+        ag::ValuePtr neg_sum_overall = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), sum_overall);
+        return neg_sum_overall;
     } break;
     }
 }
