@@ -49,8 +49,8 @@ void Value::compute_result() {
 }
 
 // implements g_{fn, i}: partial of root wrt positional arg i.
-// axis field will be used if f_type is applicable.
-static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &args, int axis = -1) {
+// axis & keepdims fields will be used if f_type is applicable.
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &args, int axis = -1, bool keepdims = true) {
     Tensor out;
     switch (f_type) {
     case FnType::Matmul:
@@ -95,12 +95,20 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &a
         out = G.hadamard(inv_A);
     } break;
     case FnType::SumReduce: {
+        vec<int> new_shape = args[0]->result.shape;
+        new_shape[axis] = 1;
+
         Tensor broadG = G;
+        if (!keepdims) broadG.reshape(new_shape);
         broadG.broadcast(args[0]->result.shape);
         out = broadG;
     } break;
     case FnType::MaxReduce: {
+        vec<int> new_shape = args[0]->result.shape;
+        new_shape[axis] = 1;
+
         out = G;
+        if (!keepdims) out.reshape(new_shape);
         out.broadcast(args[0]->result.shape);
         out = out.hadamard(args[0]->result.argmax(axis));
     } break;
@@ -116,7 +124,7 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &a
 // add chain rule contrib to grads of children in adj
 void Value::add_child_grads() {
     for (int i = 0; i < sz(adj); ++i) {
-        adj[i]->grad += fn_g(f_type, i, grad, adj, axis);
+        adj[i]->grad += fn_g(f_type, i, grad, adj, axis, keepdims);
     }
 }
 
