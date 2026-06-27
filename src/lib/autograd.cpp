@@ -1,4 +1,5 @@
 #include "autograd.h"
+#include <unordered_set>
 using namespace autograd;
 
 // ---- ctors ----
@@ -136,19 +137,23 @@ void compute_all_grads(ValuePtr root) {
     // determine topological node order
     // also, set grads to zero
     vec<ValuePtr> nodes_ord = {root};
+    unordered_set<Value*> seen;
     auto dfs = [&](ValuePtr u, auto &&self) -> void {
-        // zero grad
-        u->grad = u->result.apply([](double x){return 0.;});
-
-        // advance topologically
+        // push children of frontier
         for (int i = 0; i < sz(u->adj); ++i) {
+            if (seen.count(u->adj[i].get()) > 0) continue;
+            // zero grad before pushing
+            u->adj[i]->grad = u->adj[i]->result.apply([](double x){return 0.;});
             nodes_ord.push_back(u->adj[i]);
         }
+
+        // dfs into each child
         for (int i = 0; i < sz(u->adj); ++i) {
             self(u->adj[i], self);
         }
     };
     dfs(root, dfs);
+    root->grad = root->result.apply([](double x){return 1.;});
 
     // evaluate edges in topo order
     for (int i = 0; i < sz(nodes_ord); ++i) {
