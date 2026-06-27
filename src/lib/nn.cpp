@@ -58,8 +58,7 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
     assert(batch_size > 0);
 
     int m = X.shape[1];
-    random_device rd;
-    mt19937 g(rd());
+    mt19937 g(0);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
         if (epoch % 10 == 0) {
