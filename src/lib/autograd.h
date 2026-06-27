@@ -22,6 +22,21 @@ struct Value {
     vec<shared_ptr<Value>> adj;
     Tensor result, grad;
 
+    // reduction-specific data
+    int axis = -1;
+    bool keepdims = true;
+
+    // ---- ctors ----
+
+    // pass in result for pure data nodes, like leaves.
+    // only use for non-reduction functions, will assert.
+    Value(FnType f_type, Tensor result = Tensor());
+
+    // only use for reduction functions, will assert.
+    Value(FnType f_type, int axis, bool keepdims);
+
+    // ---- computation ----
+
     // compute cached result, assuming adj results are all populated
     void compute_result();
 
