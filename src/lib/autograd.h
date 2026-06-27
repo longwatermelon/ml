@@ -34,12 +34,12 @@ struct Value {
 
     // ---- ctors ----
 
-    // for pure data nodes, like leaves.
-    Value(Tensor result);
-
     // creates new node which points to existing nodes; compute result in place.
     // reduction functions MUST pass axis and keepdims - it's asserted.
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis = -1, bool keepdims = true);
+
+    // for pure data nodes
+    static Value leaf(Tensor result);
 
     // ---- computation ----
 
@@ -47,11 +47,11 @@ struct Value {
     void compute_result();
 
     // add chain rule contrib to grads of children in adj
-    // root must be scalar. clears all reachable grads to 0 first.
     void add_child_grads();
 };
 
 // traverse DAG topologically and compute grads
+// root must be scalar. clears all reachable grads to 0 first.
 void compute_all_grads(shared_ptr<Value> root);
 
 namespace fns {
