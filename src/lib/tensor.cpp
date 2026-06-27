@@ -476,3 +476,47 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
 int Tensor::num_el() const {
     return numel(shape);
 }
+
+// ---- save/load ----
+
+// serialize to bytes
+vec<uint8_t> Tensor::serialize() const {
+    vec<uint8_t> bytes;
+
+    // shape info
+    Tensor out = materialize();
+    append_bytes(bytes, (uint32_t)sz(out.shape));
+    for (int i = 0; i < sz(shape); ++i) {
+        append_bytes(bytes, (uint32_t)out.shape[i]);
+    }
+
+    // data info
+    append_bytes(bytes, (uint64_t)out.data.size());
+    append_bytes_count(bytes, out.data.data(), out.data.size() * sizeof(double));
+
+    return bytes;
+}
+
+// deserialize from bytes
+Tensor Tensor::deserialize(const vec<uint8_t> &bytes) {
+    Tensor out;
+    size_t pos = 0;
+
+    // shape info
+    uint32_t rank = read_bytes<uint32_t>(bytes, pos);
+    out.shape.resize(rank);
+    for (uint32_t i = 0; i < rank; ++i) {
+        out.shape[i] = read_bytes<uint32_t>(bytes, pos);
+    }
+
+    // data info
+    uint64_t data_len = read_bytes<uint64_t>(bytes, pos);
+    out.data.resize(data_len);
+    read_bytes_count<double>(bytes, pos, out.data.data(), data_len * sizeof(double));
+
+    // recompute stride
+    out.stride = shape2stride(out.shape);
+
+    return out;
+}
+

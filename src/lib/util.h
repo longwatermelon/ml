@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <initializer_list>
+#include <cassert>
 using namespace std;
 using ll=long long;
 #define sign(x) (x<0?-1:1)
@@ -21,3 +22,31 @@ template <typename T> struct vec3:vector<vector<vector<T>>> {vec3()=default;vec3
 template <typename T> void vprint(T st, T nd) {auto it=st;while (next(it)!=nd){cout<<*it<<' ';it=next(it);}cout<<*it<<'\n';}
 template <typename T> bool ckmin(T &a, T b) {return b<a ? a=b, true : false;}
 template <typename T> bool ckmax(T &a, T b) {return b>a ? a=b, true : false;}
+
+template <typename T>
+inline void read_bytes_count(const vec<uint8_t> &bytes, size_t &pos, T *dest, uint64_t byte_cnt) {
+    assert(pos <= bytes.size());
+    assert(byte_cnt <= bytes.size() - pos);
+
+    memcpy(dest, bytes.data() + pos, byte_cnt);
+    pos += byte_cnt;
+}
+
+template <typename T>
+inline T read_bytes(const vec<uint8_t> &bytes, size_t &pos) {
+    T out;
+    read_bytes_count(bytes, pos, &out, sizeof(T));
+    return out;
+}
+
+template <typename T>
+inline T append_bytes_count(vec<uint8_t> &bytes, T *start, uint64_t byte_cnt) {
+    size_t old_sz = sz(bytes);
+    bytes.resize(old_sz + byte_cnt);
+    memcpy(bytes.data() + old_sz, start, byte_cnt);
+}
+
+template <typename T>
+inline T append_bytes(vec<uint8_t> &bytes, const T &value) {
+    append_bytes_count(bytes, &value, sizeof(T));
+}

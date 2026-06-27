@@ -2,7 +2,6 @@
 #include "util.h"
 #include <cassert>
 #include <functional>
-#include <initializer_list>
 
 /* 
  * General policy regarding tensors: before any operations that modify the tensor itself, first materialize it.
@@ -85,4 +84,11 @@ struct Tensor {
 
     // # elements that exist in the tensor
     int num_el() const;
+
+    // ---- save/load ----
+
+    // serialize to bytes
+    vec<uint8_t> serialize() const;
+    // deserialize from bytes
+    static Tensor deserialize(const vec<uint8_t> &bytes);
 };
