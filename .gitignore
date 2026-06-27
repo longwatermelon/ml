@@ -1,3 +1,4 @@
 /a.out*
 compile_commands.json
 /.cache
+data/mnist-digits/*.tensor

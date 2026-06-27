@@ -1,6 +1,6 @@
 # README
 
-This repo is my ML playground - my own ML library "emel" plus demos that use it. All of `src/` is my work; all of `data/` is GPT/Claude's work.
+This repo is my ML playground - my own ML library "emel" plus demos that use it. All of `src/` is my work; `data/` is mostly GPT/Claude's work (fetching datasets & formatting them into my `.tensor` format).
 
 File structure:
   * `src/`: demos that utilize the library. All `.cpp` files in here are individual programs.
