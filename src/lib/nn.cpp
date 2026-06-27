@@ -1,4 +1,7 @@
 #include "nn.h"
+#include <numeric>
+#include <random>
+#include <algorithm>
 namespace ag = autograd;
 
 // neuron count, input feature count, activation fn
@@ -50,16 +53,43 @@ Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
     }
 }
 
-// train nn over epochs, with learning rate alpha and a loss
-void Nn::train(const Tensor &X, const Tensor &Y, int epochs, double alpha, Loss loss) {
-    for (int i = 0; i < epochs; ++i) {
-        if (i % 10 == 0) {
-            printf("\repoch %d/%d...", i+1, epochs);
+// train nn over epochs (minibatching), with learning rate alpha and a loss
+void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss) {
+    int m = X.shape[1];
+    random_device rd;
+    mt19937 g(rd());
+
+    for (int epoch = 0; epoch < epochs; ++epochs) {
+        if (epoch % 10 == 0) {
+            printf("\repoch %d/%d...", epoch+1, epochs);
             fflush(stdout);
         }
 
-        forward(X);
-        backward(loss, Y, alpha);
+        // minibatching - process in chunks of batch_size
+        // shuffle data order first
+        vec<int> inds(m);
+        iota(all(inds), 0);
+        shuffle(all(inds), rd);
+
+        for (int st = 0; st < m; st += batch_size) {
+            int cur_batch = min(batch_size, m-st);
+
+            // copy minibatch over
+            Tensor Xb({X.shape[0], cur_batch}, 0.);
+            Tensor Yb({Y.shape[0], cur_batch}, 0.);
+            for (int j = 0; j < cur_batch; ++j) {
+                int ind = inds[j];
+                for (int i = 0; i < Xb.shape[0]; ++i) {
+                    Xb.at({i,j}) = X.at({i,ind});
+                }
+                for (int i = 0; i < Yb.shape[0]; ++i) {
+                    Yb.at({i,j}) = Y.at({i,ind});
+                }
+            }
+
+            forward(Xb);
+            backward(loss, Yb, alpha);
+        }
     }
 }
 

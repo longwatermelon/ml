@@ -33,8 +33,8 @@ public:
     // construct with (neuron count, activation) info, plus input layer's # features
     Nn(int input_features, const vec<pair<int, Activation>> &layers);
 
-    // train nn over epochs, with learning rate alpha and a loss
-    void train(const Tensor &X, const Tensor &Y, int epochs, double alpha, Loss loss);
+    // train nn over epochs (minibatching), with learning rate alpha and a loss
+    void train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss);
 
 private:
     // ---- internals ----
