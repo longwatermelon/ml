@@ -31,6 +31,7 @@ public:
     // construct with (neuron count, activation) info. not including input layer
     Nn(const vec<pair<int, Activation>> &layers);
 
+private:
     // forward prop
     void forward(const Tensor &X);
     // back prop, labels y, learning rate alpha
