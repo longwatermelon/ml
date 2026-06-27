@@ -5,6 +5,9 @@ namespace ag = autograd;
 Layer::Layer(int n, int n_prev, Activation act) : act(act), n(n) {
     this->W = ag::fns::leaf(Tensor({n, n_prev}, 0.));
     this->b = ag::fns::leaf(Tensor({n, 1}, 0.));
+
+    // random init to [-0.5, 0.5]
+    this->W->result.apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
 }
 
 // applies the activation to Z column-wise, returning A of the same shape
