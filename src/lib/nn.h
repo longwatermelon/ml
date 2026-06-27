@@ -1,5 +1,6 @@
 #pragma once
 #include "tensor.h"
+#include "autograd.h"
 
 enum class Activation {
     Linear,
@@ -10,20 +11,28 @@ enum class Activation {
 struct Layer {
     Activation act;
     int n;
-    Tensor W,Z,A,b;
+    autograd::ValuePtr W,Z,A,b;
 
+    // neuron count, input feature count, activation fn
     Layer(int n, int n_prev, Activation act);
 
     // forward pass using prev layer's output --- updates Z, A
-    void forward(const Tensor &A_prev);
+    void forward(autograd::ValuePtr A_prev);
+};
+
+enum class Loss {
+    CrossEntropy,
 };
 
 class Nn {
     vec<Layer> m_layers;
 
 public:
+    // construct with (neuron count, activation) info
     Nn(const vec<pair<int, Activation>> &layers);
 
     // forward prop
-    void forward(Tensor X);
+    void forward(const Tensor &X);
+    // back prop, labels y, learning rate alpha
+    void backward(Loss loss, const Tensor &y, double alpha);
 };
