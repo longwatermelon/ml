@@ -35,7 +35,7 @@ struct Value {
     // ---- ctors ----
 
     // creates new node which points to existing nodes; compute result in place.
-    // reduction functions MUST pass axis and keepdims - it's asserted.
+    // if f_type is reduction, make sure to pass axis and keepdims.
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis = -1, bool keepdims = true);
 
     // ---- computation ----
