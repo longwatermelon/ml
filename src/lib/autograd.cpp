@@ -95,7 +95,7 @@ shared_ptr<Value> fns::hadamard(shared_ptr<Value> A, shared_ptr<Value> B) {
 // ediv A \oslash B
 shared_ptr<Value> fns::ediv(shared_ptr<Value> A, shared_ptr<Value> B) {
     return make_shared<Value>(
-        FnType::Hadamard,
+        FnType::Ediv,
         vec<shared_ptr<Value>>{A,B}
     );
 }
