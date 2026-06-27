@@ -31,10 +31,13 @@ void Layer::forward(ag::ValuePtr A_prev) {
     this->A = apply_act(this->act, this->Z);
 }
 
-// construct with (neuron count, activation) info
+// construct with (neuron count, activation) info. not including input layer
 Nn::Nn(const vec<pair<int, Activation>> &layers) {
-    // placeholder n_prev for layer 0, it doesn't matter; A = X in forward pass.
-    int n_prev = 1;
+    // placeholder input layer; doesn't matter, it's only a placeholder for A=X.
+    m_layers = {Layer(1,1,Activation::Linear)};
+
+    // push hidden layers / output layer
+    int n_prev = m_layers[0].n;
     for (auto &[n, act] : layers) {
         m_layers.push_back(Layer(n, n_prev, act));
         n_prev = n;
