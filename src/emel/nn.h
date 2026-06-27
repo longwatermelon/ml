@@ -20,24 +20,33 @@ struct Layer {
     void forward(autograd::ValuePtr A_prev);
 };
 
+// ---- loss ----
+
 enum class Loss {
     CrossEntropy,
 };
+
+// compute loss
+double loss(const Tensor &Yhat, const Tensor &Y, Loss loss);
 
 class Nn {
     vec<Layer> m_layers;
 
 public:
-    // ---- public API ----
+    // ---- nn ctors ----
 
     // construct with (neuron count, activation) info, plus input layer's # features
     Nn(int input_features, const vec<pair<int, Activation>> &layers);
 
+    // ---- standard nn ops ----
+
     // train nn over epochs (minibatching), with learning rate alpha and a loss
     void train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss);
+    // forward pass, returning activations of last layer
+    Tensor predict(const Tensor &X);
 
 private:
-    // ---- internals ----
+    // ---- nn internals ----
 
     // forward prop
     void forward(const Tensor &X);

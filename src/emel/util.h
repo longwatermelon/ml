@@ -3,6 +3,7 @@
 #include <iostream>
 #include <initializer_list>
 #include <cassert>
+#include <fstream>
 using namespace std;
 using ll=long long;
 #define sign(x) (x<0?-1:1)
@@ -49,4 +50,14 @@ inline T append_bytes_count(vec<uint8_t> &bytes, T *start, uint64_t byte_cnt) {
 template <typename T>
 inline T append_bytes(vec<uint8_t> &bytes, const T &value) {
     append_bytes_count(bytes, &value, sizeof(T));
+}
+
+inline vec<uint8_t> read_file_bytes(const string &path) {
+    ifstream in(path, ios::binary);
+    assert(in);
+
+    return vec<uint8_t>(
+        istreambuf_iterator<char>(in),
+        istreambuf_iterator<char>()
+    );
 }

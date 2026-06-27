@@ -38,7 +38,37 @@ void Layer::forward(ag::ValuePtr A_prev) {
     this->A = apply_act(this->act, this->Z);
 }
 
-// ---- public API ----
+// ---- loss helpers ----
+
+// apply loss to nn output
+static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
+    switch (loss) {
+    case Loss::CrossEntropy: {
+        ag::ValuePtr log_Yhat = ag::fns::log(Yhat);
+        ag::ValuePtr YlogYhat = ag::fns::hadamard(Y, log_Yhat);
+        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(YlogYhat, 0, false);
+        ag::ValuePtr sum_batch = ag::fns::sum_reduce(sum_per_example, 0, false);
+        int batch_sz = Y->result.shape[1];
+        ag::ValuePtr avg_batch = ag::fns::ediv(sum_batch, ag::fns::leaf(Tensor({1},batch_sz)));
+        ag::ValuePtr neg_avg_batch = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), avg_batch);
+        return neg_avg_batch;
+    } break;
+    }
+
+    __builtin_unreachable();
+}
+
+double loss(const Tensor &Yhat, const Tensor &Y, Loss loss) {
+    ag::ValuePtr out = apply_loss(
+        loss,
+        ag::fns::leaf(Y),
+        ag::fns::leaf(Yhat)
+    );
+
+    return out->result.at({0});
+}
+
+// ---- nn ctors ----
 
 // construct with (neuron count, activation) info, plus input layer's # features
 Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
@@ -52,6 +82,8 @@ Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
         n_prev = n;
     }
 }
+
+// ---- standard nn ops ----
 
 // train nn over epochs (minibatching), with learning rate alpha and a loss
 void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss) {
@@ -94,7 +126,13 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
     }
 }
 
-// ---- internals ----
+// forward pass, returning activations of last layer
+Tensor Nn::predict(const Tensor &X) {
+    forward(X);
+    return m_layers.back().A->result;
+}
+
+// ---- nn internals ----
 
 // forward prop
 void Nn::forward(const Tensor &X) {
@@ -105,24 +143,6 @@ void Nn::forward(const Tensor &X) {
     for (int i = 1; i < sz(m_layers); ++i) {
         m_layers[i].forward(m_layers[i-1].A);
     }
-}
-
-// apply loss to nn output
-static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
-    switch (loss) {
-    case Loss::CrossEntropy: {
-        ag::ValuePtr log_Yhat = ag::fns::log(Yhat);
-        ag::ValuePtr YlogYhat = ag::fns::hadamard(Y, log_Yhat);
-        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(YlogYhat, 0, false);
-        ag::ValuePtr sum_batch = ag::fns::sum_reduce(sum_per_example, 0, false);
-        int batch_sz = Y->result.shape[1];
-        ag::ValuePtr avg_batch = ag::fns::ediv(sum_batch, ag::fns::leaf(Tensor({1},batch_sz)));
-        ag::ValuePtr neg_avg_batch = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), avg_batch);
-        return neg_avg_batch;
-    } break;
-    }
-
-    __builtin_unreachable();
 }
 
 // back prop, labels y, learning rate alpha
