@@ -13,4 +13,5 @@ File structure:
   * `ref/`: the reference notes for the impl.
     - `ref/autograd.tex`: autograd
     - `ref/crossentropy.tex`: proof of cross-entropy (via proper scoring rules)
+  * `data/`: relevant training/test/etc data to be used by the code.
   * `Makefile`: makefile.
