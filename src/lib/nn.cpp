@@ -24,8 +24,9 @@ static ag::ValuePtr apply_act(Activation act, ag::ValuePtr Z) {
         ag::ValuePtr result = ag::fns::ediv(numerator, sum);
         return result;
     }
-    default: __builtin_unreachable();
     }
+
+    __builtin_unreachable();
 }
 
 // forward pass using prev layer's output --- updates Z, A
@@ -89,6 +90,8 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
         return neg_avg_batch;
     } break;
     }
+
+    __builtin_unreachable();
 }
 
 // back prop, labels y, learning rate alpha
