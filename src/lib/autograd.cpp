@@ -134,29 +134,29 @@ void Value::add_child_grads() {
 // traverse DAG topologically and compute grads
 // root must be scalar. clears all reachable grads to 0 first.
 void compute_all_grads(ValuePtr root) {
-    // determine topological node order
-    // also, set grads to zero
-    vec<ValuePtr> nodes_ord = {root};
+    // traverse dfs post-order (eval children before parents), then reverse to get topological order.
+    vec<ValuePtr> nodes_ord;
     unordered_set<Value*> seen;
     auto dfs = [&](ValuePtr u, auto &&self) -> void {
-        // push children of frontier
-        for (int i = 0; i < sz(u->adj); ++i) {
-            if (seen.count(u->adj[i].get()) > 0) continue;
-            // zero grad before pushing
-            u->adj[i]->grad = u->adj[i]->result.apply([](double x){return 0.;});
-            nodes_ord.push_back(u->adj[i]);
+        if (seen.count(u.get()) > 0) return;
+        seen.insert(u.get());
+
+        for (ValuePtr child : u->adj) {
+            self(child, self);
         }
 
-        // dfs into each child
-        for (int i = 0; i < sz(u->adj); ++i) {
-            self(u->adj[i], self);
-        }
+        nodes_ord.push_back(u);
     };
     dfs(root, dfs);
+
+    // zero all grads, except for root which should have ∂root/∂root = 1
+    for (ValuePtr node : nodes_ord) {
+        node->grad = node->result.apply([](double x){return 0.;});
+    }
     root->grad = root->result.apply([](double x){return 1.;});
 
-    // evaluate edges in topo order
-    for (int i = 0; i < sz(nodes_ord); ++i) {
+    // evaluate in topo order (backwards post-order)
+    for (int i = sz(nodes_ord)-1; i >= 0; --i) {
         nodes_ord[i]->add_child_grads();
     }
 }
