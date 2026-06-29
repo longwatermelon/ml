@@ -10,6 +10,7 @@ File structure:
     - `src/emel/tensor.{h,cpp}`: tensor class
     - `src/emel/nn.{h,cpp}`: neural network class
     - `src/emel/autograd.{h,cpp}`: autograd
+    - `src/emel/opt.{h,cpp}`: gradient descent optimizers
   * `ref/`: the reference notes for the impl.
     - `ref/autograd.tex`: autograd
     - `ref/crossentropy.tex`: proof of cross-entropy (via proper scoring rules)

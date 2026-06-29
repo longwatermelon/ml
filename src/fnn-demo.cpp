@@ -1,21 +1,25 @@
 #include "emel/nn.h"
+#include "emel/opt.h"
 
 int main() {
-    Nn nn(784, {
-        {128, Activation::Relu},
-        {64, Activation::Relu},
-        {10, Activation::Softmax},
-    });
+    nn::Sequential model;
+    model.add<nn::Linear>(784, 128);
+    model.add<nn::Relu>();
+    model.add<nn::Linear>(128, 64);
+    model.add<nn::Relu>();
+    model.add<nn::Linear>(64, 10);
+    model.add<nn::Softmax>();
 
     Tensor Xtrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_X.tensor"));
     Tensor Ytrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_Y.tensor"));
     Tensor Xtest = Tensor::deserialize(read_file_bytes("data/mnist-digits/test_X.tensor"));
     Tensor Ytest = Tensor::deserialize(read_file_bytes("data/mnist-digits/test_Y.tensor"));
 
-    nn.train(Xtrain, Ytrain, 10, 32, 0.15, Loss::CrossEntropy);
+    Sgd opt(model.params(), 0.15);
+    nn::train(model, Xtrain, Ytrain, 10, Loss::CrossEntropy, opt, 32);
 
-    Tensor Yhat = nn.predict(Xtest);
-    printf("test loss: %.6f\n", calc_loss(Yhat, Ytest, Loss::CrossEntropy));
+    Tensor Yhat = model.forward(Xtest).get_tensor();
+    printf("test loss: %.6f\n", apply_loss_scalar(Yhat, Ytest, Loss::CrossEntropy));
 
     Tensor Yhat_argmax = Yhat.argmax(1);
     Tensor Ytest_argmax = Ytest.argmax(1);

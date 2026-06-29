@@ -1,55 +1,75 @@
 #pragma once
 #include "tensor.h"
 #include "autograd.h"
+#include "opt.h"
+#include <type_traits>
+#include <utility>
 
-enum class Activation {
-    Linear,
-    Relu,
-    Softmax,
+namespace nn {
+
+struct Module {
+    // cleanup derived modules through base pointers
+    virtual ~Module() = default;
+    // forward pass, X as input
+    virtual GTensor forward(const GTensor &X) = 0;
+    // return the parameters of the model
+    virtual vec<GTensor*> params() = 0;
 };
 
-struct Layer {
-    Activation act;
-    int n;
-    GTensor W,Z,A,b;
+struct Linear : Module {
+    // params
+    GTensor W,b;
 
-    // neuron count, input feature count, activation fn
-    Layer(int n, int n_prev, Activation act);
+    // ctor
+    Linear(int n_prev, int n);
 
-    // forward pass using prev layer's output --- updates Z, A
-    void forward(GTensor A_prev);
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
 };
 
-// ---- loss ----
+struct Relu : Module {
+    // ctor
+    Relu() = default;
 
-enum class Loss {
-    CrossEntropy,
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
 };
 
-// compute loss
-double calc_loss(const Tensor &Yhat, const Tensor &Y, Loss loss);
+struct Softmax : Module {
+    // ctor
+    Softmax() = default;
 
-class Nn {
-    vec<Layer> m_layers;
-
-public:
-    // ---- nn ctors ----
-
-    // construct with (neuron count, activation) info, plus input layer's # features
-    Nn(int input_features, const vec<pair<int, Activation>> &layers);
-
-    // ---- standard nn ops ----
-
-    // train nn over epochs (minibatching), with learning rate alpha and a loss
-    void train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss);
-    // forward pass, returning activations of last layer
-    Tensor predict(const Tensor &X);
-
-private:
-    // ---- nn internals ----
-
-    // forward prop [batch, features]
-    void forward(const Tensor &X);
-    // back prop, labels y, learning rate alpha
-    void backward(Loss loss, const Tensor &Y, double alpha);
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
 };
+
+struct Sequential : Module {
+    vec<std::unique_ptr<Module>> layers;
+
+    // add an owned layer to the sequence
+    template <typename Layer, typename... Args>
+    Layer &add(Args&&... args) {
+        static_assert(std::is_base_of<Module, Layer>::value, "Layer must derive from nn::Module");
+
+        auto layer = std::make_unique<Layer>(std::forward<Args>(args)...);
+        Layer &ref = *layer;
+        layers.push_back(std::move(layer));
+        return ref;
+    }
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
+// train a model
+void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
+
+} // namespace nn
