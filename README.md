@@ -14,5 +14,6 @@ File structure:
   * `ref/`: the reference notes for the impl.
     - `ref/autograd.tex`: autograd
     - `ref/crossentropy.tex`: proof of cross-entropy (via proper scoring rules)
+    - `ref/conv2d.tex`: notes on implementing the conv2d layer
   * `data/`: relevant training/test/etc data to be used by the code.
   * `Makefile`: makefile.
