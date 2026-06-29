@@ -144,16 +144,24 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
         out.reshape(args[0]->result.shape);
     } break;
     case FnType::Gather: {
-        // since gather assumes 1d source
         out = Tensor(args[0]->result.shape, 0.);
-        vec<int> cur(sz(gather_I.shape), 0);
-        vec<int> lim = gather_I.shape;
 
         // iter over I entries
+        vec<int> output_shape = gather_I.shape;
+        output_shape.pop_back();
+        vec<int> j(sz(output_shape), 0);
+        vec<int> lim = output_shape;
         do {
-            int i = (int)gather_I.at(cur);
-            out.at({i}) += G.at(cur);
-        } while (advance_ind(cur, lim));
+            vec<int> i;
+            j.push_back(0);
+            for (int ind = 0; ind < gather_I.shape.back(); ++ind) {
+                j.back() = ind;
+                i.push_back((int)gather_I.at(j));
+            }
+            j.pop_back();
+
+            out.at(i) += G.at(j);
+        } while (advance_ind(j, lim));
     } break;
     case FnType::Leaf: {
     } break;

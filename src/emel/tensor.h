@@ -68,7 +68,7 @@ struct Tensor {
     Tensor sum(int axis, bool keepdims) const;
     // return tensor of one-hot encoded argmaxes along axis arrays
     Tensor argmax(int axis) const;
-    // replace self with index mapping: new[ind] = this[I[ind]]. Requires this.shape to be 1D.
+    // replace self with index mapping: new[ind] = this[I[ind]]. Requires I.shape = output shape + rank(this.shape).
     Tensor gather(const Tensor &I) const;
 
     // ---- functionals ----

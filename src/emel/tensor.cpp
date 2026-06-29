@@ -386,16 +386,29 @@ Tensor Tensor::argmax(int axis) const {
     return out;
 }
 
-// replace self with index mapping: new[ind] = this[I[ind]]. Requires this.shape to be 1D.
+// replace self with index mapping: new[ind] = this[I[ind]]. Requires I.shape = output shape + {rank(this.shape)}.
 Tensor Tensor::gather(const Tensor &I) const {
-    assert(sz(shape) == 1);
+    // shape assertion
+    assert(I.shape.back() == sz(shape));
 
     // iter over entries in I
-    Tensor out(I.shape, 0.);
-    vec<int> cur(sz(I.shape), 0);
-    vec<int> lim = I.shape;
+    vec<int> output_shape = I.shape;
+    output_shape.pop_back();
+    Tensor out(output_shape, 0.);
+    vec<int> cur(sz(output_shape), 0);
+    vec<int> lim = output_shape;
     do {
-        out.at(cur) = at({(int)I.at(cur)});
+        // construct index
+        vec<int> ind;
+        cur.push_back(0);
+        for (int i = 0; i < I.shape.back(); ++i) {
+            cur.back() = i;
+            ind.push_back((int)I.at(cur));
+        }
+        cur.pop_back();
+
+        // assign
+        out.at(cur) = at(ind);
     } while (advance_ind(cur, lim));
 
     return out;
