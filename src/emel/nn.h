@@ -48,7 +48,7 @@ public:
 private:
     // ---- nn internals ----
 
-    // forward prop
+    // forward prop [batch, features]
     void forward(const Tensor &X);
     // back prop, labels y, learning rate alpha
     void backward(Loss loss, const Tensor &Y, double alpha);

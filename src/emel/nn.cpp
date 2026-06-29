@@ -5,14 +5,14 @@
 
 // neuron count, input feature count, activation fn
 Layer::Layer(int n, int n_prev, Activation act) : act(act), n(n) {
-    this->W = GTensor({n, n_prev}, 0.);
-    this->b = GTensor({n, 1}, 0.);
+    this->W = GTensor({n_prev, n}, 0.);
+    this->b = GTensor({1, n}, 0.);
 
     // random init to [-0.5, 0.5]
     this->W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
 }
 
-// applies the activation to Z column-wise, returning A of the same shape
+// applies activation per example
 static GTensor apply_act(Activation act, GTensor Z) {
     switch (act) {
     case Activation::Linear:
@@ -20,9 +20,9 @@ static GTensor apply_act(Activation act, GTensor Z) {
     case Activation::Relu:
         return Z.relu();
     case Activation::Softmax: {
-        GTensor argmax = Z.max_reduce(0, true);
+        GTensor argmax = Z.max_reduce(1, true);
         GTensor numerator = (Z - argmax).exp();
-        GTensor sum = numerator.sum_reduce(0, true);
+        GTensor sum = numerator.sum_reduce(1, true);
         GTensor result = numerator.ediv(sum);
         return result;
     }
@@ -33,7 +33,7 @@ static GTensor apply_act(Activation act, GTensor Z) {
 
 // forward pass using prev layer's output --- updates Z, A
 void Layer::forward(GTensor A_prev) {
-    Z = W * A_prev + b;
+    Z = A_prev * W + b;
     A = apply_act(act, Z);
 }
 
@@ -45,9 +45,9 @@ static GTensor apply_loss(Loss loss, GTensor Y, GTensor Yhat) {
     case Loss::CrossEntropy: {
         GTensor log_Yhat = Yhat.log();
         GTensor YlogYhat = Y.hadamard(log_Yhat);
-        GTensor sum_per_example = YlogYhat.sum_reduce(0, false);
+        GTensor sum_per_example = YlogYhat.sum_reduce(1, false);
         GTensor sum_batch = sum_per_example.sum_reduce(0, true);
-        int batch_sz = Y.get_tensor().shape[1];
+        int batch_sz = Y.get_tensor().shape[0];
         GTensor avg_batch = sum_batch.ediv(GTensor({1}, batch_sz));
         return -avg_batch;
     } break;
@@ -82,7 +82,7 @@ Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
 void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, double alpha, Loss loss) {
     assert(batch_size > 0);
 
-    int m = X.shape[1];
+    int m = X.shape[0];
     mt19937 g(0);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
@@ -101,15 +101,15 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
             int cur_batch = min(batch_size, m-st);
 
             // copy minibatch over
-            Tensor Xb({X.shape[0], cur_batch}, 0.);
-            Tensor Yb({Y.shape[0], cur_batch}, 0.);
-            for (int j = 0; j < cur_batch; ++j) {
-                int ind = inds[st+j];
-                for (int i = 0; i < Xb.shape[0]; ++i) {
-                    Xb.at({i,j}) = X.at({i,ind});
+            Tensor Xb({cur_batch, X.shape[1]}, 0.);
+            Tensor Yb({cur_batch, Y.shape[1]}, 0.);
+            for (int i = 0; i < cur_batch; ++i) {
+                int ind = inds[st+i];
+                for (int j = 0; j < Xb.shape[1]; ++j) {
+                    Xb.at({i,j}) = X.at({ind,j});
                 }
-                for (int i = 0; i < Yb.shape[0]; ++i) {
-                    Yb.at({i,j}) = Y.at({i,ind});
+                for (int j = 0; j < Yb.shape[1]; ++j) {
+                    Yb.at({i,j}) = Y.at({ind,j});
                 }
             }
 

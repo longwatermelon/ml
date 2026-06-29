@@ -114,18 +114,18 @@ def write_tensor(path, shape, values):
         raise ValueError(f"shape {shape} expected {expected} values, wrote {written}")
 
 
-# iterate feature-major image tensor data from sampled idx records
+# iterate example-major image tensor data from sampled idx records
 def iter_x_values(images, indexes, pixel_count):
-    for pixel in range(pixel_count):
-        for image_index in indexes:
+    for image_index in indexes:
+        for pixel in range(pixel_count):
             offset = image_index * pixel_count + pixel
             yield images[offset] / 255.0
 
 
-# iterate class-major one-hot label tensor data from sampled idx records
+# iterate example-major one-hot label tensor data from sampled idx records
 def iter_y_values(labels, indexes):
-    for klass in range(CLASS_COUNT):
-        for label_index in indexes:
+    for label_index in indexes:
+        for klass in range(CLASS_COUNT):
             yield 1.0 if labels[label_index] == klass else 0.0
 
 
@@ -142,8 +142,8 @@ def extract_split(split_name, image_name, label_name, example_count, rng):
 
     x_path = SCRIPT_DIR / f"{split_name}_X.tensor"
     y_path = SCRIPT_DIR / f"{split_name}_Y.tensor"
-    write_tensor(x_path, [pixel_count, example_count], iter_x_values(images, indexes, pixel_count))
-    write_tensor(y_path, [CLASS_COUNT, example_count], iter_y_values(labels, indexes))
+    write_tensor(x_path, [example_count, pixel_count], iter_x_values(images, indexes, pixel_count))
+    write_tensor(y_path, [example_count, CLASS_COUNT], iter_y_values(labels, indexes))
     return x_path, y_path
 
 
