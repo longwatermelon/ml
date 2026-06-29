@@ -2,29 +2,28 @@
 #include <numeric>
 #include <random>
 #include <algorithm>
-namespace ag = autograd;
 
 // neuron count, input feature count, activation fn
 Layer::Layer(int n, int n_prev, Activation act) : act(act), n(n) {
-    this->W = ag::fns::leaf(Tensor({n, n_prev}, 0.));
-    this->b = ag::fns::leaf(Tensor({n, 1}, 0.));
+    this->W = GTensor({n, n_prev}, 0.);
+    this->b = GTensor({n, 1}, 0.);
 
     // random init to [-0.5, 0.5]
-    this->W->result.apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
+    this->W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
 }
 
 // applies the activation to Z column-wise, returning A of the same shape
-static ag::ValuePtr apply_act(Activation act, ag::ValuePtr Z) {
+static GTensor apply_act(Activation act, GTensor Z) {
     switch (act) {
     case Activation::Linear:
         return Z;
     case Activation::Relu:
-        return ag::fns::relu(Z);
+        return Z.relu();
     case Activation::Softmax: {
-        ag::ValuePtr argmax = ag::fns::max_reduce(Z, 0, true);
-        ag::ValuePtr numerator = ag::fns::exp(ag::fns::add(Z, ag::fns::hadamard(ag::fns::leaf(Tensor({1}, -1.)), argmax)));
-        ag::ValuePtr sum = ag::fns::sum_reduce(numerator, 0, true);
-        ag::ValuePtr result = ag::fns::ediv(numerator, sum);
+        GTensor argmax = Z.max_reduce(0, true);
+        GTensor numerator = (Z - argmax).exp();
+        GTensor sum = numerator.sum_reduce(0, true);
+        GTensor result = numerator.ediv(sum);
         return result;
     }
     }
@@ -33,25 +32,24 @@ static ag::ValuePtr apply_act(Activation act, ag::ValuePtr Z) {
 }
 
 // forward pass using prev layer's output --- updates Z, A
-void Layer::forward(ag::ValuePtr A_prev) {
-    this->Z = ag::fns::add(ag::fns::matmul(this->W, A_prev), this->b);
-    this->A = apply_act(this->act, this->Z);
+void Layer::forward(GTensor A_prev) {
+    Z = W * A_prev + b;
+    A = apply_act(act, Z);
 }
 
 // ---- loss helpers ----
 
 // apply loss to nn output
-static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
+static GTensor apply_loss(Loss loss, GTensor Y, GTensor Yhat) {
     switch (loss) {
     case Loss::CrossEntropy: {
-        ag::ValuePtr log_Yhat = ag::fns::log(Yhat);
-        ag::ValuePtr YlogYhat = ag::fns::hadamard(Y, log_Yhat);
-        ag::ValuePtr sum_per_example = ag::fns::sum_reduce(YlogYhat, 0, false);
-        ag::ValuePtr sum_batch = ag::fns::sum_reduce(sum_per_example, 0, false);
-        int batch_sz = Y->result.shape[1];
-        ag::ValuePtr avg_batch = ag::fns::ediv(sum_batch, ag::fns::leaf(Tensor({1},batch_sz)));
-        ag::ValuePtr neg_avg_batch = ag::fns::hadamard(ag::fns::leaf(Tensor({1},-1.)), avg_batch);
-        return neg_avg_batch;
+        GTensor log_Yhat = Yhat.log();
+        GTensor YlogYhat = Y.hadamard(log_Yhat);
+        GTensor sum_per_example = YlogYhat.sum_reduce(0, false);
+        GTensor sum_batch = sum_per_example.sum_reduce(0, true);
+        int batch_sz = Y.get_tensor().shape[1];
+        GTensor avg_batch = sum_batch.ediv(GTensor({1}, batch_sz));
+        return -avg_batch;
     } break;
     }
 
@@ -59,13 +57,8 @@ static ag::ValuePtr apply_loss(Loss loss, ag::ValuePtr Y, ag::ValuePtr Yhat) {
 }
 
 double calc_loss(const Tensor &Yhat, const Tensor &Y, Loss loss) {
-    ag::ValuePtr out = apply_loss(
-        loss,
-        ag::fns::leaf(Y),
-        ag::fns::leaf(Yhat)
-    );
-
-    return out->result.at({0});
+    GTensor out = apply_loss(loss, GTensor(Y), GTensor(Yhat));
+    return out.get_tensor().at({0});
 }
 
 // ---- nn ctors ----
@@ -73,7 +66,7 @@ double calc_loss(const Tensor &Yhat, const Tensor &Y, Loss loss) {
 // construct with (neuron count, activation) info, plus input layer's # features
 Nn::Nn(int input_features, const vec<pair<int, Activation>> &layers) {
     // placeholder input layer; doesn't matter, it's only a placeholder for A=X.
-    m_layers = {Layer(input_features,1,Activation::Linear)};
+    m_layers = {Layer(input_features, 1, Activation::Linear)};
 
     // push hidden layers / output layer
     int n_prev = m_layers[0].n;
@@ -130,7 +123,7 @@ void Nn::train(const Tensor &X, const Tensor &Y, int epochs, int batch_size, dou
 // forward pass, returning activations of last layer
 Tensor Nn::predict(const Tensor &X) {
     forward(X);
-    return m_layers.back().A->result;
+    return m_layers.back().A.get_tensor();
 }
 
 // ---- nn internals ----
@@ -138,7 +131,7 @@ Tensor Nn::predict(const Tensor &X) {
 // forward prop
 void Nn::forward(const Tensor &X) {
     // receive input into network
-    m_layers[0].A = ag::fns::leaf(X);
+    m_layers[0].A = GTensor(X);
 
     // forward
     for (int i = 1; i < sz(m_layers); ++i) {
@@ -149,19 +142,18 @@ void Nn::forward(const Tensor &X) {
 // back prop, labels y, learning rate alpha
 void Nn::backward(Loss loss, const Tensor &Y, double alpha) {
     // apply cost
-    ag::ValuePtr Yhat = m_layers.back().A;
-    ag::ValuePtr cost = apply_loss(loss, ag::fns::leaf(Y), Yhat);
+    GTensor cost = apply_loss(loss, GTensor(Y), GTensor(m_layers.back().A));
 
     // autograd gradients
-    ag::compute_all_grads(cost);
+    cost.compute_all_grads();
 
     // update parameters
-    auto update = [alpha](Tensor &value, Tensor &grad) {
+    auto update = [alpha](Tensor &value, const Tensor &grad) {
         value -= Tensor({1},alpha).hadamard(grad);
     };
 
     for (int i = 1; i < sz(m_layers); ++i) {
-        update(m_layers[i].W->result, m_layers[i].W->grad);
-        update(m_layers[i].b->result, m_layers[i].b->grad);
+        update(m_layers[i].W.get_tensor_ref(), m_layers[i].W.get_grad());
+        update(m_layers[i].b.get_tensor_ref(), m_layers[i].b.get_grad());
     }
 }

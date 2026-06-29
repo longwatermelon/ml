@@ -46,35 +46,62 @@ struct Value {
     // add chain rule contrib to grads of children in adj
     void add_child_grads();
 };
-
-typedef shared_ptr<Value> ValuePtr;
-
-// traverse DAG topologically and compute grads
-// root must be scalar. clears all reachable grads to 0 first.
-// assume all result fields are filled out.
-void compute_all_grads(ValuePtr root);
-
-namespace fns {
-    // matmul AB
-    ValuePtr matmul(ValuePtr A, ValuePtr B);
-    // add A+B
-    ValuePtr add(ValuePtr A, ValuePtr B);
-    // hadamard A \odot B
-    ValuePtr hadamard(ValuePtr A, ValuePtr B);
-    // ediv A \oslash B
-    ValuePtr ediv(ValuePtr A, ValuePtr B);
-    // relu A
-    ValuePtr relu(ValuePtr A);
-    // exp A
-    ValuePtr exp(ValuePtr A);
-    // log A
-    ValuePtr log(ValuePtr A);
-    // sum-reduce A (axis=k)
-    ValuePtr sum_reduce(ValuePtr A, int axis, bool keepdims);
-    // max-reduce A (axis=k)
-    ValuePtr max_reduce(ValuePtr A, int axis, bool keepdims);
-    // leaf
-    ValuePtr leaf(Tensor result);
-} // namespace fns
-
 } // namespace autograd
+
+// lightweight autograd wrapper on a Tensor.
+struct GTensor {
+private:
+    shared_ptr<autograd::Value> value;
+
+public:
+    // ---- ctors ----
+
+    GTensor() = default;
+    // init with a tensor
+    GTensor(const Tensor &val);
+    // tensor constructor
+    GTensor(const vec<int> &shape, double value);
+    // tensor constructor
+    GTensor(const vec<double> &data_1d);
+    // tensor constructor
+    GTensor(const vec2<double> &data_2d);
+
+    // ---- operators ----
+
+    // matmul
+    GTensor operator*(const GTensor &o) const;
+    // add
+    GTensor operator+(const GTensor &o) const;
+    // element-wise mul
+    GTensor hadamard(const GTensor &o) const;
+    // element-wise div
+    GTensor ediv(const GTensor &o) const;
+    // element-wise relu
+    GTensor relu() const;
+    // element-wise exp
+    GTensor exp() const;
+    // element-wise log
+    GTensor log() const;
+    // sum reduce
+    GTensor sum_reduce(int axis, bool keepdims) const;
+    // max reduce
+    GTensor max_reduce(int axis, bool keepdims) const;
+    // negate
+    GTensor operator-() const;
+    // subtract
+    GTensor operator-(const GTensor &o) const;
+
+    // ---- getters ----
+
+    Tensor get_tensor() const { return value->result; }
+    Tensor get_grad() const { return value->grad; }
+    Tensor &get_tensor_ref() { return value->result; }
+    Tensor &get_grad_ref() { return value->grad; }
+
+    // ---- autograd ----
+
+    // compute all grads: ∂this/∂reachable
+    // traverses DAG topologically. this must be scalar.
+    // clears all reachable grads to 0 first.
+    void compute_all_grads();
+};

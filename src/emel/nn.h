@@ -11,13 +11,13 @@ enum class Activation {
 struct Layer {
     Activation act;
     int n;
-    autograd::ValuePtr W,Z,A,b;
+    GTensor W,Z,A,b;
 
     // neuron count, input feature count, activation fn
     Layer(int n, int n_prev, Activation act);
 
     // forward pass using prev layer's output --- updates Z, A
-    void forward(autograd::ValuePtr A_prev);
+    void forward(GTensor A_prev);
 };
 
 // ---- loss ----

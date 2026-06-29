@@ -6,7 +6,7 @@ using namespace autograd;
 
 // creates new node which points to existing nodes; compute result in place.
 // if f_type is reduction, make sure to pass axis and keepdims.
-Value::Value(FnType f_type, const vec<ValuePtr> &adj, int axis, bool keepdims)
+Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims)
     : f_type(f_type), adj(adj), axis(axis), keepdims(keepdims) {
     compute_result();
 }
@@ -51,7 +51,7 @@ void Value::compute_result() {
 
 // implements g_{fn, i}: partial of root wrt positional arg i.
 // axis & keepdims fields will be used if f_type is applicable.
-static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<ValuePtr> &args, int axis = -1, bool keepdims = true) {
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis = -1, bool keepdims = true) {
     Tensor out;
     switch (f_type) {
     case FnType::Matmul:
@@ -129,22 +129,157 @@ void Value::add_child_grads() {
     }
 }
 
-// ---- public API ----
+// ---- gtensor ctors ----
 
-// traverse DAG topologically and compute grads
-// root must be scalar. clears all reachable grads to 0 first.
-// assume all result fields are filled out.
-void autograd::compute_all_grads(ValuePtr root) {
+// init with a tensor
+GTensor::GTensor(const Tensor &val) {
+    value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+    value->result = val;
+}
+
+// tensor constructor
+GTensor::GTensor(const vec<int> &shape, double value) {
+    Tensor t(shape, value);
+    this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+    this->value->result = t;
+}
+
+// tensor constructor
+GTensor::GTensor(const vec<double> &data_1d) {
+    Tensor t(data_1d);
+    this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+    this->value->result = t;
+}
+
+// tensor constructor
+GTensor::GTensor(const vec2<double> &data_2d) {
+    Tensor t(data_2d);
+    this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
+    this->value->result = t;
+}
+
+// ---- gtensor operators ----
+
+// matmul
+GTensor GTensor::operator*(const GTensor &o) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Matmul,
+        vec<shared_ptr<Value>>{this->value, o.value}
+    );
+    return out;
+}
+
+// add
+GTensor GTensor::operator+(const GTensor &o) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Add,
+        vec<shared_ptr<Value>>{this->value, o.value}
+    );
+    return out;
+}
+
+// element-wise mul
+GTensor GTensor::hadamard(const GTensor &o) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Hadamard,
+        vec<shared_ptr<Value>>{this->value, o.value}
+    );
+    return out;
+}
+
+// element-wise div
+GTensor GTensor::ediv(const GTensor &o) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Ediv,
+        vec<shared_ptr<Value>>{this->value, o.value}
+    );
+    return out;
+}
+
+// element-wise relu
+GTensor GTensor::relu() const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Relu,
+        vec<shared_ptr<Value>>{this->value}
+    );
+    return out;
+}
+
+// element-wise exp
+GTensor GTensor::exp() const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Exp,
+        vec<shared_ptr<Value>>{this->value}
+    );
+    return out;
+}
+
+// element-wise log
+GTensor GTensor::log() const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Log,
+        vec<shared_ptr<Value>>{this->value}
+    );
+    return out;
+}
+
+// sum reduce
+GTensor GTensor::sum_reduce(int axis, bool keepdims) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::SumReduce,
+        vec<shared_ptr<Value>>{this->value},
+        axis, keepdims
+    );
+    return out;
+}
+
+// max reduce
+GTensor GTensor::max_reduce(int axis, bool keepdims) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::MaxReduce,
+        vec<shared_ptr<Value>>{this->value},
+        axis, keepdims
+    );
+    return out;
+}
+
+// negate
+GTensor GTensor::operator-() const {
+    GTensor neg1({1}, -1.);
+    return neg1.hadamard(*this);
+}
+
+// subtract
+GTensor GTensor::operator-(const GTensor &o) const {
+    return *this + (-o);
+}
+
+// ---- autograd ----
+
+// compute all grads: ∂this/∂reachable
+// traverses DAG topologically. this must be scalar.
+// clears all reachable grads to 0 first.
+void GTensor::compute_all_grads() {
+    shared_ptr<Value> root = value;
     assert(root->result.num_el() == 1);
 
     // traverse dfs post-order (eval children before parents), then reverse to get topological order.
-    vec<ValuePtr> nodes_ord;
+    vec<shared_ptr<Value>> nodes_ord;
     unordered_set<Value*> seen;
-    auto dfs = [&](ValuePtr u, auto &&self) -> void {
+    auto dfs = [&](shared_ptr<Value> u, auto &&self) -> void {
         if (seen.count(u.get()) > 0) return;
         seen.insert(u.get());
 
-        for (ValuePtr child : u->adj) {
+        for (shared_ptr<Value> child : u->adj) {
             self(child, self);
         }
 
@@ -153,7 +288,7 @@ void autograd::compute_all_grads(ValuePtr root) {
     dfs(root, dfs);
 
     // zero all grads, except for root which should have ∂root/∂root = 1
-    for (ValuePtr node : nodes_ord) {
+    for (shared_ptr<Value> node : nodes_ord) {
         node->grad = node->result.apply([](double x){return 0.;});
     }
     root->grad = root->result.apply([](double x){return 1.;});
@@ -162,85 +297,4 @@ void autograd::compute_all_grads(ValuePtr root) {
     for (int i = sz(nodes_ord)-1; i >= 0; --i) {
         nodes_ord[i]->add_child_grads();
     }
-}
-
-// matmul AB
-ValuePtr fns::matmul(ValuePtr A, ValuePtr B) {
-    return make_shared<Value>(
-        FnType::Matmul,
-        vec<ValuePtr>{A,B}
-    );
-}
-
-// add A+B
-ValuePtr fns::add(ValuePtr A, ValuePtr B) {
-    return make_shared<Value>(
-        FnType::Add,
-        vec<ValuePtr>{A,B}
-    );
-}
-
-// hadamard A \odot B
-ValuePtr fns::hadamard(ValuePtr A, ValuePtr B) {
-    return make_shared<Value>(
-        FnType::Hadamard,
-        vec<ValuePtr>{A,B}
-    );
-}
-
-// ediv A \oslash B
-ValuePtr fns::ediv(ValuePtr A, ValuePtr B) {
-    return make_shared<Value>(
-        FnType::Ediv,
-        vec<ValuePtr>{A,B}
-    );
-}
-
-// relu A
-ValuePtr fns::relu(ValuePtr A) {
-    return make_shared<Value>(
-        FnType::Relu,
-        vec<ValuePtr>{A}
-    );
-}
-
-// exp A
-ValuePtr fns::exp(ValuePtr A) {
-    return make_shared<Value>(
-        FnType::Exp,
-        vec<ValuePtr>{A}
-    );
-}
-
-// log A
-ValuePtr fns::log(ValuePtr A) {
-    return make_shared<Value>(
-        FnType::Log,
-        vec<ValuePtr>{A}
-    );
-}
-
-// sum-reduce A (axis=k)
-ValuePtr fns::sum_reduce(ValuePtr A, int axis, bool keepdims) {
-    return make_shared<Value>(
-        FnType::SumReduce,
-        vec<ValuePtr>{A},
-        axis, keepdims
-    );
-}
-
-// max-reduce A (axis=k)
-ValuePtr fns::max_reduce(ValuePtr A, int axis, bool keepdims) {
-    return make_shared<Value>(
-        FnType::MaxReduce,
-        vec<ValuePtr>{A},
-        axis, keepdims
-    );
-}
-
-// leaf
-ValuePtr fns::leaf(Tensor result) {
-    ValuePtr leaf = make_shared<Value>(FnType::Leaf, vec<ValuePtr>{});
-    leaf->result = result;
-    return leaf;
 }

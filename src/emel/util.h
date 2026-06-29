@@ -41,14 +41,14 @@ inline T read_bytes(const vec<uint8_t> &bytes, size_t &pos) {
 }
 
 template <typename T>
-inline T append_bytes_count(vec<uint8_t> &bytes, T *start, uint64_t byte_cnt) {
+inline void append_bytes_count(vec<uint8_t> &bytes, T *start, uint64_t byte_cnt) {
     size_t old_sz = sz(bytes);
     bytes.resize(old_sz + byte_cnt);
     memcpy(bytes.data() + old_sz, start, byte_cnt);
 }
 
 template <typename T>
-inline T append_bytes(vec<uint8_t> &bytes, const T &value) {
+inline void append_bytes(vec<uint8_t> &bytes, const T &value) {
     append_bytes_count(bytes, &value, sizeof(T));
 }
 
