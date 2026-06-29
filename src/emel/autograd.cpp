@@ -5,9 +5,20 @@ using namespace autograd;
 // ---- ctors ----
 
 // creates new node which points to existing nodes; compute result in place.
-// if f_type is reduction, make sure to pass axis and keepdims.
+Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj)
+    : f_type(f_type), adj(adj) {
+    compute_result();
+}
+
+// for reduction nodes (max reduce, sum reduce).
 Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims)
     : f_type(f_type), adj(adj), axis(axis), keepdims(keepdims) {
+    compute_result();
+}
+
+// for reshape nodes.
+Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &new_shape)
+    : f_type(f_type), adj(adj), new_shape(new_shape) {
     compute_result();
 }
 
@@ -44,6 +55,10 @@ void Value::compute_result() {
         // argmax mask via one-hot argmax odot with A, then reduce-sum to compress the axis
         result = adj[0]->result.argmax(axis).hadamard(adj[0]->result).sum(axis, keepdims);
         break;
+    case FnType::Reshape:
+        result = adj[0]->result;
+        result.reshape(new_shape);
+        break;
     case FnType::Leaf:
         break;
     }
@@ -51,7 +66,9 @@ void Value::compute_result() {
 
 // implements g_{fn, i}: partial of root wrt positional arg i.
 // axis & keepdims fields will be used if f_type is applicable.
-static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis = -1, bool keepdims = true) {
+// given that it's X = f(args) where f is described by f_type, this calculates ∂J/∂args[i] = ∂J/∂X ∂X/∂args[i], evaluated at args.
+// G = ∂J/∂X.
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis, bool keepdims) {
     Tensor out;
     switch (f_type) {
     case FnType::Matmul:
@@ -112,6 +129,10 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
         if (!keepdims) out.reshape(new_shape);
         out.broadcast(args[0]->result.shape);
         out = out.hadamard(args[0]->result.argmax(axis));
+    } break;
+    case FnType::Reshape: {
+        out = G;
+        out.reshape(args[0]->result.shape);
     } break;
     case FnType::Leaf: {
     } break;
@@ -261,6 +282,17 @@ GTensor GTensor::operator-() const {
 // subtract
 GTensor GTensor::operator-(const GTensor &o) const {
     return *this + (-o);
+}
+
+// reshape
+GTensor GTensor::reshape(const vec<int> &new_shape) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Reshape,
+        vec<shared_ptr<Value>>{this->value},
+        new_shape
+    );
+    return out;
 }
 
 // ---- autograd ----

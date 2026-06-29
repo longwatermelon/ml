@@ -9,7 +9,7 @@ namespace nn {
 // ctor
 Linear::Linear(int n_prev, int n) {
     W = GTensor({n_prev, n}, 0.);
-    b = GTensor({1, n}, 0.);
+    b = GTensor({n}, 0.);
 
     // random init to [-0.5, 0.5]
     W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});

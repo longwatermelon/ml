@@ -15,6 +15,7 @@ enum class FnType {
     Log,
     SumReduce,
     MaxReduce,
+    Reshape,
     Leaf, // serves a semantic purpose only, no functional one, since leaves don't have children
 };
 
@@ -32,11 +33,17 @@ struct Value {
     int axis = -1;
     bool keepdims = true;
 
+    // reshape-specific data
+    vec<int> new_shape = {};
+
     // ---- ctors ----
 
     // creates new node which points to existing nodes; compute result in place.
-    // if f_type is reduction, make sure to pass axis and keepdims.
-    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis = -1, bool keepdims = true);
+    Value(FnType f_type, const vec<shared_ptr<Value>> &adj);
+    // for reduction nodes (max reduce, sum reduce).
+    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims);
+    // for reshape.
+    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &new_shape);
 
     // ---- computation ----
 
@@ -90,6 +97,8 @@ public:
     GTensor operator-() const;
     // subtract
     GTensor operator-(const GTensor &o) const;
+    // reshape
+    GTensor reshape(const vec<int> &new_shape) const;
 
     // ---- getters ----
 
