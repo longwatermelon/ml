@@ -61,3 +61,24 @@ inline vec<uint8_t> read_file_bytes(const string &path) {
         istreambuf_iterator<char>()
     );
 }
+
+// return if advance successful - false if can't advance anymore
+inline bool advance_ind(vec<int> &cur, const vec<int> &limits) {
+    if (cur.empty()) {
+        return false;
+    }
+
+    int ptr = sz(cur)-1;
+    cur[ptr]++;
+    while (cur[ptr] >= limits[ptr]) {
+        if (ptr == 0) {
+            return false;
+        }
+
+        cur[ptr] = 0;
+        ptr--;
+        cur[ptr]++;
+    }
+
+    return true;
+}

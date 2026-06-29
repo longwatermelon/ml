@@ -22,6 +22,12 @@ Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &n
     compute_result();
 }
 
+// for gather.
+Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const Tensor &I)
+    : f_type(f_type), adj(adj), gather_I(I) {
+    compute_result();
+}
+
 // ---- computation ----
 
 // compute cached result, assuming adj results are all populated
@@ -59,6 +65,9 @@ void Value::compute_result() {
         result = adj[0]->result;
         result.reshape(new_shape);
         break;
+    case FnType::Gather:
+        result = adj[0]->result.gather(gather_I);
+        break;
     case FnType::Leaf:
         break;
     }
@@ -68,7 +77,7 @@ void Value::compute_result() {
 // axis & keepdims fields will be used if f_type is applicable.
 // given that it's X = f(args) where f is described by f_type, this calculates ∂J/∂args[i] = ∂J/∂X ∂X/∂args[i], evaluated at args.
 // G = ∂J/∂X.
-static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis, bool keepdims) {
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis, bool keepdims, const Tensor &gather_I) {
     Tensor out;
     switch (f_type) {
     case FnType::Matmul:
@@ -134,6 +143,18 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
         out = G;
         out.reshape(args[0]->result.shape);
     } break;
+    case FnType::Gather: {
+        // since gather assumes 1d source
+        out = Tensor(args[0]->result.shape, 0.);
+        vec<int> cur(sz(gather_I.shape), 0);
+        vec<int> lim = gather_I.shape;
+
+        // iter over I entries
+        do {
+            int i = (int)gather_I.at(cur);
+            out.at({i}) += G.at(cur);
+        } while (advance_ind(cur, lim));
+    } break;
     case FnType::Leaf: {
     } break;
     }
@@ -146,7 +167,7 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
 // add chain rule contrib to grads of children in adj
 void Value::add_child_grads() {
     for (int i = 0; i < sz(adj); ++i) {
-        adj[i]->grad += fn_g(f_type, i, grad, adj, axis, keepdims);
+        adj[i]->grad += fn_g(f_type, i, grad, adj, axis, keepdims, gather_I);
     }
 }
 
@@ -291,6 +312,17 @@ GTensor GTensor::reshape(const vec<int> &new_shape) const {
         FnType::Reshape,
         vec<shared_ptr<Value>>{this->value},
         new_shape
+    );
+    return out;
+}
+
+// gather
+GTensor GTensor::gather(const Tensor &I) const {
+    GTensor out;
+    out.value = make_shared<Value>(
+        FnType::Gather,
+        vec<shared_ptr<Value>>{this->value},
+        I
     );
     return out;
 }

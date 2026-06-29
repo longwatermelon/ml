@@ -21,27 +21,6 @@ static vec<int> shape2stride(const vec<int> &shape) {
     return stride;
 }
 
-// return if advance successful - false if can't advance anymore
-static bool advance_ind(vec<int> &cur, const vec<int> &limits) {
-    if (cur.empty()) {
-        return false;
-    }
-
-    int ptr = sz(cur)-1;
-    cur[ptr]++;
-    while (cur[ptr] >= limits[ptr]) {
-        if (ptr == 0) {
-            return false;
-        }
-
-        cur[ptr] = 0;
-        ptr--;
-        cur[ptr]++;
-    }
-
-    return true;
-}
-
 // returns minimum possible sized shape that a,b can both broadcast to
 static vec<int> parent_shape(const vec<int> &a, const vec<int> &b) {
     // pre-check: impossible to broadcast?
@@ -403,6 +382,21 @@ Tensor Tensor::argmax(int axis) const {
         // set 1 in out at argmax
         out.at(mx_ind) = 1.;
     } while (advance_ind(parent_cur, parent_lim));
+
+    return out;
+}
+
+// replace self with index mapping: new[ind] = this[I[ind]]. Requires this.shape to be 1D.
+Tensor Tensor::gather(const Tensor &I) const {
+    assert(sz(shape) == 1);
+
+    // iter over entries in I
+    Tensor out(I.shape, 0.);
+    vec<int> cur(sz(I.shape), 0);
+    vec<int> lim = I.shape;
+    do {
+        out.at(cur) = at({(int)I.at(cur)});
+    } while (advance_ind(cur, lim));
 
     return out;
 }

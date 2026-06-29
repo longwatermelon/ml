@@ -16,6 +16,7 @@ enum class FnType {
     SumReduce,
     MaxReduce,
     Reshape,
+    Gather,
     Leaf, // serves a semantic purpose only, no functional one, since leaves don't have children
 };
 
@@ -36,6 +37,9 @@ struct Value {
     // reshape-specific data
     vec<int> new_shape = {};
 
+    // gather-specific data
+    Tensor gather_I;
+
     // ---- ctors ----
 
     // creates new node which points to existing nodes; compute result in place.
@@ -44,6 +48,8 @@ struct Value {
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims);
     // for reshape.
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &new_shape);
+    // for gather.
+    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const Tensor &I);
 
     // ---- computation ----
 
@@ -99,6 +105,8 @@ public:
     GTensor operator-(const GTensor &o) const;
     // reshape
     GTensor reshape(const vec<int> &new_shape) const;
+    // gather
+    GTensor gather(const Tensor &I) const;
 
     // ---- getters ----
 
