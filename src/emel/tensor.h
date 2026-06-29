@@ -70,6 +70,8 @@ struct Tensor {
     Tensor argmax(int axis) const;
     // replace self with index mapping: new[ind] = this[I[ind]]. Requires I.shape = output shape + rank(this.shape).
     Tensor gather(const Tensor &I) const;
+    // gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+    Tensor gather_flat(const Tensor &I) const;
 
     // ---- functionals ----
 

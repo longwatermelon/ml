@@ -414,6 +414,16 @@ Tensor Tensor::gather(const Tensor &I) const {
     return out;
 }
 
+// gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+Tensor Tensor::gather_flat(const Tensor &I) const {
+    assert(sz(shape) == 1);
+    Tensor Ip = I;
+    vec<int> new_shape = Ip.shape;
+    new_shape.push_back(1);
+    Ip.reshape(new_shape);
+    return gather(Ip);
+}
+
 // ---- functionals ----
 
 // apply to copy of this

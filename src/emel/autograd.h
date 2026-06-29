@@ -107,6 +107,8 @@ public:
     GTensor reshape(const vec<int> &new_shape) const;
     // gather
     GTensor gather(const Tensor &I) const;
+    // gather, except if this is 1D, we exclude the redundant trailing axis of length 1
+    GTensor gather_flat(const Tensor &I) const;
 
     // ---- getters ----
 

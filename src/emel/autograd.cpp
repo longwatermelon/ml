@@ -335,6 +335,24 @@ GTensor GTensor::gather(const Tensor &I) const {
     return out;
 }
 
+// gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+GTensor GTensor::gather_flat(const Tensor &I) const {
+    assert(sz(value->result.shape) == 1);
+
+    GTensor out;
+    // insert length-1 trailing axis for the user
+    Tensor Ip = I;
+    vec<int> new_shape = Ip.shape;
+    new_shape.push_back(1);
+    Ip.reshape(new_shape);
+    out.value = make_shared<Value>(
+        FnType::Gather,
+        vec<shared_ptr<Value>>{this->value},
+        Ip
+    );
+    return out;
+}
+
 // ---- autograd ----
 
 // compute all grads: ∂this/∂reachable
