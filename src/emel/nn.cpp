@@ -155,6 +155,26 @@ vec<GTensor*> Flatten::params() {
     return {};
 }
 
+static Tensor select_minibatch(int st, int cnt, const Tensor &X, vec<int> ord) {
+    vec<int> minibatch_shape = X.shape;
+    minibatch_shape[0] = cnt;
+    Tensor Xb(minibatch_shape, 0.);
+    for (int i = 0; i < cnt; ++i) {
+        int ind = ord[st+i];
+        vec<int> cur(sz(X.shape), 0);
+        cur[0] = ind;
+        vec<int> lim = X.shape;
+        lim[0] = ind;
+        do {
+            vec<int> bcur = cur;
+            bcur[0] = i;
+            Xb.at(bcur) = X.at(cur);
+        } while (advance_ind(cur, lim));
+    }
+
+    return Xb;
+}
+
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size) {
     assert(batch_size > 0);
@@ -177,19 +197,8 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
 
         for (int st = 0; st < m; st += batch_size) {
             int cur_batch = min(batch_size, m-st);
-
-            // copy minibatch over
-            Tensor Xb({cur_batch, X.shape[1]}, 0.);
-            Tensor Yb({cur_batch, Y.shape[1]}, 0.);
-            for (int i = 0; i < cur_batch; ++i) {
-                int ind = inds[st+i];
-                for (int j = 0; j < Xb.shape[1]; ++j) {
-                    Xb.at({i,j}) = X.at({ind,j});
-                }
-                for (int j = 0; j < Yb.shape[1]; ++j) {
-                    Yb.at({i,j}) = Y.at({ind,j});
-                }
-            }
+            Tensor Xb = select_minibatch(st, cur_batch, X, inds);
+            Tensor Yb = select_minibatch(st, cur_batch, Y, inds);
 
             // forward pass
             GTensor Yhatb = model.forward(Xb);
