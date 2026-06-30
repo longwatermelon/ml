@@ -130,8 +130,8 @@ public:
 
     // ---- getters ----
 
-    Tensor get_tensor() const { return value->result; }
-    Tensor get_grad() const { return value->grad; }
+    const Tensor &get_tensor() const { return value->result; }
+    const Tensor &get_grad() const { return value->grad; }
     Tensor &get_tensor_ref() { return value->result; }
     Tensor &get_grad_ref() { return value->grad; }
 

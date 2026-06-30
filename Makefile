@@ -1,4 +1,10 @@
 .PHONY: all
 
-all:
-	g++ src/cnn-demo.cpp src/emel/*.cpp -std=c++17 -ggdb -Wall -O2
+CXX ?= g++
+CXXFLAGS ?= -std=c++17 -ggdb -Wall -O2
+EMEL_SOURCES := src/emel/*.cpp
+
+all: cnn-mnist
+
+%: src/%.cpp
+	$(CXX) $< $(EMEL_SOURCES) $(CXXFLAGS)
