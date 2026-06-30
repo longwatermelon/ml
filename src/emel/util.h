@@ -15,7 +15,7 @@ using std::unique_ptr;
 using std::make_shared;
 using ll=long long;
 #define sign(x) (x<0?-1:1)
-#define sz(x) (size(x))
+#define sz(x) ((int)size(x))
 #define all(x) begin(x),end(x)
 #define all1(x) begin(x)+1,end(x)
 template <typename T> using vec=vector<T>;

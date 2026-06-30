@@ -191,19 +191,19 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
     std::mt19937 g(0);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
-        // eval
-        GTensor Yhat = model.forward(GTensor(X));
-        double loss_fullbatch = apply_loss_scalar(Yhat, Y, loss);
-        printf("\repoch %d/%d... | loss = %.6f", epoch+1, epochs, loss_fullbatch);
-        fflush(stdout);
-
         // minibatching - process in chunks of batch_size
         // shuffle data order first
         vec<int> inds(m);
         iota(all(inds), 0);
         shuffle(all(inds), g);
 
+        double avg_loss = 0.;
+        int minibatch_ind = 0;
+        int tot_minibatches = (m+batch_size-1) / batch_size;
         for (int st = 0; st < m; st += batch_size) {
+            printf("\repoch %d: minibatch %d/%d...", epoch, minibatch_ind+1, tot_minibatches);
+            fflush(stdout);
+
             int cur_batch = min(batch_size, m-st);
             Tensor Xb = select_minibatch(st, cur_batch, X, inds);
             Tensor Yb = select_minibatch(st, cur_batch, Y, inds);
@@ -211,11 +211,21 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
             // forward pass
             GTensor Yhatb = model.forward(Xb);
 
+            // diagnostic loss for reporting later
+            avg_loss += apply_loss_scalar(Yhatb, Yb, loss) * ((double)cur_batch / batch_size);
+
             // backward pass
             GTensor g_loss = apply_loss(Yhatb, Yb, loss);
             g_loss.compute_all_grads();
             opt.step();
+
+            minibatch_ind++;
         }
+        avg_loss /= tot_minibatches;
+
+        // eval
+        printf("\repoch %d/%d done | avg minibatch loss = %.6f\n", epoch+1, epochs, avg_loss);
+        fflush(stdout);
     }
     putchar('\n');
 }
