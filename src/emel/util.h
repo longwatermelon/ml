@@ -4,7 +4,15 @@
 #include <initializer_list>
 #include <cassert>
 #include <fstream>
-using namespace std;
+using std::vector;
+using std::initializer_list;
+using std::string;
+using std::min;
+using std::max;
+using std::swap;
+using std::shared_ptr;
+using std::unique_ptr;
+using std::make_shared;
 using ll=long long;
 #define sign(x) (x<0?-1:1)
 #define sz(x) ((int)size(x))
@@ -20,7 +28,7 @@ template <typename T> struct vec2:vector<vector<T>> {
     void assign(int n, int m, T val = T()) {this->vector<vector<T>>::assign(n, vector<T>(m, val));}
 };
 template <typename T> struct vec3:vector<vector<vector<T>>> {vec3()=default;vec3(int n, int m, int k, T val=T()):vector<vector<vector<T>>>(n,vector<vector<T>>(m,vector<T>(k,val))){}void assign(int n, int m, int k, T val = T()) {this->vector<vector<vector<T>>>::assign(n, vector<vector<T>>(m, vector<T>(k, val)));}};
-template <typename T> void vprint(T st, T nd) {auto it=st;while (next(it)!=nd){cout<<*it<<' ';it=next(it);}cout<<*it<<'\n';}
+template <typename T> void vprint(T st, T nd) {auto it=st;while (next(it)!=nd){std::cout<<*it<<' ';it=next(it);}std::cout<<*it<<'\n';}
 template <typename T> bool ckmin(T &a, T b) {return b<a ? a=b, true : false;}
 template <typename T> bool ckmax(T &a, T b) {return b>a ? a=b, true : false;}
 
@@ -53,12 +61,12 @@ inline void append_bytes(vec<uint8_t> &bytes, const T &value) {
 }
 
 inline vec<uint8_t> read_file_bytes(const string &path) {
-    ifstream in(path, ios::binary);
+    std::ifstream in(path, std::ios::binary);
     assert(in);
 
     return vec<uint8_t>(
-        istreambuf_iterator<char>(in),
-        istreambuf_iterator<char>()
+        std::istreambuf_iterator<char>(in),
+        std::istreambuf_iterator<char>()
     );
 }
 

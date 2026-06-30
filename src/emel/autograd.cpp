@@ -364,7 +364,7 @@ void GTensor::compute_all_grads() {
 
     // traverse dfs post-order (eval children before parents), then reverse to get topological order.
     vec<shared_ptr<Value>> nodes_ord;
-    unordered_set<Value*> seen;
+    std::unordered_set<Value*> seen;
     auto dfs = [&](shared_ptr<Value> u, auto &&self) -> void {
         if (seen.count(u.get()) > 0) return;
         seen.insert(u.get());

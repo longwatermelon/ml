@@ -82,7 +82,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
     assert(batch_size > 0);
 
     int m = X.shape[0];
-    mt19937 g(0);
+    std::mt19937 g(0);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // eval

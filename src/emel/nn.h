@@ -69,6 +69,19 @@ struct Sequential : Module {
     vec<GTensor*> params() override;
 };
 
+struct Conv2d : Module {
+    // params
+    GTensor W,b;
+
+    // ctor
+    Conv2d() = default;
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
 
