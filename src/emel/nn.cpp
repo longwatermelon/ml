@@ -1,8 +1,18 @@
 #include "nn.h"
 #include <random>
 #include <algorithm>
+#include <cmath>
+#include <cstdlib>
 
 namespace nn {
+
+// fan-in random weight initialization
+static void init_fan_in(GTensor &W, int fan_in) {
+    double limit = sqrt(6. / fan_in);
+    W.get_tensor_ref().apply_inplace([&](double) {
+        return ((double)rand() / RAND_MAX * 2. - 1.) * limit;
+    });
+}
 
 // ---- linear module ----
 
@@ -11,8 +21,7 @@ Linear::Linear(int n_prev, int n) {
     W = GTensor({n_prev, n}, 0.);
     b = GTensor({n}, 0.);
 
-    // random init to [-0.5, 0.5]
-    W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
+    init_fan_in(W, n_prev);
 }
 
 // forward pass
@@ -88,8 +97,7 @@ Conv2d::Conv2d(int in_channels, int out_channels, int kernel_size) {
     b = GTensor({out_channels}, 0.);
     k = kernel_size;
 
-    // random init to [-0.5, 0.5]
-    W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
+    init_fan_in(W, in_channels * kernel_size * kernel_size);
 }
 
 // forward pass

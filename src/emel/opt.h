@@ -5,6 +5,7 @@
 
 enum class Loss {
     CrossEntropy,
+    CrossEntropyLogits,
 };
 
 // apply loss function

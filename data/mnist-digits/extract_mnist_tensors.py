@@ -35,6 +35,20 @@ def parse_args():
         default=0,
         help="seed for random sampling",
     )
+    layout = parser.add_mutually_exclusive_group()
+    layout.add_argument(
+        "--flatten",
+        dest="flatten",
+        action="store_true",
+        default=True,
+        help="write image tensors as [N, 784]",
+    )
+    layout.add_argument(
+        "--no-flatten",
+        dest="flatten",
+        action="store_false",
+        help="write image tensors as [N, 1, 28, 28]",
+    )
     return parser.parse_args()
 
 
@@ -51,7 +65,7 @@ def read_images(path):
     expected = count * rows * cols
     if len(data) != expected:
         raise ValueError(f"{path} has {len(data)} image bytes, expected {expected}")
-    return count, rows * cols, data
+    return count, rows, cols, data
 
 
 # read idx label files from the gzipped MNIST data
@@ -86,6 +100,13 @@ def shape_numel(shape):
     return total
 
 
+# choose the x tensor shape for the requested image layout
+def x_shape(example_count, rows, cols, flatten):
+    if flatten:
+        return [example_count, rows * cols]
+    return [example_count, 1, rows, cols]
+
+
 # write a Tensor-compatible dense double tensor
 def write_tensor(path, shape, values):
     expected = shape_numel(shape)
@@ -115,7 +136,8 @@ def write_tensor(path, shape, values):
 
 
 # iterate example-major image tensor data from sampled idx records
-def iter_x_values(images, indexes, pixel_count):
+def iter_x_values(images, indexes, rows, cols):
+    pixel_count = rows * cols
     for image_index in indexes:
         for pixel in range(pixel_count):
             offset = image_index * pixel_count + pixel
@@ -130,8 +152,8 @@ def iter_y_values(labels, indexes):
 
 
 # extract one split into serialized x and y tensor files
-def extract_split(split_name, image_name, label_name, example_count, rng):
-    image_count, pixel_count, images = read_images(SCRIPT_DIR / image_name)
+def extract_split(split_name, image_name, label_name, example_count, rng, flatten):
+    image_count, rows, cols, images = read_images(SCRIPT_DIR / image_name)
     label_count, labels = read_labels(SCRIPT_DIR / label_name)
     if image_count != label_count:
         raise ValueError(
@@ -142,7 +164,11 @@ def extract_split(split_name, image_name, label_name, example_count, rng):
 
     x_path = SCRIPT_DIR / f"{split_name}_X.tensor"
     y_path = SCRIPT_DIR / f"{split_name}_Y.tensor"
-    write_tensor(x_path, [example_count, pixel_count], iter_x_values(images, indexes, pixel_count))
+    write_tensor(
+        x_path,
+        x_shape(example_count, rows, cols, flatten),
+        iter_x_values(images, indexes, rows, cols),
+    )
     write_tensor(y_path, [example_count, CLASS_COUNT], iter_y_values(labels, indexes))
     return x_path, y_path
 
@@ -160,6 +186,7 @@ def main():
             "train-labels-idx1-ubyte.gz",
             args.train_examples,
             rng,
+            args.flatten,
         )
     )
     outputs.extend(
@@ -169,6 +196,7 @@ def main():
             "t10k-labels-idx1-ubyte.gz",
             args.test_examples,
             rng,
+            args.flatten,
         )
     )
 

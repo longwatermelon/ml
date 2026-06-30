@@ -87,7 +87,7 @@ struct Conv2d : Module {
 
 struct Flatten : Module {
     // ctor
-    Flatten();
+    Flatten() = default;
 
     // forward pass
     GTensor forward(const GTensor &A_prev) override;
