@@ -137,6 +137,24 @@ vec<GTensor*> Conv2d::params() {
     return {&W,&b};
 }
 
+// ---- flatten module ----
+
+// forward pass
+GTensor Flatten::forward(const GTensor &A_prev) {
+    vec<int> shape = A_prev.get_tensor().shape;
+    int prod = 1;
+    for (int i = 1; i < sz(shape); ++i) {
+        prod *= shape[i];
+    }
+    vec<int> new_shape = {shape[0], prod};
+    return A_prev.reshape(new_shape);
+}
+
+// params
+vec<GTensor*> Flatten::params() {
+    return {};
+}
+
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size) {
     assert(batch_size > 0);

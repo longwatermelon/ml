@@ -85,6 +85,16 @@ struct Conv2d : Module {
     vec<GTensor*> params() override;
 };
 
+struct Flatten : Module {
+    // ctor
+    Flatten();
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
 
