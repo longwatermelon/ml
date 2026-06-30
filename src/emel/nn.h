@@ -73,8 +73,11 @@ struct Conv2d : Module {
     // params
     GTensor W,b;
 
+    // hyperparams
+    int k;
+
     // ctor
-    Conv2d() = default;
+    Conv2d(int in_channels, int out_channels, int kernel_size);
 
     // forward pass
     GTensor forward(const GTensor &A_prev) override;

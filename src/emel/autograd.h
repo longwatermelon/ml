@@ -17,6 +17,7 @@ enum class FnType {
     MaxReduce,
     Reshape,
     Gather,
+    Permute,
     Leaf, // serves a semantic purpose only, no functional one, since leaves don't have children
 };
 
@@ -40,16 +41,31 @@ struct Value {
     // gather-specific data
     Tensor gather_I;
 
+    // permute-specific data
+    vec<int> permute_p;
+
     // ---- ctors ----
 
     // creates new node which points to existing nodes; compute result in place.
     Value(FnType f_type, const vec<shared_ptr<Value>> &adj);
-    // for reduction nodes (max reduce, sum reduce).
-    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims);
-    // for reshape.
-    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &new_shape);
-    // for gather.
-    Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const Tensor &I);
+
+    Value with_reduction(int axis, bool keepdims) {
+        this->axis = axis;
+        this->keepdims = keepdims;
+        return *this;
+    }
+    Value with_reshape(const vec<int> &new_shape) {
+        this->new_shape = new_shape;
+        return *this;
+    }
+    Value with_gather(const Tensor &I) {
+        this->gather_I = I;
+        return *this;
+    }
+    Value with_permute(const vec<int> &p) {
+        permute_p = p;
+        return *this;
+    }
 
     // ---- computation ----
 
@@ -109,6 +125,8 @@ public:
     GTensor gather(const Tensor &I) const;
     // gather, except if this is 1D, we exclude the redundant trailing axis of length 1
     GTensor gather_flat(const Tensor &I) const;
+    // permute
+    GTensor permute(const vec<int> &p) const;
 
     // ---- getters ----
 

@@ -6,27 +6,7 @@ using namespace autograd;
 
 // creates new node which points to existing nodes; compute result in place.
 Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj)
-    : f_type(f_type), adj(adj) {
-    compute_result();
-}
-
-// for reduction nodes (max reduce, sum reduce).
-Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, int axis, bool keepdims)
-    : f_type(f_type), adj(adj), axis(axis), keepdims(keepdims) {
-    compute_result();
-}
-
-// for reshape nodes.
-Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const vec<int> &new_shape)
-    : f_type(f_type), adj(adj), new_shape(new_shape) {
-    compute_result();
-}
-
-// for gather.
-Value::Value(FnType f_type, const vec<shared_ptr<Value>> &adj, const Tensor &I)
-    : f_type(f_type), adj(adj), gather_I(I) {
-    compute_result();
-}
+    : f_type(f_type), adj(adj) {}
 
 // ---- computation ----
 
@@ -68,6 +48,9 @@ void Value::compute_result() {
     case FnType::Gather:
         result = adj[0]->result.gather(gather_I);
         break;
+    case FnType::Permute:
+        result = adj[0]->result.permute(permute_p);
+        break;
     case FnType::Leaf:
         break;
     }
@@ -77,7 +60,8 @@ void Value::compute_result() {
 // axis & keepdims fields will be used if f_type is applicable.
 // given that it's X = f(args) where f is described by f_type, this calculates ∂J/∂args[i] = ∂J/∂X ∂X/∂args[i], evaluated at args.
 // G = ∂J/∂X.
-static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args, int axis, bool keepdims, const Tensor &gather_I) {
+static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<Value>> &args,
+                   int axis, bool keepdims, const Tensor &gather_I, const vec<int> &permute_p) {
     Tensor out;
     switch (f_type) {
     case FnType::Matmul:
@@ -163,6 +147,19 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
             out.at(i) += G.at(j);
         } while (advance_ind(j, lim));
     } break;
+    case FnType::Permute: {
+        vec<int> orig_shape = args[0]->result.shape;
+        out = Tensor(orig_shape, 0.);
+        vec<int> cur(sz(orig_shape), 0);
+        do {
+            vec<int> permuted(sz(cur));
+            for (int i = 0; i < sz(permute_p); ++i) {
+                permuted[i] = cur[permute_p[i]];
+            }
+
+            out.at(cur) += G.at(permuted);
+        } while (advance_ind(cur, orig_shape));
+    } break;
     case FnType::Leaf: {
     } break;
     }
@@ -175,7 +172,8 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
 // add chain rule contrib to grads of children in adj
 void Value::add_child_grads() {
     for (int i = 0; i < sz(adj); ++i) {
-        adj[i]->grad += fn_g(f_type, i, grad, adj, axis, keepdims, gather_I);
+        adj[i]->grad += fn_g(f_type, i, grad, adj,
+                             axis, keepdims, gather_I, permute_p);
     }
 }
 
@@ -213,92 +211,99 @@ GTensor::GTensor(const vec2<double> &data_2d) {
 // matmul
 GTensor GTensor::operator*(const GTensor &o) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Matmul,
         vec<shared_ptr<Value>>{this->value, o.value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // add
 GTensor GTensor::operator+(const GTensor &o) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Add,
         vec<shared_ptr<Value>>{this->value, o.value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // element-wise mul
 GTensor GTensor::hadamard(const GTensor &o) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Hadamard,
         vec<shared_ptr<Value>>{this->value, o.value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // element-wise div
 GTensor GTensor::ediv(const GTensor &o) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Ediv,
         vec<shared_ptr<Value>>{this->value, o.value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // element-wise relu
 GTensor GTensor::relu() const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Relu,
         vec<shared_ptr<Value>>{this->value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // element-wise exp
 GTensor GTensor::exp() const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Exp,
         vec<shared_ptr<Value>>{this->value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // element-wise log
 GTensor GTensor::log() const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Log,
         vec<shared_ptr<Value>>{this->value}
-    );
+    ));
+    out.value->compute_result();
     return out;
 }
 
 // sum reduce
 GTensor GTensor::sum_reduce(int axis, bool keepdims) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::SumReduce,
-        vec<shared_ptr<Value>>{this->value},
-        axis, keepdims
-    );
+        vec<shared_ptr<Value>>{this->value}
+    ).with_reduction(axis, keepdims));
+    out.value->compute_result();
     return out;
 }
 
 // max reduce
 GTensor GTensor::max_reduce(int axis, bool keepdims) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::MaxReduce,
-        vec<shared_ptr<Value>>{this->value},
-        axis, keepdims
-    );
+        vec<shared_ptr<Value>>{this->value}
+    ).with_reduction(axis, keepdims));
+    out.value->compute_result();
     return out;
 }
 
@@ -316,22 +321,22 @@ GTensor GTensor::operator-(const GTensor &o) const {
 // reshape
 GTensor GTensor::reshape(const vec<int> &new_shape) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Reshape,
-        vec<shared_ptr<Value>>{this->value},
-        new_shape
-    );
+        vec<shared_ptr<Value>>{this->value}
+    ).with_reshape(new_shape));
+    out.value->compute_result();
     return out;
 }
 
 // gather
 GTensor GTensor::gather(const Tensor &I) const {
     GTensor out;
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Gather,
-        vec<shared_ptr<Value>>{this->value},
-        I
-    );
+        vec<shared_ptr<Value>>{this->value}
+    ).with_gather(I));
+    out.value->compute_result();
     return out;
 }
 
@@ -345,11 +350,22 @@ GTensor GTensor::gather_flat(const Tensor &I) const {
     vec<int> new_shape = Ip.shape;
     new_shape.push_back(1);
     Ip.reshape(new_shape);
-    out.value = make_shared<Value>(
+    out.value = make_shared<Value>(Value(
         FnType::Gather,
-        vec<shared_ptr<Value>>{this->value},
-        Ip
-    );
+        vec<shared_ptr<Value>>{this->value}
+    ).with_gather(Ip));
+    out.value->compute_result();
+    return out;
+}
+
+// permute
+GTensor GTensor::permute(const vec<int> &p) const {
+    GTensor out;
+    out.value = make_shared<Value>(Value(
+        FnType::Permute,
+        vec<shared_ptr<Value>>{this->value}
+    ).with_permute(p));
+    out.value->compute_result();
     return out;
 }
 

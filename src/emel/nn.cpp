@@ -77,6 +77,66 @@ vec<GTensor*> Sequential::params() {
     return out;
 }
 
+// ---- conv2d module ----
+
+// ctor
+Conv2d::Conv2d(int in_channels, int out_channels, int kernel_size) {
+    W = GTensor({
+        in_channels * kernel_size * kernel_size,
+        out_channels
+    }, 0.);
+    b = GTensor({out_channels}, 0.);
+    k = kernel_size;
+
+    // random init to [-0.5, 0.5]
+    W.get_tensor_ref().apply_inplace([](double x){return (double)(rand() % 100) / 99 - 0.5;});
+}
+
+// forward pass
+GTensor Conv2d::forward(const GTensor &X) {
+    // dimensions
+    int N = X.get_tensor().shape[0];
+    int Cin = X.get_tensor().shape[1];
+    int H = X.get_tensor().shape[2];
+    int W = X.get_tensor().shape[3];
+    int Hp = H-k+1, Wp = W-k+1;
+    int Cout = this->b.get_tensor().shape[0];
+
+    // batched
+    auto im2col = [&](const GTensor &X) {
+        GTensor Xr = X.reshape({N, Cin * H * W});
+        Tensor I({N, Hp*Wp, Cin*k*k, 2}, 0.);
+        for (int b = 0; b < N; ++b) {
+            for (int i = 0; i < Hp; ++i) {
+                for (int j = 0; j < Wp; ++j) {
+                    // example b, output pixel (i,j), top-left of kernel
+                    for (int c = 0; c < Cin; ++c) {
+                        for (int oi = i; oi < i+k; ++oi) {
+                            for (int oj = j; oj < j+k; ++oj) {
+                                I.at({b, i*Wp+j, c*k*k + (oi-i)*k + (oj-j), 0}) = b;
+                                I.at({b, i*Wp+j, c*k*k + (oi-i)*k + (oj-j), 1}) = c*H*W + oi*W + oj;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        GTensor Xp = Xr.gather(I);
+        return Xp;
+    };
+
+    GTensor Xp = im2col(X);
+    GTensor wxb = Xp * this->W + b;
+    GTensor out = wxb.permute({0,2,1}).reshape({N, Cout, Hp, Wp});
+    return out;
+}
+
+// params
+vec<GTensor*> Conv2d::params() {
+    return {&W,&b};
+}
+
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size) {
     assert(batch_size > 0);
