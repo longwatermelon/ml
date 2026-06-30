@@ -53,14 +53,12 @@ struct Sequential : Module {
     vec<std::unique_ptr<Module>> layers;
 
     // add an owned layer to the sequence
-    template <typename Layer, typename... Args>
-    Layer &add(Args&&... args) {
-        static_assert(std::is_base_of<Module, Layer>::value, "Layer must derive from nn::Module");
+    template <typename T>
+    void add(const T &layer) {
+        static_assert(std::is_base_of<Module, T>::value, "Layer must derive from nn::Module");
 
-        auto layer = std::make_unique<Layer>(std::forward<Args>(args)...);
-        Layer &ref = *layer;
-        layers.push_back(std::move(layer));
-        return ref;
+        auto layer_ptr = std::make_unique<T>(layer);
+        layers.push_back(std::move(layer_ptr));
     }
 
     // forward pass

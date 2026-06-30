@@ -3,13 +3,13 @@
 
 int main() {
     nn::Sequential model;
-    model.add<nn::Conv2d>(1, 4, 5);
-    model.add<nn::Relu>();
-    model.add<nn::Conv2d>(4, 8, 5);
-    model.add<nn::Relu>();
-    model.add<nn::Flatten>();
-    model.add<nn::Linear>(8*20*20, 64);
-    model.add<nn::Linear>(64, 10);
+    model.add<nn::Conv2d>(nn::Conv2d(1,4,5));
+    model.add(nn::Relu());
+    model.add(nn::Conv2d(4,8,5));
+    model.add(nn::Relu());
+    model.add(nn::Flatten());
+    model.add(nn::Linear(8*20*20, 64));
+    model.add(nn::Linear(64, 10));
 
     Tensor Xtrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_X.tensor"));
     Tensor Ytrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_Y.tensor"));
