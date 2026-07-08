@@ -16,6 +16,9 @@ struct Module {
     virtual vec<GTensor*> params() = 0;
 };
 
+// train a model
+void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
+
 struct Linear : Module {
     // params
     GTensor W,b;
@@ -92,8 +95,5 @@ struct Flatten : Module {
     // params
     vec<GTensor*> params() override;
 };
-
-// train a model
-void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
 
 } // namespace nn
