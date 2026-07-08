@@ -96,4 +96,20 @@ struct Flatten : Module {
     vec<GTensor*> params() override;
 };
 
+struct Attention : Module {
+    // params
+    GTensor W_Q, W_K, W_V;
+
+    // hyperparams
+    int d, d_k, d_v;
+
+    // ctor
+    Attention(int d, int d_k, int d_v);
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 } // namespace nn

@@ -232,4 +232,44 @@ vec<GTensor*> Flatten::params() {
     return {};
 }
 
+// ---- attention module ----
+
+// ctor
+Attention::Attention(int d, int d_k, int d_v) {
+    this->d = d;
+    this->d_k = d_k;
+    this->d_v = d_v;
+    W_Q = GTensor({d, d_k}, 0.);
+    W_K = GTensor({d, d_k}, 0.);
+    W_V = GTensor({d, d_v}, 0.);
+
+    init_fan_in(W_Q, d);
+    init_fan_in(W_K, d);
+    init_fan_in(W_V, d);
+}
+
+// forward pass
+GTensor Attention::forward(const GTensor &X) {
+    GTensor Q = X * W_Q;
+    GTensor K = X * W_K;
+
+    // calculate S
+    GTensor Snum = Q * K.transpose();
+    GTensor Sdenom = GTensor({1}, sqrt(d_k));
+    GTensor Slogits = Snum.ediv(Sdenom);
+    int last = sz(Slogits.get_tensor().shape) - 1;
+    GTensor S = Slogits.softmax(last);
+
+    // V
+    GTensor V = X * W_V;
+    GTensor Xp = S * V;
+
+    return Xp;
+}
+
+// params
+vec<GTensor*> Attention::params() {
+    return {&W_Q, &W_K, &W_V};
+}
+
 } // namespace nn
