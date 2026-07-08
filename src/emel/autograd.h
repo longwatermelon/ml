@@ -18,6 +18,7 @@ enum class FnType {
     Reshape,
     Gather,
     Permute,
+    Sqrt,
     Leaf, // serves a semantic purpose only, no functional one, since leaves don't have children
 };
 
@@ -127,6 +128,12 @@ public:
     GTensor gather_flat(const Tensor &I) const;
     // permute
     GTensor permute(const vec<int> &p) const;
+    // square root
+    GTensor sqrt() const;
+    // aka permute last two axes
+    GTensor transpose() const;
+    // softmax, composed of primitives
+    GTensor softmax(int axis) const;
 
     // ---- getters ----
 

@@ -1,5 +1,6 @@
 #include "autograd.h"
 #include <unordered_set>
+#include <numeric>
 using namespace autograd;
 
 // ---- ctors ----
@@ -50,6 +51,9 @@ void Value::compute_result() {
         break;
     case FnType::Permute:
         result = adj[0]->result.permute(permute_p);
+        break;
+    case FnType::Sqrt:
+        result = adj[0]->result.apply([](double x){return std::sqrt(x);});
         break;
     case FnType::Leaf:
         break;
@@ -159,6 +163,11 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
 
             out.at(cur) += G.at(permuted);
         } while (advance_ind(cur, orig_shape));
+    } break;
+    case FnType::Sqrt: {
+        Tensor A = args[0]->result;
+        Tensor local = Tensor({1}, 1.).ediv(Tensor({1}, 2.).hadamard(A.apply([](double x){return std::sqrt(x);})));
+        return G.hadamard(local);
     } break;
     case FnType::Leaf: {
     } break;
@@ -366,6 +375,44 @@ GTensor GTensor::permute(const vec<int> &p) const {
         vec<shared_ptr<Value>>{this->value}
     ).with_permute(p));
     out.value->compute_result();
+    return out;
+}
+
+// square root
+GTensor GTensor::sqrt() const {
+    GTensor out;
+    out.value = make_shared<Value>(Value(
+        FnType::Sqrt,
+        vec<shared_ptr<Value>>{this->value}
+    ));
+    out.value->compute_result();
+    return out;
+}
+
+// aka permute last two axes
+GTensor GTensor::transpose() const {
+    // swap last two axes
+    int n = sz(get_tensor().shape);
+    vec<int> p(n);
+    std::iota(all(p), 0);
+    swap(p[n-1], p[n-2]);
+
+    // construct new gtensor
+    return GTensor::permute(p);
+}
+
+// softmax, composed of primitives
+GTensor GTensor::softmax(int axis) const {
+    GTensor out = *this;
+    // nuemrical stability: subtract max logits
+    out = out - max_reduce(axis, true);
+    // exp all logits
+    out = out.exp();
+    // denominators across axis
+    GTensor denom = out.sum_reduce(axis, true);
+    // divide to get probs
+    out = out.ediv(denom);
+
     return out;
 }
 
