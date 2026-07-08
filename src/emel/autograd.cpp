@@ -39,8 +39,7 @@ void Value::compute_result() {
         result = adj[0]->result.sum(axis, keepdims);
         break;
     case FnType::MaxReduce:
-        // argmax mask via one-hot argmax odot with A, then reduce-sum to compress the axis
-        result = adj[0]->result.argmax(axis).hadamard(adj[0]->result).sum(axis, keepdims);
+        result = adj[0]->result.max(axis, keepdims);
         break;
     case FnType::Reshape:
         result = adj[0]->result;

@@ -66,6 +66,8 @@ struct Tensor {
     Tensor transpose() const;
     // sum-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.
     Tensor sum(int axis, bool keepdims) const;
+    // max-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.
+    Tensor max(int axis, bool keepdims) const;
     // return tensor of one-hot encoded argmaxes along axis arrays
     Tensor argmax(int axis) const;
     // replace self with index mapping: new[ind] = this[I[ind]]. Requires I.shape = output shape + rank(this.shape).

@@ -102,9 +102,34 @@ struct Attention : Module {
 
     // hyperparams
     int d, d_k, d_v;
+    bool causal_mask = false;
 
     // ctor
     Attention(int d, int d_k, int d_v);
+    Attention &with_causal_mask() { causal_mask = true; return *this; }
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
+struct MultiHeadAttention : Module {
+    // params
+    vec<Attention> heads;
+    vec<GTensor> W_O;
+
+    // hyperparams
+    int d, h;
+
+    // ctor (d must be divisible by h)
+    MultiHeadAttention(int d, int h);
+    MultiHeadAttention &with_causal_mask() {
+        for (Attention &head : heads) {
+            head.with_causal_mask();
+        }
+        return *this;
+    }
 
     // forward pass
     GTensor forward(const GTensor &A_prev) override;

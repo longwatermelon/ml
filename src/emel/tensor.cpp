@@ -357,6 +357,48 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     return t;
 }
 
+// max-reduce along an axis. keepdims = if reduced axis remains as len 1 or gets deleted.
+Tensor Tensor::max(int axis, bool keepdims) const {
+    int n = sz(shape);
+    assert(0 <= axis && axis < n);
+
+    // set up surrounding ind iteration (excluding axis)
+    vec<int> cur(n-1, 0), limits = shape;
+    limits.erase(begin(limits) + axis);
+
+    // new maxed tensor shape
+    vec<int> new_shape = limits;
+    if (keepdims) {
+        new_shape.insert(begin(new_shape) + axis, 1);
+    }
+    Tensor t(new_shape, 0.);
+
+    // iterate over all axis-exclude inds, flatten axis
+    while (true) {
+        // set up target (for t) and iter (for this)
+        vec<int> target_pos = cur;
+        vec<int> iter_pos = target_pos;
+        iter_pos.insert(begin(iter_pos) + axis, 0);
+        if (keepdims) {
+            target_pos.insert(begin(target_pos) + axis, 0);
+        }
+
+        // iter & max into t
+        t.at(target_pos) = at(iter_pos);
+        for (int i = 1; i < shape[axis]; ++i) {
+            iter_pos[axis] = i;
+            t.at(target_pos) = std::max(t.at(target_pos), at(iter_pos));
+        }
+
+        // advance
+        if (!advance_ind(cur, limits)) {
+            break;
+        }
+    }
+
+    return t;
+}
+
 // return tensor of one-hot encoded argmaxes along axis arrays
 Tensor Tensor::argmax(int axis) const {
     int n = sz(shape);

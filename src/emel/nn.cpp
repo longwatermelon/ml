@@ -257,6 +257,20 @@ GTensor Attention::forward(const GTensor &X) {
     GTensor Snum = Q * K.transpose();
     GTensor Sdenom = GTensor({1}, sqrt(d_k));
     GTensor Slogits = Snum.ediv(Sdenom);
+    // causal mask?
+    if (causal_mask) {
+        int n = sz(X.get_tensor().shape);
+        int T = X.get_tensor().shape[n-2];
+        Tensor M({T,T}, 0.);
+        for (int i = 0; i < T; ++i) {
+            for (int j = i+1; j < T; ++j) {
+                M.at({i,j}) = -std::numeric_limits<double>::infinity();
+            }
+        }
+
+        Slogits = Slogits + GTensor(M);
+    }
+    // logits -> probs
     int last = sz(Slogits.get_tensor().shape) - 1;
     GTensor S = Slogits.softmax(last);
 
@@ -270,6 +284,49 @@ GTensor Attention::forward(const GTensor &X) {
 // params
 vec<GTensor*> Attention::params() {
     return {&W_Q, &W_K, &W_V};
+}
+
+// ---- multi-head attention module ----
+
+// ctor (d must be divisible by h)
+MultiHeadAttention::MultiHeadAttention(int d, int h) {
+    assert(h != 0 && d % h == 0);
+
+    this->d = d;
+    this->h = h;
+
+    // init params
+    W_O.resize(h);
+    for (int i = 0; i < h; ++i) {
+        heads.push_back(Attention(d, d/h, d/h));
+        W_O[i] = GTensor({d/h, d}, 0.);
+        init_fan_in(W_O[i], d);
+    }
+}
+
+// forward pass
+GTensor MultiHeadAttention::forward(const GTensor &X) {
+    vec<GTensor> head_res(h);
+    for (int i = 0; i < h; ++i) {
+        head_res[i] = heads[i].forward(X) * W_O[i];
+    }
+
+    GTensor Xp = head_res[0];
+    for (int i = 1; i < h; ++i) {
+        Xp = Xp + head_res[i];
+    }
+    return Xp;
+}
+
+// params
+vec<GTensor*> MultiHeadAttention::params() {
+    vec<GTensor*> res;
+    for (int i = 0; i < h; ++i) {
+        vec<GTensor*> head_params = heads[i].params();
+        res.insert(end(res), all(head_params));
+        res.push_back(&W_O[i]);
+    }
+    return res;
 }
 
 } // namespace nn
