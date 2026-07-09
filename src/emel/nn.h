@@ -153,4 +153,20 @@ struct LayerNorm : Module {
     vec<GTensor*> params() override;
 };
 
+struct Embedding : Module {
+    // params
+    GTensor W; // [vocab, d] lookup table
+
+    // hyperparams
+    int v, d;
+
+    // ctor
+    Embedding(int vocab, int d);
+
+    // forward pass: map X of indices of shape [...] -> [..., d], replacing indices with vectors
+    GTensor forward(const GTensor &X) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 } // namespace nn

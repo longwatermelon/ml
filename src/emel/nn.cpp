@@ -362,4 +362,49 @@ vec<GTensor*> LayerNorm::params() {
     return {&gamma, &beta};
 }
 
+// ---- embedding module ----
+
+// ctor
+Embedding::Embedding(int vocab, int d) {
+    v = vocab;
+    this->d = d;
+    W = GTensor({v, d}, 0.);
+    W.get_tensor_ref().apply_inplace([](double x){return (double)rand() / RAND_MAX * 0.04 - 0.02;});
+}
+
+// forward pass: map X of indices of shape [...] -> [..., d], replacing indices with vectors
+GTensor Embedding::forward(const GTensor &X) {
+    // setup
+    const Tensor &t = X.get_tensor();
+    vec<int> shape = t.shape;
+    vec<int> new_shape = shape;
+    new_shape.push_back(d);
+    new_shape.push_back(2);
+
+    // index tensor
+    Tensor I(new_shape, 0.);
+    vec<int> cur(sz(shape), 0);
+    vec<int> lim = shape;
+    do {
+        int id = t.at(cur);
+        vec<int> ind = cur;
+        ind.push_back(0); // d
+        ind.push_back(0); // 0 or 1, index tuple
+        for (int i = 0; i < d; ++i) {
+            ind[sz(ind)-2] = i;
+            ind.back() = 0; I.at(ind) = id;
+            ind.back() = 1; I.at(ind) = i;
+        }
+    } while (advance_ind(cur, lim));
+
+    // gather
+    GTensor res = W.gather(I);
+    return res;
+}
+
+// params
+vec<GTensor*> Embedding::params() {
+    return {&W};
+}
+
 } // namespace nn
