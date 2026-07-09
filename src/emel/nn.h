@@ -137,4 +137,20 @@ struct MultiHeadAttention : Module {
     vec<GTensor*> params() override;
 };
 
+struct LayerNorm : Module {
+    // params
+    GTensor gamma, beta;
+
+    // hyperparams
+    int d;
+
+    // ctor
+    LayerNorm(int d);
+
+    // forward pass
+    GTensor forward(const GTensor &A_prev) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 } // namespace nn

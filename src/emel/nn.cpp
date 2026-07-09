@@ -329,4 +329,37 @@ vec<GTensor*> MultiHeadAttention::params() {
     return res;
 }
 
+// ---- layernorm module ----
+
+// ctor
+LayerNorm::LayerNorm(int d) {
+    this->d = d;
+    gamma = GTensor({d}, 1.);
+    beta = GTensor({d}, 0.);
+}
+
+// forward pass
+GTensor LayerNorm::forward(const GTensor &X) {
+    vec<int> shape = X.get_tensor().shape;
+    int n = sz(shape);
+    assert(n > 0 && shape[n-1] == d);
+
+    // mean, var
+    GTensor mean = X.sum_reduce(n-1, true).ediv(GTensor({1}, shape[n-1]));
+    GTensor diff = X - mean;
+    GTensor var = diff.hadamard(diff).sum_reduce(n-1, true).ediv(GTensor({1}, shape[n-1]));
+
+    // compute layernorm
+    double eps = 1e-5;
+    GTensor frac = diff.ediv((var + GTensor({1}, eps)).sqrt());
+    GTensor result = gamma.hadamard(frac) + beta;
+
+    return result;
+}
+
+// params
+vec<GTensor*> LayerNorm::params() {
+    return {&gamma, &beta};
+}
+
 } // namespace nn
