@@ -416,9 +416,9 @@ TransformerBlock::TransformerBlock(int d, int heads, int d_ff)
     this->h = heads;
     this->d_ff = d_ff;
 
-    mlp.add(Linear(d, d_ff));
-    mlp.add(Relu());
-    mlp.add(Linear(d_ff, d));
+    mlp.add<Linear>(d, d_ff);
+    mlp.add<Relu>();
+    mlp.add<Linear>(d_ff, d);
 }
 
 // forward pass

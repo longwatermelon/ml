@@ -3,12 +3,12 @@
 
 int main() {
     nn::Sequential model;
-    model.add(nn::Linear(784, 128));
-    model.add(nn::Relu());
-    model.add(nn::Linear(128, 64));
-    model.add(nn::Relu());
-    model.add(nn::Linear(64, 10));
-    model.add(nn::Softmax());
+    model.add<nn::Linear>(784, 128);
+    model.add<nn::Relu>();
+    model.add<nn::Linear>(128, 64);
+    model.add<nn::Relu>();
+    model.add<nn::Linear>(64, 10);
+    model.add<nn::Softmax>();
 
     Tensor Xtrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_X.tensor"));
     Tensor Ytrain = Tensor::deserialize(read_file_bytes("data/mnist-digits/train_Y.tensor"));

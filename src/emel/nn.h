@@ -55,13 +55,15 @@ struct Softmax : Module {
 struct Sequential : Module {
     vec<std::unique_ptr<Module>> layers;
 
-    // add an owned layer to the sequence
-    template <typename T>
-    void add(const T &layer) {
+    // construct and own a layer in the sequence
+    template <typename T, typename... Args>
+    T &add(Args&&... args) {
         static_assert(std::is_base_of<Module, T>::value, "Layer must derive from nn::Module");
 
-        auto layer_ptr = std::make_unique<T>(layer);
+        auto layer_ptr = std::make_unique<T>(std::forward<Args>(args)...);
+        T &layer = *layer_ptr;
         layers.push_back(std::move(layer_ptr));
+        return layer;
     }
 
     // forward pass
