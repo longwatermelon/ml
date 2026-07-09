@@ -30,3 +30,16 @@ struct Sgd : Optimizer {
     // update parameters
     void step() override;
 };
+
+struct Adam : Optimizer {
+    vec<GTensor*> params;
+    double alpha, beta1, beta2, eps;
+    vec<Tensor> m, v; // first/second moment estimates per param
+    int t; // timestep
+
+    // ctor
+    Adam(const vec<GTensor*> &params, double alpha, double beta1 = 0.9, double beta2 = 0.999, double eps = 1e-8);
+
+    // update parameters
+    void step() override;
+};

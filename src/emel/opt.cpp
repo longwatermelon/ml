@@ -1,4 +1,5 @@
 #include "opt.h"
+#include <cmath>
 
 // ---- loss helpers ----
 
@@ -55,5 +56,42 @@ void Sgd::step() {
     for (GTensor *p : params) {
         // \theta -= \theta \odot grad
         p->get_tensor_ref() -= Tensor({1},alpha).hadamard(p->get_grad());
+    }
+}
+
+// ---- adam ----
+
+// ctor
+Adam::Adam(const vec<GTensor*> &params, double alpha, double beta1, double beta2, double eps) {
+    this->params = params;
+    this->alpha = alpha;
+    this->beta1 = beta1;
+    this->beta2 = beta2;
+    this->eps = eps;
+    this->t = 0;
+
+    // zero-init moment estimates matching param shapes
+    for (GTensor *p : params) {
+        m.push_back(Tensor(p->get_tensor().shape, 0));
+        v.push_back(Tensor(p->get_tensor().shape, 0));
+    }
+}
+
+// update parameters
+void Adam::step() {
+    t++;
+    // bias correction denominators
+    double bc1 = 1 - pow(beta1, t);
+    double bc2 = 1 - pow(beta2, t);
+
+    for (int i = 0; i < sz(params); ++i) {
+        const Tensor &g = params[i]->get_grad();
+
+        m[i] = m[i].apply(g, [&](double mm, double gg) { return beta1*mm + (1-beta1)*gg; });
+        v[i] = v[i].apply(g, [&](double vv, double gg) { return beta2*vv + (1-beta2)*gg*gg; });
+
+        params[i]->get_tensor_ref() -= m[i].apply(v[i], [&](double mm, double vv) {
+            return alpha * (mm/bc1) / (sqrt(vv/bc2) + eps);
+        });
     }
 }
