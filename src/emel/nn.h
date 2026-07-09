@@ -169,4 +169,23 @@ struct Embedding : Module {
     vec<GTensor*> params() override;
 };
 
+struct TransformerBlock : Module {
+    // params
+    MultiHeadAttention attn;
+    LayerNorm ln_attn;
+    Sequential mlp;
+    LayerNorm ln_mlp;
+
+    // hyperparams
+    int d, h, d_ff;
+
+    // ctor
+    TransformerBlock(int d, int heads, int d_ff);
+
+    // forward pass
+    GTensor forward(const GTensor &X) override;
+    // params
+    vec<GTensor*> params() override;
+};
+
 } // namespace nn

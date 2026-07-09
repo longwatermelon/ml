@@ -407,4 +407,39 @@ vec<GTensor*> Embedding::params() {
     return {&W};
 }
 
+// ---- transformer module ----
+
+// ctor
+TransformerBlock::TransformerBlock(int d, int heads, int d_ff)
+    : attn(d, heads), ln_attn(d), ln_mlp(d) {
+    this->d = d;
+    this->h = heads;
+    this->d_ff = d_ff;
+
+    mlp.add(Linear(d, d_ff));
+    mlp.add(Relu());
+    mlp.add(Linear(d_ff, d));
+}
+
+// forward pass
+GTensor TransformerBlock::forward(const GTensor &X) {
+    GTensor res = X;
+    res = res + attn.forward(ln_attn.forward(res));
+    res = res + mlp.forward(ln_mlp.forward(res));
+    return res;
+}
+
+// params
+vec<GTensor*> TransformerBlock::params() {
+    vec<GTensor*> attn_p = attn.params(),
+                  ln_attn_p = ln_attn.params(),
+                  mlp_p = mlp.params(),
+                  ln_mlp_p = ln_mlp.params();
+    vec<GTensor*> res = attn_p;
+    res.insert(end(res), all(ln_attn_p));
+    res.insert(end(res), all(mlp_p));
+    res.insert(end(res), all(ln_mlp_p));
+    return res;
+}
+
 } // namespace nn
