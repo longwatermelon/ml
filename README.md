@@ -11,11 +11,12 @@ File structure:
     - `src/emel/nn.{h,cpp}`: neural network class
     - `src/emel/autograd.{h,cpp}`: autograd
     - `src/emel/opt.{h,cpp}`: gradient descent optimizers
+    - `src/emel/tokenizer.{h,cpp}`: tokenizers
   * `ref/`: the reference notes for the impl.
     - `ref/autograd.tex`: autograd
     - `ref/crossentropy.tex`: proof of cross-entropy (via proper scoring rules)
     - `ref/conv2d.tex`: notes on implementing the conv2d layer
     - `ref/transformer.tex`: attention/mha/transformers
     - `ref/tf2gpt.tex`: from transformers to gpt
-  * `data/`: relevant training/test/etc data to be used by the code.
+  * `data/`: relevant training/test/etc data to be used by the code
   * `Makefile`: makefile.
