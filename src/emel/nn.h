@@ -183,6 +183,10 @@ struct TransformerBlock : Module {
 
     // ctor
     TransformerBlock(int d, int heads, int d_ff);
+    TransformerBlock &with_causal_mask() {
+        attn.with_causal_mask();
+        return *this;
+    }
 
     // forward pass
     GTensor forward(const GTensor &X) override;
