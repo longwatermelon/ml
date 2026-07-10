@@ -15,5 +15,7 @@ File structure:
     - `ref/autograd.tex`: autograd
     - `ref/crossentropy.tex`: proof of cross-entropy (via proper scoring rules)
     - `ref/conv2d.tex`: notes on implementing the conv2d layer
+    - `ref/transformer.tex`: attention/mha/transformers
+    - `ref/tf2gpt.tex`: from transformers to gpt
   * `data/`: relevant training/test/etc data to be used by the code.
   * `Makefile`: makefile.
