@@ -3,27 +3,40 @@
 
 // ---- loss helpers ----
 
+// average every entry and keep the scalar as shape [1]
+static GTensor mean_all(const GTensor &values) {
+    int cnt = values.get_tensor().num_el();
+    GTensor sum = values;
+    int axes = sz(values.get_tensor().shape);
+    for (int axis = axes-1; axis > 0; --axis) {
+        sum = sum.sum_reduce(axis, false);
+    }
+    sum = sum.sum_reduce(0, true);
+    return sum.ediv(GTensor({1}, cnt));
+}
+
 // compute cross entropy from probabilities
 static GTensor cross_entropy_probs(const GTensor &Yhat, const GTensor &Y) {
     GTensor log_Yhat = Yhat.log();
     GTensor YlogYhat = Y.hadamard(log_Yhat);
-    GTensor sum_per_example = YlogYhat.sum_reduce(1, false);
-    GTensor sum_batch = sum_per_example.sum_reduce(0, true);
-    int batch_sz = Y.get_tensor().shape[0];
-    GTensor avg_batch = sum_batch.ediv(GTensor({1}, batch_sz));
-    return -avg_batch;
+    int last_axis = sz(Y.get_tensor().shape) - 1;
+    GTensor sum_per_example = YlogYhat.sum_reduce(last_axis, false);
+
+    return -mean_all(sum_per_example);
 }
 
 // compute cross entropy from logits
 static GTensor cross_entropy_logits(const GTensor &Yhat, const GTensor &Y) {
-    int batch_sz = Y.get_tensor().shape[0];
-    GTensor row_max = Yhat.max_reduce(1, false);
-    GTensor shifted = Yhat - row_max.reshape({batch_sz, 1});
-    GTensor log_sum_exp = shifted.exp().sum_reduce(1, false).log() + row_max;
-    GTensor true_logits = Y.hadamard(Yhat).sum_reduce(1, false);
+    int last_axis = sz(Y.get_tensor().shape) - 1;
+    GTensor row_max = Yhat.max_reduce(last_axis, false);
+    vec<int> new_shape = Y.get_tensor().shape;
+    new_shape.back() = 1;
+    GTensor shifted = Yhat - row_max.reshape(new_shape);
+    GTensor log_sum_exp = shifted.exp().sum_reduce(last_axis, false).log() + row_max;
+    GTensor true_logits = Y.hadamard(Yhat).sum_reduce(last_axis, false);
     GTensor loss_per_example = log_sum_exp - true_logits;
-    GTensor sum_batch = loss_per_example.sum_reduce(0, true);
-    return sum_batch.ediv(GTensor({1}, batch_sz));
+
+    return mean_all(loss_per_example);
 }
 
 // apply loss to nn output
