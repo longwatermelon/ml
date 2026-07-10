@@ -1,6 +1,6 @@
 # README
 
-This repo is my ML playground - my own ML library "emel" plus demos that use it. All of `src/` is my work; `data/` is mostly GPT/Claude's work (fetching datasets & formatting them into my `.tensor` format).
+This repo is my ML playground - my own ML library "emel" plus demos that use it. All of `src/` is my work; `data/` and `tests/` is mostly GPT/Claude's work (fetching datasets & formatting them into my `.tensor` format, and writing tests to check emel's correctness).
 
 File structure:
   * `src/`: demos that utilize the library. All `.cpp` files in here are individual programs.
@@ -19,4 +19,5 @@ File structure:
     - `ref/transformer.tex`: attention/mha/transformers
     - `ref/tf2gpt.tex`: from transformers to gpt
   * `data/`: relevant training/test/etc data to be used by the code
-  * `Makefile`: makefile.
+  * `tests/`: library tests
+  * `Makefile`: makefile
