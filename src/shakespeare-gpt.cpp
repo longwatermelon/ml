@@ -146,7 +146,7 @@ void inference(const string &in_path) {
 
     // generation
     string prompt = "ROMEO: ";
-    int gen_count = 100;
+    int gen_count = 500;
     double temp = 0.8;
     vec<int> toks = tokz.encode(prompt);
     std::mt19937 rng(std::random_device{}());
@@ -181,6 +181,6 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
-    train("shakespeare.bin");
-    // inference("shakespeare.bin");
+    // train("shakespeare2.bin");
+    inference("shakespeare.bin");
 }

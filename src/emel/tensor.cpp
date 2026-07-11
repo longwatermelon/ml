@@ -252,6 +252,12 @@ Tensor Tensor::operator*(const Tensor &o) const {
     int m = lhs.shape[sz(lhs.shape)-1];
     int k = rhs.shape[sz(rhs.shape)-1];
 
+    // materialize before broadcasting: guarantees each matrix is row-major
+    // contiguous (row stride m/k, col stride 1) so the hot loop can run on raw
+    // pointers.
+    lhs = lhs.materialize();
+    rhs = rhs.materialize();
+
     // isolate batch shapes to be broadcasted together; we don't want to
     // broadcast the matrix dimensions together
     vec<int> lhs_batch_shape = lhs.shape, rhs_batch_shape = rhs.shape;
@@ -278,28 +284,31 @@ Tensor Tensor::operator*(const Tensor &o) const {
     Tensor out(out_shape, 0.);
 
     // batch matmuls
+    int batch_flat = 0; // out batch index
     do {
-        // out matrix ptr
-        vec<int> cur = batch_cur;
-        cur.push_back(0);
-        cur.push_back(0);
-        vec<int> lhs_cur = cur;
-        vec<int> rhs_cur = cur;
+        // base offsets of this batch's matrices, via batch strides
+        int lhs_base = 0, rhs_base = 0;
+        for (int a = 0; a < nd-2; ++a) {
+            lhs_base += batch_cur[a] * lhs.stride[a];
+            rhs_base += batch_cur[a] * rhs.stride[a];
+        }
+        const double *A = lhs.data.data() + lhs_base;   // n*m, row-major
+        const double *B = rhs.data.data() + rhs_base;   // m*k, row-major
+        double *C = out.data.data() + batch_flat * n*k; // n*k, row-major
 
+        // carry out matmul
         for (int i = 0; i < n; ++i) {
-            for (int j = 0; j < k; ++j) {
-                cur[nd-2] = i;
-                cur[nd-1] = j;
-                // vector dot: lhs row i, rhs col j
-                for (int x = 0; x < m; ++x) {
-                    lhs_cur[nd-2] = i;
-                    lhs_cur[nd-1] = x;
-                    rhs_cur[nd-2] = x;
-                    rhs_cur[nd-1] = j;
-                    out.at(cur) += lhs.at(lhs_cur) * rhs.at(rhs_cur);
+            double *Crow = C + i*k;
+            for (int x = 0; x < m; ++x) {
+                double a = A[i*m + x];
+                const double *Brow = B + x*k;
+                for (int j = 0; j < k; ++j) {
+                    Crow[j] += a * Brow[j];
                 }
             }
         }
+
+        batch_flat++;
     } while (advance_ind(batch_cur, batch_lim));
 
     return out;
