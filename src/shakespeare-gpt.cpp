@@ -66,18 +66,19 @@ struct GPT : nn::Module {
     }
 };
 
-int main() {
-    int T = 32;
-    int Tmax = 32;
-    int d = 64;
-    int h = 4;
-    int N = 2;
-    int d_ff = 4*d;
-    int B = 8;
-    double lr = 3e-4;
-    int Mtrain = 4096; // # train windows
-    int Mtest = 256; // # test windows
+const int T = 32;
+const int Tmax = 32;
+const int d = 64;
+const int h = 4;
+const int N = 2;
+const int d_ff = 4*d;
+const int B = 8;
+const double lr = 3e-4;
+const int Mtrain = 4096; // # train windows
+const int Mtest = 256; // # test windows
 
+// train model
+void train(const string &out_path) {
     // read text corpus
     std::ifstream ifs("data/shakespeare/input.txt");
     std::stringstream ss;
@@ -94,11 +95,11 @@ int main() {
     vec<int> toks_train(begin(corpus_toks), begin(corpus_toks) + split_ind);
     vec<int> toks_test(begin(corpus_toks) + split_ind, end(corpus_toks));
 
-    // prepare examples: select random subarrays of len T+1
+    // prepare examples: select random subarrays of len Tmax+1
     auto populate_examples = [&](Tensor &X, Tensor &Y, int M, const vec<int> &toks) {
         for (int i = 0; i < M; ++i) {
-            int st = rand() % (sz(toks) - T);
-            for (int j = 0; j < T+1; ++j) {
+            int st = rand() % (sz(toks) - Tmax);
+            for (int j = 0; j < Tmax+1; ++j) {
                 // X
                 if (j < T) {
                     X.at({i, j}) = toks[st+j];
@@ -111,13 +112,25 @@ int main() {
             }
         }
     };
-    Tensor Xtrain({Mtrain,T}, 0.), Ytrain({Mtrain,T,V}, 0.);
+    Tensor Xtrain({Mtrain,Tmax}, 0.), Ytrain({Mtrain,Tmax,V}, 0.);
     populate_examples(Xtrain, Ytrain, Mtrain, toks_train);
-    Tensor Xtest({Mtest,T}, 0.), Ytest({Mtest,T,V}, 0.);
+    Tensor Xtest({Mtest,Tmax}, 0.), Ytest({Mtest,Tmax,V}, 0.);
     populate_examples(Xtest, Ytest, Mtest, toks_test);
 
     // build model
     GPT model(Tmax, d, h, N, d_ff, V);
     Adam opt(model.params(), lr);
     nn::train(model, Xtrain, Ytrain, 2, Loss::CrossEntropyLogits, opt, B);
+
+    // save
+    vec<uint8_t> bytes = nn::save(model);
+    write_file_bytes(out_path, bytes);
+    printf("saved model to path '%s'\n", out_path.c_str());
+}
+
+// load model from path, run inference
+void inference(const string &in_path) {
+}
+
+int main(int argc, char **argv) {
 }

@@ -70,6 +70,14 @@ inline vec<uint8_t> read_file_bytes(const string &path) {
     );
 }
 
+inline void write_file_bytes(const string &path, const vec<uint8_t> &bytes) {
+    std::ofstream out(path, std::ios::binary);
+    assert(out);
+
+    out.write((const char*)bytes.data(), bytes.size());
+    assert(out);
+}
+
 // return if advance successful - false if can't advance anymore
 inline bool advance_ind(vec<int> &cur, const vec<int> &limits) {
     if (cur.empty()) {
