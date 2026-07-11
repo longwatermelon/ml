@@ -1,6 +1,31 @@
 #include "tensor.h"
 #include <cassert>
 
+#ifdef __APPLE__
+#include <Accelerate/Accelerate.h>
+#endif
+
+// row-major matmul C = A*B where A is n*m, B is m*k, C is n*k. C must be zeroed.
+static void sgemm(const float *A, const float *B, float *C, int n, int m, int k) {
+    if (n == 0 || m == 0 || k == 0) return;
+#ifdef __APPLE__
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                n, k, m, 1.f, A, m, B, k, 0.f, C, k);
+#else
+    // portable fallback: naive loops, accumulate into zeroed C
+    for (int i = 0; i < n; ++i) {
+        float *Crow = C + i*k;
+        for (int x = 0; x < m; ++x) {
+            float a = A[i*m + x];
+            const float *Brow = B + x*k;
+            for (int j = 0; j < k; ++j) {
+                Crow[j] += a * Brow[j];
+            }
+        }
+    }
+#endif
+}
+
 // split a contiguous shape around an axis: [outer, len, inner] so that
 // flat index = (a*len + i)*inner + j for outer index a, axis index i, inner index j
 static void axis_split(const vec<int> &shape, int axis, int &outer, int &len, int &inner) {
@@ -224,6 +249,20 @@ Tensor Tensor::operator*(const Tensor &o) const {
     lhs = lhs.materialize();
     rhs = rhs.materialize();
 
+    // fast path: 2d rhs means every batch matrix multiplies the same rhs, so
+    // just stack all batch matrices sequentially vertically, all the rows in it
+    // process in parallel. output shape [batch*n, m]
+    if (sz(rhs.shape) == 2) {
+        vec<int> out_shape = lhs.shape;
+        out_shape.back() = k;
+        Tensor out(out_shape, 0.f);
+        vec<int> row_shape = lhs.shape;
+        row_shape.pop_back(); // total rows across all batches, safe when m=0
+        sgemm(lhs.data.data(), rhs.data.data(), out.data.data(),
+              numel(row_shape), m, k);
+        return out;
+    }
+
     // isolate batch shapes to be broadcasted together; we don't want to
     // broadcast the matrix dimensions together
     vec<int> lhs_batch_shape = lhs.shape, rhs_batch_shape = rhs.shape;
@@ -263,16 +302,7 @@ Tensor Tensor::operator*(const Tensor &o) const {
         float *C = out.data.data() + batch_flat * n*k; // n*k, row-major
 
         // carry out matmul
-        for (int i = 0; i < n; ++i) {
-            float *Crow = C + i*k;
-            for (int x = 0; x < m; ++x) {
-                float a = A[i*m + x];
-                const float *Brow = B + x*k;
-                for (int j = 0; j < k; ++j) {
-                    Crow[j] += a * Brow[j];
-                }
-            }
-        }
+        sgemm(A, B, C, n, m, k);
 
         batch_flat++;
     } while (advance_ind(batch_cur, batch_lim));

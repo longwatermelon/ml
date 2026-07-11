@@ -2,6 +2,11 @@
 
 CXX ?= g++
 CXXFLAGS ?= -std=c++17 -Wall -O2
+
+# apple: accelerate provides cblas_sgemm for the matmul fast path
+ifeq ($(shell uname -s),Darwin)
+LDLIBS += -framework Accelerate
+endif
 DOCTEST_CXXFLAGS ?= $(shell pkg-config --cflags doctest 2>/dev/null)
 EMEL_SOURCES := $(sort $(shell find src/emel -type f -name '*.cpp'))
 TEST_SOURCES := $(sort $(shell find tests -type f -name '*.cpp'))
@@ -16,14 +21,14 @@ TEST_ARGS ?=
 all: shakespeare-gpt
 
 %: src/%.cpp
-	$(CXX) $< $(EMEL_SOURCES) $(CXXFLAGS)
+	$(CXX) $< $(EMEL_SOURCES) $(CXXFLAGS) $(LDLIBS)
 
 test: $(TEST_BIN)
 	./$(TEST_BIN) $(TEST_ARGS)
 
 $(TEST_BIN): $(TEST_OBJECTS) $(SOURCE_DIRS)
 	mkdir -p $(dir $@)
-	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) -o $@
+	$(CXX) $(TEST_OBJECTS) $(CXXFLAGS) $(LDLIBS) -o $@
 
 $(TEST_OBJECT_DIR)/%.o: %.cpp
 	mkdir -p $(dir $@)
