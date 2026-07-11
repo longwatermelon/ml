@@ -441,9 +441,9 @@ void GTensor::compute_all_grads() {
 
     // zero all grads, except for root which should have ∂root/∂root = 1
     for (shared_ptr<Value> node : nodes_ord) {
-        node->grad = node->result.apply([](double x){return 0.;});
+        node->grad = Tensor(node->result.shape, 0.);
     }
-    root->grad = root->result.apply([](double x){return 1.;});
+    root->grad = Tensor(root->result.shape, 1.);
 
     // evaluate in topo order (backwards post-order)
     for (int i = sz(nodes_ord)-1; i >= 0; --i) {

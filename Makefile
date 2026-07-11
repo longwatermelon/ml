@@ -1,7 +1,7 @@
 .PHONY: all test
 
 CXX ?= g++
-CXXFLAGS ?= -std=c++17 -ggdb -Wall -O2
+CXXFLAGS ?= -std=c++17 -Wall -O2
 DOCTEST_CXXFLAGS ?= $(shell pkg-config --cflags doctest 2>/dev/null)
 EMEL_SOURCES := $(sort $(shell find src/emel -type f -name '*.cpp'))
 TEST_SOURCES := $(sort $(shell find tests -type f -name '*.cpp'))

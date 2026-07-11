@@ -67,14 +67,14 @@ struct GPT : nn::Module {
     }
 };
 
-const int T = 32;
-const int Tmax = 32;
-const int d = 64;
+const int T = 128;
+const int Tmax = 128;
+const int d = 128;
 const int h = 4;
 const int N = 4;
 const int d_ff = 4*d;
-const int B = 8;
-const double lr = 3e-4;
+const int B = 32;
+const double lr = 1e-3;
 const int Mtrain = 4096*5; // # train windows
 const int Mtest = 256; // # test windows
 int V;
@@ -90,7 +90,7 @@ CharTokenizer build_tokenizer(const string &filename) {
 }
 
 // train model
-void train(const string &out_path) {
+void train(const string &out_path, int epochs, const string &model_path = "") {
     // tokenize corpus
     string input_path = "data/shakespeare/input.txt";
     CharTokenizer tokz = build_tokenizer(input_path);
@@ -126,8 +126,12 @@ void train(const string &out_path) {
 
     // build model
     GPT model(Tmax, d, h, N, d_ff, V);
+    if (model_path != "") {
+        nn::load(model, read_file_bytes(model_path));
+    }
+
     Adam opt(model.params(), lr);
-    nn::train(model, Xtrain, Ytrain, 4, Loss::CrossEntropyLogitsSparse, opt, B);
+    nn::train(model, Xtrain, Ytrain, epochs, Loss::CrossEntropyLogitsSparse, opt, B);
 
     // save
     vec<uint8_t> bytes = nn::save(model);
@@ -181,6 +185,12 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
-    // train("shakespeare2.bin");
-    inference("shakespeare.bin");
+    if (argc > 1 && strcmp(argv[1], "train") == 0) {
+        train("shakespeare3.bin", 1);
+        for (int i = 0; i < 3; ++i) {
+            train("shakespeare3.bin", 1, "shakespeare3.bin");
+        }
+    } else {
+        inference("shakespeare3.bin");
+    }
 }
