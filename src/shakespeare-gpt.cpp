@@ -186,11 +186,13 @@ void inference(const string &in_path) {
 
 int main(int argc, char **argv) {
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
-        train("shakespeare3.bin", 1);
+        // train
+        train("shakespeare.bin", 1);
         for (int i = 0; i < 3; ++i) {
-            train("shakespeare3.bin", 1, "shakespeare3.bin");
+            train("shakespeare.bin", 1, "shakespeare.bin");
         }
     } else {
-        inference("shakespeare3.bin");
+        // inference
+        inference("shakespeare.bin");
     }
 }
