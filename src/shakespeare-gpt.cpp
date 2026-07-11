@@ -1,6 +1,7 @@
+#include "util.h"
 #include "emel/nn.h"
 #include "emel/tokenizer.h"
-#include <sstream>
+#include <random>
 
 struct GPT : nn::Module {
     // hyperparams
@@ -70,24 +71,30 @@ const int T = 32;
 const int Tmax = 32;
 const int d = 64;
 const int h = 4;
-const int N = 2;
+const int N = 4;
 const int d_ff = 4*d;
 const int B = 8;
 const double lr = 3e-4;
 const int Mtrain = 4096; // # train windows
 const int Mtest = 256; // # test windows
+int V;
 
-// train model
-void train(const string &out_path) {
-    // read text corpus
-    std::ifstream ifs("data/shakespeare/input.txt");
-    std::stringstream ss;
-    ss << ifs.rdbuf();
-    string corpus = ss.str();
+CharTokenizer build_tokenizer(const string &filename) {
+    string corpus = read_file(filename);
 
     // tokenize corpus
     CharTokenizer tokz(corpus);
-    int V = tokz.vocab_size(); // vocab size
+    V = tokz.vocab_size(); // vocab size
+
+    return tokz;
+}
+
+// train model
+void train(const string &out_path) {
+    // tokenize corpus
+    string input_path = "data/shakespeare/input.txt";
+    CharTokenizer tokz = build_tokenizer(input_path);
+    string corpus = read_file(input_path);
     vec<int> corpus_toks = tokz.encode(corpus);
 
     // split corpus into 90% train 10% test
@@ -120,7 +127,7 @@ void train(const string &out_path) {
     // build model
     GPT model(Tmax, d, h, N, d_ff, V);
     Adam opt(model.params(), lr);
-    nn::train(model, Xtrain, Ytrain, 2, Loss::CrossEntropyLogits, opt, B);
+    nn::train(model, Xtrain, Ytrain, 4, Loss::CrossEntropyLogits, opt, B);
 
     // save
     vec<uint8_t> bytes = nn::save(model);
@@ -130,7 +137,50 @@ void train(const string &out_path) {
 
 // load model from path, run inference
 void inference(const string &in_path) {
+    // build tokenizer
+    CharTokenizer tokz(read_file("data/shakespeare/input.txt"));
+
+    // load model
+    GPT model(Tmax, d, h, N, d_ff, V);
+    nn::load(model, read_file_bytes(in_path));
+
+    // generation
+    string prompt = "ROMEO: ";
+    int gen_count = 100;
+    double temp = 0.8;
+    vec<int> toks = tokz.encode(prompt);
+    std::mt19937 rng(std::random_device{}());
+
+    for (int step = 0; step < gen_count; ++step) {
+        // retain only the available context window
+        int ctx_len = min(Tmax, sz(toks));
+        int ctx_start = sz(toks) - ctx_len;
+
+        Tensor X({1, ctx_len}, 0.);
+        for (int t = 0; t < ctx_len; ++t) {
+            X.at({0, t}) = toks[ctx_start + t];
+        }
+
+        // inference
+        Tensor logits = model.forward(X).get_tensor();
+
+        // to prob distribution
+        logits.ediv(Tensor({1}, temp));
+        Tensor S = logits.softmax(1);
+        vec<double> weights(ctx_len);
+        for (int i = 0; i < ctx_len; ++i) {
+            weights[i] = S.at({0,i});
+        }
+
+        // sample from prob distribution
+        std::discrete_distribution<int> sample(all(weights));
+        toks.push_back(sample(rng));
+    }
+
+    printf("%s\n", tokz.decode(toks).c_str());
 }
 
 int main(int argc, char **argv) {
+    // train("shakespeare.bin");
+    inference("shakespeare.bin");
 }

@@ -74,6 +74,8 @@ struct Tensor {
     Tensor gather(const Tensor &I) const;
     // gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
     Tensor gather_flat(const Tensor &I) const;
+    // softmax across specified axis
+    Tensor softmax(int axis) const;
 
     // ---- functionals ----
 

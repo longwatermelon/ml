@@ -466,6 +466,21 @@ Tensor Tensor::gather_flat(const Tensor &I) const {
     return gather(Ip);
 }
 
+// softmax, composed of primitives
+Tensor Tensor::softmax(int axis) const {
+    Tensor out = *this;
+    // nuemrical stability: subtract max logits
+    out = out - out.max(axis, true);
+    // exp all logits
+    out = out.apply([](double x){return exp(x);});
+    // denominators across axis
+    Tensor denom = out.sum(axis, true);
+    // divide to get probs
+    out = out.ediv(denom);
+
+    return out;
+}
+
 // ---- functionals ----
 
 // apply to copy of this
