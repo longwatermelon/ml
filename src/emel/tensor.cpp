@@ -1,47 +1,13 @@
 #include "tensor.h"
 #include <cassert>
 
-// # elements given shape
-static int numel(const vec<int> &shape) {
-    int prod = 1;
-    for (int i = 0; i < sz(shape); ++i) {
-        prod *= shape[i];
-    }
-    return prod;
-}
-
-// shape -> stride, assume contiguous
-static vec<int> shape2stride(const vec<int> &shape) {
-    int prod = 1;
-    vec<int> stride(sz(shape));
-    for (int i = sz(shape)-1; i >= 0; --i) {
-        stride[i] = prod;
-        prod *= shape[i];
-    }
-    return stride;
-}
-
-// returns minimum possible sized shape that a,b can both broadcast to
-static vec<int> parent_shape(const vec<int> &a, const vec<int> &b) {
-    // pre-check: impossible to broadcast?
-    for (int i = 0; i < min(sz(a), sz(b)); ++i) {
-        int a_ind = sz(a)-1-i;
-        int b_ind = sz(b)-1-i;
-        assert(a[a_ind] == b[b_ind] || (a[a_ind] == 1 || b[b_ind] == 1));
-    }
-
-    // find parent shape
-    vec<int> parent(max(sz(a), sz(b)));
-    int aptr = sz(a)-1, bptr = sz(b)-1;
-    for (int i = sz(parent)-1; i >= 0; --i) {
-        parent[i] = max(
-            aptr < 0 ? 1 : a[aptr],
-            bptr < 0 ? 1 : b[bptr]
-        );
-        aptr--;
-        bptr--;
-    }
-    return parent;
+// split a contiguous shape around an axis: [outer, len, inner] so that
+// flat index = (a*len + i)*inner + j for outer index a, axis index i, inner index j
+static void axis_split(const vec<int> &shape, int axis, int &outer, int &len, int &inner) {
+    outer = 1; inner = 1;
+    for (int i = 0; i < axis; ++i) outer *= shape[i];
+    for (int i = axis+1; i < sz(shape); ++i) inner *= shape[i];
+    len = shape[axis];
 }
 
 // ---- ctors ----
@@ -330,6 +296,31 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
 
+    // fast path: contiguous data reduces with flat loops
+    if (is_contiguous()) {
+        vec<int> new_shape = shape;
+        if (keepdims) new_shape[axis] = 1;
+        else new_shape.erase(begin(new_shape) + axis);
+
+        int outer, len, inner;
+        axis_split(shape, axis, outer, len, inner);
+
+        Tensor t(new_shape, 0.f);
+        const float *src = data.data();
+        float *dst = t.data.data();
+        for (int a = 0; a < outer; ++a) {
+            const float *block = src + a*len*inner;
+            float *out = dst + a*inner;
+            for (int i = 0; i < len; ++i) {
+                const float *row = block + i*inner;
+                for (int j = 0; j < inner; ++j) {
+                    out[j] += row[j];
+                }
+            }
+        }
+        return t;
+    }
+
     // set up surrounding ind iteration (excluding axis)
     vec<int> cur(n-1, 0), limits = shape;
     limits.erase(begin(limits) + axis);
@@ -370,6 +361,34 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
 Tensor Tensor::max(int axis, bool keepdims) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
+
+    // fast path: contiguous data reduces with flat loops
+    if (is_contiguous()) {
+        vec<int> new_shape = shape;
+        if (keepdims) new_shape[axis] = 1;
+        else new_shape.erase(begin(new_shape) + axis);
+
+        int outer, len, inner;
+        axis_split(shape, axis, outer, len, inner);
+
+        Tensor t(new_shape, 0.f);
+        const float *src = data.data();
+        float *dst = t.data.data();
+        for (int a = 0; a < outer; ++a) {
+            const float *block = src + a*len*inner;
+            float *out = dst + a*inner;
+            for (int j = 0; j < inner; ++j) {
+                out[j] = block[j];
+            }
+            for (int i = 1; i < len; ++i) {
+                const float *row = block + i*inner;
+                for (int j = 0; j < inner; ++j) {
+                    out[j] = std::max(out[j], row[j]);
+                }
+            }
+        }
+        return t;
+    }
 
     // set up surrounding ind iteration (excluding axis)
     vec<int> cur(n-1, 0), limits = shape;
@@ -412,6 +431,32 @@ Tensor Tensor::max(int axis, bool keepdims) const {
 Tensor Tensor::argmax(int axis) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
+
+    // fast path: contiguous data scans with flat loops
+    if (is_contiguous()) {
+        int outer, len, inner;
+        axis_split(shape, axis, outer, len, inner);
+
+        Tensor out(shape, 0.f);
+        const float *src = data.data();
+        float *dst = out.data.data();
+        for (int a = 0; a < outer; ++a) {
+            const float *block = src + a*len*inner;
+            for (int j = 0; j < inner; ++j) {
+                int best = 0;
+                float best_val = block[j];
+                for (int i = 1; i < len; ++i) {
+                    float v = block[i*inner + j];
+                    if (v > best_val) {
+                        best_val = v;
+                        best = i;
+                    }
+                }
+                dst[(a*len + best)*inner + j] = 1.f;
+            }
+        }
+        return out;
+    }
 
     // iter over all other axes
     vec<int> parent_cur(n-1, 0);
@@ -488,124 +533,6 @@ Tensor Tensor::softmax(int axis) const {
     out = out.ediv(denom);
 
     return out;
-}
-
-// ---- functionals ----
-
-// apply to copy of this
-Tensor Tensor::apply(const std::function<float(float)> &f) const {
-    Tensor out = *this;
-    out.apply_inplace(f);
-    return out;
-}
-
-// applies function between two tensors, auto-broadcasts both tensors as needed
-Tensor Tensor::apply(const Tensor &o, const std::function<float(float, float)> &f) const {
-    Tensor out = *this;
-    out.apply_inplace(o, f);
-    return out;
-}
-
-// apply to this, return ref to this
-Tensor &Tensor::apply_inplace(const std::function<float(float)> &f) {
-    // must materialize before directly operating on logical entries
-    if (!is_contiguous()) {
-        *this = materialize();
-    }
-
-    for (float &value : data) {
-        value = f(value);
-    }
-
-    return *this;
-}
-
-// applies function between two tensors, store result in this, auto-broadcast both tensors as needed
-Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<float(float, float)> &f) {
-    // avoid copies and indexed access for the common equal-shape case
-    if (shape == o.shape && is_contiguous() && o.is_contiguous()) {
-        for (int i = 0; i < sz(data); ++i) {
-            data[i] = f(data[i], o.data[i]);
-        }
-        return *this;
-    }
-
-    // scalar and exact-suffix broadcasting optimizations
-    if (is_contiguous() && o.is_contiguous()) {
-        // rhs is scalar
-        if (o.num_el() == 1) {
-            vec<int> parent = parent_shape(shape, o.shape);
-            float scalar = o.data[0];
-            for (float &value : data) {
-                value = f(value, scalar);
-            }
-            shape = parent;
-            stride = shape2stride(parent);
-            return *this;
-        }
-
-        // lhs is scalar
-        if (num_el() == 1) {
-            vec<int> parent = parent_shape(shape, o.shape);
-            float scalar = data[0];
-            Tensor expanded(parent, 0.f);
-            for (int i = 0; i < sz(expanded.data); ++i) {
-                expanded.data[i] = f(scalar, o.data[i]);
-            }
-            *this = std::move(expanded);
-            return *this;
-        }
-
-        auto is_suffix = [](const vec<int> &big, const vec<int> &suffix) {
-            if (sz(big) <= sz(suffix)) return false;
-
-            int offset = sz(big) - sz(suffix);
-            for (int i = 0; i < sz(suffix); ++i) {
-                if (big[offset + i] != suffix[i]) return false;
-            }
-            return true;
-        };
-
-        // lhs is suffix of rhs
-        if (is_suffix(shape, o.shape)) {
-            int period = o.num_el();
-            for (int base = 0; base < sz(data); base += period) {
-                for (int i = 0; i < period; ++i) {
-                    data[base + i] = f(data[base + i], o.data[i]);
-                }
-            }
-            return *this;
-        }
-
-        // rhs is suffix of lhs
-        if (is_suffix(o.shape, shape)) {
-            int period = num_el();
-            Tensor expanded(o.shape, 0.f);
-            for (int base = 0; base < sz(expanded.data); base += period) {
-                for (int i = 0; i < period; ++i) {
-                    expanded.data[base + i] = f(data[i], o.data[base + i]);
-                }
-            }
-            *this = std::move(expanded);
-            return *this;
-        }
-    }
-
-    Tensor oth = o;
-
-    // broadcast to match shapes
-    vec<int> parent = parent_shape(shape, oth.shape);
-    broadcast(parent);
-    oth.broadcast(parent);
-
-    // apply function
-    *this = materialize();
-    vec<int> cur(sz(parent), 0);
-    do {
-        at(cur) = f(at(cur), oth.at(cur));
-    } while (advance_ind(cur, parent));
-
-    return *this;
 }
 
 // ---- getters ----
