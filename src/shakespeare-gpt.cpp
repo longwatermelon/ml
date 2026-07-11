@@ -114,20 +114,20 @@ void train(const string &out_path) {
 
                 // Y
                 if (j-1 >= 0) {
-                    Y.at({i, j-1, toks[st+j]}) = 1.;
+                    Y.at({i, j-1}) = toks[st+j];
                 }
             }
         }
     };
-    Tensor Xtrain({Mtrain,Tmax}, 0.), Ytrain({Mtrain,Tmax,V}, 0.);
+    Tensor Xtrain({Mtrain,Tmax}, 0.), Ytrain({Mtrain,Tmax}, 0.);
     populate_examples(Xtrain, Ytrain, Mtrain, toks_train);
-    Tensor Xtest({Mtest,Tmax}, 0.), Ytest({Mtest,Tmax,V}, 0.);
+    Tensor Xtest({Mtest,Tmax}, 0.), Ytest({Mtest,Tmax}, 0.);
     populate_examples(Xtest, Ytest, Mtest, toks_test);
 
     // build model
     GPT model(Tmax, d, h, N, d_ff, V);
     Adam opt(model.params(), lr);
-    nn::train(model, Xtrain, Ytrain, 4, Loss::CrossEntropyLogits, opt, B);
+    nn::train(model, Xtrain, Ytrain, 4, Loss::CrossEntropyLogitsSparse, opt, B);
 
     // save
     vec<uint8_t> bytes = nn::save(model);

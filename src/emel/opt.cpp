@@ -39,6 +39,40 @@ static GTensor cross_entropy_logits(const GTensor &Yhat, const GTensor &Y) {
     return mean_all(loss_per_example);
 }
 
+// compute cross entropy from logits, where Y holds class indices (one axis fewer than Yhat)
+static GTensor cross_entropy_logits_sparse(const GTensor &Yhat, const GTensor &Y) {
+    const Tensor &Yi = Y.get_tensor();
+    const vec<int> &yhat_shape = Yhat.get_tensor().shape;
+    assert(sz(Yi.shape) + 1 == sz(yhat_shape));
+
+    // logsumexp over the class axis, max-shifted for stability
+    int last_axis = sz(yhat_shape) - 1;
+    GTensor row_max = Yhat.max_reduce(last_axis, false);
+    vec<int> keep_shape = yhat_shape;
+    keep_shape.back() = 1;
+    GTensor shifted = Yhat - row_max.reshape(keep_shape);
+    GTensor log_sum_exp = shifted.exp().sum_reduce(last_axis, false).log() + row_max;
+
+    // gather the true-class logits: I[ind] = {ind..., Yi[ind]}
+    vec<int> I_shape = Yi.shape;
+    I_shape.push_back(sz(yhat_shape));
+    Tensor I(I_shape, 0.);
+    vec<int> cur(sz(Yi.shape), 0);
+    do {
+        vec<int> icur = cur;
+        icur.push_back(0);
+        for (int a = 0; a < sz(cur); ++a) {
+            icur.back() = a;
+            I.at(icur) = cur[a];
+        }
+        icur.back() = sz(cur);
+        I.at(icur) = Yi.at(cur);
+    } while (advance_ind(cur, Yi.shape));
+    GTensor true_logits = Yhat.gather(I);
+
+    return mean_all(log_sum_exp - true_logits);
+}
+
 // apply loss to nn output
 GTensor apply_loss(const GTensor &Yhat, const GTensor &Y, Loss loss) {
     switch (loss) {
@@ -46,6 +80,8 @@ GTensor apply_loss(const GTensor &Yhat, const GTensor &Y, Loss loss) {
         return cross_entropy_probs(Yhat, Y);
     case Loss::CrossEntropyLogits:
         return cross_entropy_logits(Yhat, Y);
+    case Loss::CrossEntropyLogitsSparse:
+        return cross_entropy_logits_sparse(Yhat, Y);
     }
 
     __builtin_unreachable();

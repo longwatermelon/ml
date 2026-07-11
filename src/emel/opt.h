@@ -6,6 +6,8 @@
 enum class Loss {
     CrossEntropy,
     CrossEntropyLogits,
+    // Y holds class indices (one axis fewer than Yhat) instead of one-hot rows
+    CrossEntropyLogitsSparse,
 };
 
 // apply loss function
