@@ -167,8 +167,8 @@ void inference(const string &in_path) {
         // to prob distribution
         logits.ediv(Tensor({1}, temp));
         Tensor S = logits.softmax(2);
-        vec<double> weights(ctx_len);
-        for (int i = 0; i < ctx_len; ++i) {
+        vec<double> weights(V);
+        for (int i = 0; i < V; ++i) {
             weights[i] = S.at({0, ctx_len - 1, i});
         }
 
