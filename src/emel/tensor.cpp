@@ -558,8 +558,13 @@ vec<uint8_t> Tensor::serialize() const {
 
 // deserialize from bytes
 Tensor Tensor::deserialize(const vec<uint8_t> &bytes) {
-    Tensor out;
     size_t pos = 0;
+    return deserialize(bytes, pos);
+}
+
+// deserialize one tensor from bytes starting at pos, advancing pos past it
+Tensor Tensor::deserialize(const vec<uint8_t> &bytes, size_t &pos) {
+    Tensor out;
 
     // shape info
     uint32_t rank = read_bytes<uint32_t>(bytes, pos);

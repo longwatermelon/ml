@@ -83,6 +83,40 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
     putchar('\n');
 }
 
+// ---- model save/load ----
+
+// serialize model params (state-dict style: params only, no architecture) to bytes
+vec<uint8_t> save(Module &model) {
+    vec<uint8_t> bytes;
+
+    vec<GTensor*> ps = model.params();
+    append_bytes(bytes, (uint32_t)sz(ps));
+    for (GTensor *p : ps) {
+        vec<uint8_t> t_bytes = p->get_tensor().serialize();
+        bytes.insert(bytes.end(), all(t_bytes));
+    }
+
+    return bytes;
+}
+
+// load serialized params into an already-constructed model of the same architecture
+void load(Module &model, const vec<uint8_t> &bytes) {
+    size_t pos = 0;
+
+    vec<GTensor*> ps = model.params();
+    uint32_t n = read_bytes<uint32_t>(bytes, pos);
+    assert((int)n == sz(ps));
+
+    for (GTensor *p : ps) {
+        Tensor t = Tensor::deserialize(bytes, pos);
+        // shape check doubles as an architecture-mismatch check
+        assert(t.shape == p->get_tensor().shape);
+        // assign in place so the autograd Leaf node (and anything pointing at it) stays intact
+        p->get_tensor_ref() = t;
+    }
+    assert(pos == bytes.size());
+}
+
 // ---- linear module ----
 
 // ctor

@@ -97,4 +97,6 @@ struct Tensor {
     vec<uint8_t> serialize() const;
     // deserialize from bytes
     static Tensor deserialize(const vec<uint8_t> &bytes);
+    // deserialize one tensor from bytes starting at pos, advancing pos past it
+    static Tensor deserialize(const vec<uint8_t> &bytes, size_t &pos);
 };

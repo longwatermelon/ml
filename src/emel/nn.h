@@ -19,6 +19,11 @@ struct Module {
 // train a model
 void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
 
+// serialize model params (state-dict style: params only, no architecture) to bytes
+vec<uint8_t> save(Module &model);
+// load serialized params into an already-constructed model of the same architecture
+void load(Module &model, const vec<uint8_t> &bytes);
+
 struct Linear : Module {
     // params
     GTensor W,b;
