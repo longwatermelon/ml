@@ -4,14 +4,15 @@
 #include <cmath>
 #include <cstdlib>
 #include <chrono>
+#include <iomanip>
 
 namespace nn {
 
 // fan-in random weight initialization
 static void init_fan_in(GTensor &W, int fan_in) {
-    double limit = sqrt(6. / fan_in);
-    W.get_tensor_ref().apply_inplace([&](double) {
-        return ((double)rand() / RAND_MAX * 2. - 1.) * limit;
+    float limit = sqrt(6.f / fan_in);
+    W.get_tensor_ref().apply_inplace([&](float) {
+        return ((float)rand() / RAND_MAX * 2.f - 1.f) * limit;
     });
 }
 
@@ -20,7 +21,7 @@ static void init_fan_in(GTensor &W, int fan_in) {
 static Tensor select_minibatch(int st, int cnt, const Tensor &X, vec<int> ord) {
     vec<int> minibatch_shape = X.shape;
     minibatch_shape[0] = cnt;
-    Tensor Xb(minibatch_shape, 0.);
+    Tensor Xb(minibatch_shape, 0.f);
     for (int i = 0; i < cnt; ++i) {
         int ind = ord[st+i];
         vec<int> cur(sz(X.shape), 0);
@@ -53,7 +54,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
         iota(all(inds), 0);
         shuffle(all(inds), g);
 
-        double avg_loss = 0.;
+        float avg_loss = 0.f;
         int minibatch_ind = 0;
         int tot_minibatches = (m+batch_size-1) / batch_size;
         for (int st = 0; st < m; st += batch_size) {
@@ -68,7 +69,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
             GTensor Yhatb = model.forward(Xb);
 
             // diagnostic loss for reporting later
-            avg_loss += apply_loss_scalar(Yhatb, Yb, loss) * ((double)cur_batch / batch_size);
+            avg_loss += apply_loss_scalar(Yhatb, Yb, loss) * ((float)cur_batch / batch_size);
 
             // backward pass
             GTensor g_loss = apply_loss(Yhatb, Yb, loss);
@@ -80,8 +81,9 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
         avg_loss /= tot_minibatches;
 
         // eval
-        printf("\repoch %d/%d done | avg minibatch loss = %.6f\n", epoch+1, epochs, avg_loss);
-        fflush(stdout);
+        std::cout << '\r' << "epoch " << epoch+1 << '/' << epochs
+                  << " done | avg minibatch loss = " << std::fixed << std::setprecision(6)
+                  << avg_loss << '\n' << std::flush;
     }
     putchar('\n');
 
@@ -127,8 +129,8 @@ void load(Module &model, const vec<uint8_t> &bytes) {
 
 // ctor
 Linear::Linear(int n_prev, int n) {
-    W = GTensor({n_prev, n}, 0.);
-    b = GTensor({n}, 0.);
+    W = GTensor({n_prev, n}, 0.f);
+    b = GTensor({n}, 0.f);
 
     init_fan_in(W, n_prev);
 }
@@ -202,8 +204,8 @@ Conv2d::Conv2d(int in_channels, int out_channels, int kernel_size) {
     W = GTensor({
         in_channels * kernel_size * kernel_size,
         out_channels
-    }, 0.);
-    b = GTensor({out_channels}, 0.);
+    }, 0.f);
+    b = GTensor({out_channels}, 0.f);
     k = kernel_size;
 
     init_fan_in(W, in_channels * kernel_size * kernel_size);
@@ -222,7 +224,7 @@ GTensor Conv2d::forward(const GTensor &X) {
     // batched
     auto im2col = [&](const GTensor &X) {
         GTensor Xr = X.reshape({N, Cin * H * W});
-        Tensor I({N, Hp*Wp, Cin*k*k, 2}, 0.);
+        Tensor I({N, Hp*Wp, Cin*k*k, 2}, 0.f);
         for (int b = 0; b < N; ++b) {
             for (int i = 0; i < Hp; ++i) {
                 for (int j = 0; j < Wp; ++j) {
@@ -279,9 +281,9 @@ Attention::Attention(int d, int d_k, int d_v) {
     this->d = d;
     this->d_k = d_k;
     this->d_v = d_v;
-    W_Q = GTensor({d, d_k}, 0.);
-    W_K = GTensor({d, d_k}, 0.);
-    W_V = GTensor({d, d_v}, 0.);
+    W_Q = GTensor({d, d_k}, 0.f);
+    W_K = GTensor({d, d_k}, 0.f);
+    W_V = GTensor({d, d_v}, 0.f);
 
     init_fan_in(W_Q, d);
     init_fan_in(W_K, d);
@@ -295,16 +297,16 @@ GTensor Attention::forward(const GTensor &X) {
 
     // calculate S
     GTensor Snum = Q * K.transpose();
-    GTensor Sdenom = GTensor({1}, sqrt(d_k));
+    GTensor Sdenom = GTensor({1}, sqrt((float)d_k));
     GTensor Slogits = Snum.ediv(Sdenom);
     // causal mask?
     if (causal_mask) {
         int n = sz(X.get_tensor().shape);
         int T = X.get_tensor().shape[n-2];
-        Tensor M({T,T}, 0.);
+        Tensor M({T,T}, 0.f);
         for (int i = 0; i < T; ++i) {
             for (int j = i+1; j < T; ++j) {
-                M.at({i,j}) = -std::numeric_limits<double>::infinity();
+                M.at({i,j}) = -std::numeric_limits<float>::infinity();
             }
         }
 
@@ -339,7 +341,7 @@ MultiHeadAttention::MultiHeadAttention(int d, int h) {
     W_O.resize(h);
     for (int i = 0; i < h; ++i) {
         heads.push_back(Attention(d, d/h, d/h));
-        W_O[i] = GTensor({d/h, d}, 0.);
+        W_O[i] = GTensor({d/h, d}, 0.f);
         init_fan_in(W_O[i], d);
     }
 }
@@ -374,8 +376,8 @@ vec<GTensor*> MultiHeadAttention::params() {
 // ctor
 LayerNorm::LayerNorm(int d) {
     this->d = d;
-    gamma = GTensor({d}, 1.);
-    beta = GTensor({d}, 0.);
+    gamma = GTensor({d}, 1.f);
+    beta = GTensor({d}, 0.f);
 }
 
 // forward pass
@@ -390,7 +392,7 @@ GTensor LayerNorm::forward(const GTensor &X) {
     GTensor var = diff.hadamard(diff).sum_reduce(n-1, true).ediv(GTensor({1}, shape[n-1]));
 
     // compute layernorm
-    double eps = 1e-5;
+    float eps = 1e-5f;
     GTensor frac = diff.ediv((var + GTensor({1}, eps)).sqrt());
     GTensor result = gamma.hadamard(frac) + beta;
 
@@ -408,8 +410,8 @@ vec<GTensor*> LayerNorm::params() {
 Embedding::Embedding(int vocab, int d) {
     v = vocab;
     this->d = d;
-    W = GTensor({v, d}, 0.);
-    W.get_tensor_ref().apply_inplace([](double x){return (double)rand() / RAND_MAX * 0.04 - 0.02;});
+    W = GTensor({v, d}, 0.f);
+    W.get_tensor_ref().apply_inplace([](float x){return (float)rand() / RAND_MAX * 0.04f - 0.02f;});
 }
 
 // forward pass: map X of indices of shape [...] -> [..., d], replacing indices with vectors
@@ -422,11 +424,11 @@ GTensor Embedding::forward(const GTensor &X) {
     new_shape.push_back(2);
 
     // index tensor
-    Tensor I(new_shape, 0.);
+    Tensor I(new_shape, 0.f);
     vec<int> cur(sz(shape), 0);
     vec<int> lim = shape;
     do {
-        int id = t.at(cur);
+        int id = (int)t.at(cur);
         vec<int> ind = cur;
         ind.push_back(0); // d
         ind.push_back(0); // 0 or 1, index tuple

@@ -13,7 +13,7 @@ enum class Loss {
 // apply loss function
 GTensor apply_loss(const GTensor &Yhat, const GTensor &Y, Loss loss);
 // apply loss function, but return scalar
-double apply_loss_scalar(const GTensor &Yhat, const GTensor &Y, Loss loss);
+float apply_loss_scalar(const GTensor &Yhat, const GTensor &Y, Loss loss);
 
 struct Optimizer {
     // cleanup derived optimizers through base pointers
@@ -24,10 +24,10 @@ struct Optimizer {
 
 struct Sgd : Optimizer {
     vec<GTensor*> params;
-    double alpha;
+    float alpha;
 
     // ctor
-    Sgd(const vec<GTensor*> &params, double alpha);
+    Sgd(const vec<GTensor*> &params, float alpha);
 
     // update parameters
     void step() override;
@@ -35,12 +35,12 @@ struct Sgd : Optimizer {
 
 struct Adam : Optimizer {
     vec<GTensor*> params;
-    double alpha, beta1, beta2, eps;
+    float alpha, beta1, beta2, eps;
     vec<Tensor> m, v; // first/second moment estimates per param
     int t; // timestep
 
     // ctor
-    Adam(const vec<GTensor*> &params, double alpha, double beta1 = 0.9, double beta2 = 0.999, double eps = 1e-8);
+    Adam(const vec<GTensor*> &params, float alpha, float beta1 = 0.9f, float beta2 = 0.999f, float eps = 1e-8f);
 
     // update parameters
     void step() override;

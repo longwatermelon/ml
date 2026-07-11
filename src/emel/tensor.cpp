@@ -47,14 +47,14 @@ static vec<int> parent_shape(const vec<int> &a, const vec<int> &b) {
 // ---- ctors ----
 
 // 1d tensor from a vector
-Tensor::Tensor(const vec<double> &data_1d) {
+Tensor::Tensor(const vec<float> &data_1d) {
     shape = {sz(data_1d)};
     stride = {1};
     data = data_1d;
 }
 
 // 2d tensor from a 2d vector
-Tensor::Tensor(const vec2<double> &data_2d) {
+Tensor::Tensor(const vec2<float> &data_2d) {
     shape = {sz(data_2d), sz(data_2d[0])};
     stride = {sz(data_2d[0]), 1};
     data.resize(shape[0] * shape[1]);
@@ -66,11 +66,11 @@ Tensor::Tensor(const vec2<double> &data_2d) {
 }
 
 // tensor with given shape, filled with value
-Tensor::Tensor(const vec<int> &shape, double value) {
+Tensor::Tensor(const vec<int> &shape, float value) {
     this->shape = shape;
     stride = shape2stride(shape);
     int n = numel(shape);
-    data = vec<double>(n, value);
+    data = vec<float>(n, value);
 }
 
 // ---- shape ops ----
@@ -133,7 +133,7 @@ Tensor Tensor::permute(const vec<int> &p) const {
         new_shape[i] = shape[p[i]];
         new_stride[i] = stride[p[i]];
     }
-    Tensor out(new_shape, 0.);
+    Tensor out(new_shape, 0.f);
     out.stride = new_stride;
     out.data = data;
     return out;
@@ -158,7 +158,7 @@ Tensor Tensor::materialize() const {
     // materialize
     int n = sz(shape);
     vec<int> cur(n);
-    Tensor t(shape, 0.);
+    Tensor t(shape, 0.f);
     do {
         t.at(cur) = at(cur);
     } while (advance_ind(cur, shape));
@@ -173,7 +173,7 @@ bool Tensor::is_contiguous() const {
 // ---- element access ----
 
 // lvalue ref
-double &Tensor::at(const vec<int> &ind) {
+float &Tensor::at(const vec<int> &ind) {
     assert(sz(ind) == sz(shape));
 
     int flat_ind = 0;
@@ -187,7 +187,7 @@ double &Tensor::at(const vec<int> &ind) {
 }
 
 // rvalue
-double Tensor::at(const vec<int> &ind) const {
+float Tensor::at(const vec<int> &ind) const {
     assert(sz(ind) == sz(shape));
 
     int flat_ind = 0;
@@ -204,39 +204,39 @@ double Tensor::at(const vec<int> &ind) const {
 
 // element-wise sum
 Tensor Tensor::operator+(const Tensor &o) const {
-    return apply(o, [](double x, double y){return x+y;});
+    return apply(o, [](float x, float y){return x+y;});
 }
 
 // element-wise difference
 Tensor Tensor::operator-(const Tensor &o) const {
-    return apply(o, [](double x, double y){return x-y;});
+    return apply(o, [](float x, float y){return x-y;});
 }
 
 // in-place element-wise addition
 Tensor &Tensor::operator+=(const Tensor &o) {
-    apply_inplace(o, [](double x, double y){return x+y;});
+    apply_inplace(o, [](float x, float y){return x+y;});
     return *this;
 }
 
 // in-place element-wise subtraction
 Tensor &Tensor::operator-=(const Tensor &o) {
-    apply_inplace(o, [](double x, double y){return x-y;});
+    apply_inplace(o, [](float x, float y){return x-y;});
     return *this;
 }
 
 // element-wise prod
 Tensor Tensor::hadamard(const Tensor &o) const {
-    return apply(o, [](double x, double y){return x*y;});
+    return apply(o, [](float x, float y){return x*y;});
 }
 
 // element-wise div
 Tensor Tensor::ediv(const Tensor &o) const {
-    return apply(o, [](double x, double y){return x/y;});
+    return apply(o, [](float x, float y){return x/y;});
 }
 
 // unary negation
 Tensor Tensor::operator-() const {
-    return apply([](double x) { return -x; });
+    return apply([](float x) { return -x; });
 }
 
 // matmul on least significant two axes, parallelized across the rest
@@ -281,7 +281,7 @@ Tensor Tensor::operator*(const Tensor &o) const {
     vec<int> out_shape = batch_lim;
     out_shape.push_back(n);
     out_shape.push_back(k);
-    Tensor out(out_shape, 0.);
+    Tensor out(out_shape, 0.f);
 
     // batch matmuls
     int batch_flat = 0; // out batch index
@@ -292,16 +292,16 @@ Tensor Tensor::operator*(const Tensor &o) const {
             lhs_base += batch_cur[a] * lhs.stride[a];
             rhs_base += batch_cur[a] * rhs.stride[a];
         }
-        const double *A = lhs.data.data() + lhs_base;   // n*m, row-major
-        const double *B = rhs.data.data() + rhs_base;   // m*k, row-major
-        double *C = out.data.data() + batch_flat * n*k; // n*k, row-major
+        const float *A = lhs.data.data() + lhs_base;   // n*m, row-major
+        const float *B = rhs.data.data() + rhs_base;   // m*k, row-major
+        float *C = out.data.data() + batch_flat * n*k; // n*k, row-major
 
         // carry out matmul
         for (int i = 0; i < n; ++i) {
-            double *Crow = C + i*k;
+            float *Crow = C + i*k;
             for (int x = 0; x < m; ++x) {
-                double a = A[i*m + x];
-                const double *Brow = B + x*k;
+                float a = A[i*m + x];
+                const float *Brow = B + x*k;
                 for (int j = 0; j < k; ++j) {
                     Crow[j] += a * Brow[j];
                 }
@@ -339,7 +339,7 @@ Tensor Tensor::sum(int axis, bool keepdims) const {
     if (keepdims) {
         new_shape.insert(begin(new_shape) + axis, 1);
     }
-    Tensor t(new_shape, 0.);
+    Tensor t(new_shape, 0.f);
 
     // iterate over all axis-exclude inds, flatten axis
     while (true) {
@@ -380,7 +380,7 @@ Tensor Tensor::max(int axis, bool keepdims) const {
     if (keepdims) {
         new_shape.insert(begin(new_shape) + axis, 1);
     }
-    Tensor t(new_shape, 0.);
+    Tensor t(new_shape, 0.f);
 
     // iterate over all axis-exclude inds, flatten axis
     while (true) {
@@ -417,7 +417,7 @@ Tensor Tensor::argmax(int axis) const {
     vec<int> parent_cur(n-1, 0);
     vec<int> parent_lim = shape;
     parent_lim.erase(begin(parent_lim) + axis);
-    Tensor out(shape, 0.);
+    Tensor out(shape, 0.f);
     do {
         // identify argmax
         vec<int> cur = parent_cur;
@@ -431,7 +431,7 @@ Tensor Tensor::argmax(int axis) const {
         }
 
         // set 1 in out at argmax
-        out.at(mx_ind) = 1.;
+        out.at(mx_ind) = 1.f;
     } while (advance_ind(parent_cur, parent_lim));
 
     return out;
@@ -445,7 +445,7 @@ Tensor Tensor::gather(const Tensor &I) const {
     // iter over entries in I
     vec<int> output_shape = I.shape;
     output_shape.pop_back();
-    Tensor out(output_shape, 0.);
+    Tensor out(output_shape, 0.f);
     vec<int> cur(sz(output_shape), 0);
     vec<int> lim = output_shape;
     do {
@@ -465,7 +465,7 @@ Tensor Tensor::gather(const Tensor &I) const {
     return out;
 }
 
-// gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+// gather, except if this is 1D, we exclude the redundant trailing axis of length 1
 Tensor Tensor::gather_flat(const Tensor &I) const {
     assert(sz(shape) == 1);
     Tensor Ip = I;
@@ -481,7 +481,7 @@ Tensor Tensor::softmax(int axis) const {
     // nuemrical stability: subtract max logits
     out = out - out.max(axis, true);
     // exp all logits
-    out = out.apply([](double x){return exp(x);});
+    out = out.apply([](float x){return exp(x);});
     // denominators across axis
     Tensor denom = out.sum(axis, true);
     // divide to get probs
@@ -493,27 +493,27 @@ Tensor Tensor::softmax(int axis) const {
 // ---- functionals ----
 
 // apply to copy of this
-Tensor Tensor::apply(const std::function<double(double)> &f) const {
+Tensor Tensor::apply(const std::function<float(float)> &f) const {
     Tensor out = *this;
     out.apply_inplace(f);
     return out;
 }
 
 // applies function between two tensors, auto-broadcasts both tensors as needed
-Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)> &f) const {
+Tensor Tensor::apply(const Tensor &o, const std::function<float(float, float)> &f) const {
     Tensor out = *this;
     out.apply_inplace(o, f);
     return out;
 }
 
 // apply to this, return ref to this
-Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
+Tensor &Tensor::apply_inplace(const std::function<float(float)> &f) {
     // must materialize before directly operating on logical entries
     if (!is_contiguous()) {
         *this = materialize();
     }
 
-    for (double &value : data) {
+    for (float &value : data) {
         value = f(value);
     }
 
@@ -521,7 +521,7 @@ Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
 }
 
 // applies function between two tensors, store result in this, auto-broadcast both tensors as needed
-Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double, double)> &f) {
+Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<float(float, float)> &f) {
     // avoid copies and indexed access for the common equal-shape case
     if (shape == o.shape && is_contiguous() && o.is_contiguous()) {
         for (int i = 0; i < sz(data); ++i) {
@@ -535,8 +535,8 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
         // rhs is scalar
         if (o.num_el() == 1) {
             vec<int> parent = parent_shape(shape, o.shape);
-            double scalar = o.data[0];
-            for (double &value : data) {
+            float scalar = o.data[0];
+            for (float &value : data) {
                 value = f(value, scalar);
             }
             shape = parent;
@@ -547,8 +547,8 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
         // lhs is scalar
         if (num_el() == 1) {
             vec<int> parent = parent_shape(shape, o.shape);
-            double scalar = data[0];
-            Tensor expanded(parent, 0.);
+            float scalar = data[0];
+            Tensor expanded(parent, 0.f);
             for (int i = 0; i < sz(expanded.data); ++i) {
                 expanded.data[i] = f(scalar, o.data[i]);
             }
@@ -580,7 +580,7 @@ Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double
         // rhs is suffix of lhs
         if (is_suffix(o.shape, shape)) {
             int period = num_el();
-            Tensor expanded(o.shape, 0.);
+            Tensor expanded(o.shape, 0.f);
             for (int base = 0; base < sz(expanded.data); base += period) {
                 for (int i = 0; i < period; ++i) {
                     expanded.data[base + i] = f(data[i], o.data[base + i]);
@@ -630,7 +630,7 @@ vec<uint8_t> Tensor::serialize() const {
 
     // data info
     append_bytes(bytes, (uint64_t)out.data.size());
-    append_bytes_count(bytes, out.data.data(), out.data.size() * sizeof(double));
+    append_bytes_count(bytes, out.data.data(), out.data.size() * sizeof(float));
 
     return bytes;
 }
@@ -655,7 +655,7 @@ Tensor Tensor::deserialize(const vec<uint8_t> &bytes, size_t &pos) {
     // data info
     uint64_t data_len = read_bytes<uint64_t>(bytes, pos);
     out.data.resize(data_len);
-    read_bytes_count<double>(bytes, pos, out.data.data(), data_len * sizeof(double));
+    read_bytes_count<float>(bytes, pos, out.data.data(), data_len * sizeof(float));
 
     // recompute stride
     out.stride = shape2stride(out.shape);

@@ -107,7 +107,7 @@ def x_shape(example_count, rows, cols, flatten):
     return [example_count, 1, rows, cols]
 
 
-# write a Tensor-compatible dense double tensor
+# write a Tensor-compatible dense float tensor
 def write_tensor(path, shape, values):
     expected = shape_numel(shape)
     written = 0
@@ -123,12 +123,12 @@ def write_tensor(path, shape, values):
         for value in values:
             chunk.append(value)
             if len(chunk) == TENSOR_VALUE_CHUNK:
-                f.write(struct.pack(f"<{len(chunk)}d", *chunk))
+                f.write(struct.pack(f"<{len(chunk)}f", *chunk))
                 written += len(chunk)
                 chunk.clear()
 
         if chunk:
-            f.write(struct.pack(f"<{len(chunk)}d", *chunk))
+            f.write(struct.pack(f"<{len(chunk)}f", *chunk))
             written += len(chunk)
 
     if written != expected:

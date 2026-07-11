@@ -21,19 +21,19 @@ void Value::compute_result() {
         result = adj[0]->result.ediv(adj[1]->result);
         break;
     case FnType::Exp:
-        result = adj[0]->result.apply([](double x){return exp(x);});
+        result = adj[0]->result.apply([](float x){return exp(x);});
         break;
     case FnType::Hadamard:
         result = adj[0]->result.hadamard(adj[1]->result);
         break;
     case FnType::Log:
-        result = adj[0]->result.apply([](double x){return log(x);});
+        result = adj[0]->result.apply([](float x){return log(x);});
         break;
     case FnType::Matmul:
         result = adj[0]->result * adj[1]->result;
         break;
     case FnType::Relu:
-        result = adj[0]->result.apply([](double x){return max(0., x);});
+        result = adj[0]->result.apply([](float x){return max(0.f, x);});
         break;
     case FnType::SumReduce:
         result = adj[0]->result.sum(axis, keepdims);
@@ -52,7 +52,7 @@ void Value::compute_result() {
         result = adj[0]->result.permute(permute_p);
         break;
     case FnType::Sqrt:
-        result = adj[0]->result.apply([](double x){return std::sqrt(x);});
+        result = adj[0]->result.apply([](float x){return std::sqrt(x);});
         break;
     case FnType::Leaf:
         break;
@@ -88,24 +88,24 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
             out = G.ediv(B);
         } else if (i == 1) {
             Tensor &A = args[0]->result;
-            Tensor negG = G.apply([](double x){return -x;});
-            Tensor bsq = B.apply([](double x){return x*x;});
+            Tensor negG = G.apply([](float x){return -x;});
+            Tensor bsq = B.apply([](float x){return x*x;});
             out = negG.hadamard(A).ediv(bsq);
         }
     } break;
     case FnType::Relu: {
         Tensor &A = args[0]->result;
-        Tensor filter_A = A.apply([](double x){return x > 0 ? 1. : 0.;});
+        Tensor filter_A = A.apply([](float x){return x > 0 ? 1.f : 0.f;});
         out = G.hadamard(filter_A);
     } break;
     case FnType::Exp: {
         Tensor &A = args[0]->result;
-        Tensor exp_A = A.apply([](double x){return exp(x);});
+        Tensor exp_A = A.apply([](float x){return exp(x);});
         out = G.hadamard(exp_A);
     } break;
     case FnType::Log: {
         Tensor &A = args[0]->result;
-        Tensor inv_A = A.apply([](double x){return 1./x;});
+        Tensor inv_A = A.apply([](float x){return 1.f/x;});
         out = G.hadamard(inv_A);
     } break;
     case FnType::SumReduce: {
@@ -131,7 +131,7 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
         out.reshape(args[0]->result.shape);
     } break;
     case FnType::Gather: {
-        out = Tensor(args[0]->result.shape, 0.);
+        out = Tensor(args[0]->result.shape, 0.f);
 
         // iter over I entries
         vec<int> output_shape = gather_I.shape;
@@ -152,7 +152,7 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
     } break;
     case FnType::Permute: {
         vec<int> orig_shape = args[0]->result.shape;
-        out = Tensor(orig_shape, 0.);
+        out = Tensor(orig_shape, 0.f);
         vec<int> cur(sz(orig_shape), 0);
         do {
             vec<int> permuted(sz(cur));
@@ -165,7 +165,7 @@ static Tensor fn_g(FnType f_type, int i, const Tensor &G, const vec<shared_ptr<V
     } break;
     case FnType::Sqrt: {
         Tensor A = args[0]->result;
-        Tensor local = Tensor({1}, 1.).ediv(Tensor({1}, 2.).hadamard(A.apply([](double x){return std::sqrt(x);})));
+        Tensor local = Tensor({1}, 1.f).ediv(Tensor({1}, 2.f).hadamard(A.apply([](float x){return std::sqrt(x);})));
         return G.hadamard(local);
     } break;
     case FnType::Leaf: {
@@ -194,21 +194,21 @@ GTensor::GTensor(const Tensor &val) {
 }
 
 // tensor constructor
-GTensor::GTensor(const vec<int> &shape, double value) {
+GTensor::GTensor(const vec<int> &shape, float value) {
     Tensor t(shape, value);
     this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
     this->value->result = t;
 }
 
 // tensor constructor
-GTensor::GTensor(const vec<double> &data_1d) {
+GTensor::GTensor(const vec<float> &data_1d) {
     Tensor t(data_1d);
     this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
     this->value->result = t;
 }
 
 // tensor constructor
-GTensor::GTensor(const vec2<double> &data_2d) {
+GTensor::GTensor(const vec2<float> &data_2d) {
     Tensor t(data_2d);
     this->value = make_shared<Value>(FnType::Leaf, vec<shared_ptr<Value>>{});
     this->value->result = t;
@@ -317,7 +317,7 @@ GTensor GTensor::max_reduce(int axis, bool keepdims) const {
 
 // negate
 GTensor GTensor::operator-() const {
-    GTensor neg1({1}, -1.);
+    GTensor neg1({1}, -1.f);
     return neg1.hadamard(*this);
 }
 
@@ -348,7 +348,7 @@ GTensor GTensor::gather(const Tensor &I) const {
     return out;
 }
 
-// gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+// gather, except if this is 1D, we exclude the redundant trailing axis of length 1
 GTensor GTensor::gather_flat(const Tensor &I) const {
     assert(sz(value->result.shape) == 1);
 
@@ -441,9 +441,9 @@ void GTensor::compute_all_grads() {
 
     // zero all grads, except for root which should have ∂root/∂root = 1
     for (shared_ptr<Value> node : nodes_ord) {
-        node->grad = Tensor(node->result.shape, 0.);
+        node->grad = Tensor(node->result.shape, 0.f);
     }
-    root->grad = Tensor(root->result.shape, 1.);
+    root->grad = Tensor(root->result.shape, 1.f);
 
     // evaluate in topo order (backwards post-order)
     for (int i = sz(nodes_ord)-1; i >= 0; --i) {

@@ -17,7 +17,7 @@ int main() {
 
     vprint(all(Xtrain.shape));
 
-    Sgd opt(model.params(), 0.15);
+    Sgd opt(model.params(), 0.15f);
     nn::train(model, Xtrain, Ytrain, 10, Loss::CrossEntropy, opt, 32);
 
     Tensor Yhat = model.forward(Xtest).get_tensor();
@@ -26,7 +26,7 @@ int main() {
     Tensor Yhat_argmax = Yhat.argmax(1);
     Tensor Ytest_argmax = Ytest.argmax(1);
     Tensor share_mask = Yhat_argmax.hadamard(Ytest_argmax);
-    double count = share_mask.sum(0, false).sum(0, true).at({0});
-    double accuracy = count / Ytest.shape[0];
+    float count = share_mask.sum(0, false).sum(0, true).at({0});
+    float accuracy = count / Ytest.shape[0];
     printf("accuracy: %f\n", accuracy);
 }

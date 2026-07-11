@@ -90,11 +90,11 @@ public:
     // init with a tensor
     GTensor(const Tensor &val);
     // tensor constructor
-    GTensor(const vec<int> &shape, double value);
+    GTensor(const vec<int> &shape, float value);
     // tensor constructor
-    GTensor(const vec<double> &data_1d);
+    GTensor(const vec<float> &data_1d);
     // tensor constructor
-    GTensor(const vec2<double> &data_2d);
+    GTensor(const vec2<float> &data_2d);
 
     // ---- operators ----
 

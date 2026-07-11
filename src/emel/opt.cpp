@@ -56,7 +56,7 @@ static GTensor cross_entropy_logits_sparse(const GTensor &Yhat, const GTensor &Y
     // gather the true-class logits: I[ind] = {ind..., Yi[ind]}
     vec<int> I_shape = Yi.shape;
     I_shape.push_back(sz(yhat_shape));
-    Tensor I(I_shape, 0.);
+    Tensor I(I_shape, 0.f);
     vec<int> cur(sz(Yi.shape), 0);
     do {
         vec<int> icur = cur;
@@ -88,14 +88,14 @@ GTensor apply_loss(const GTensor &Yhat, const GTensor &Y, Loss loss) {
 }
 
 // apply loss function, but return scalar
-double apply_loss_scalar(const GTensor &Yhat, const GTensor &Y, Loss loss) {
+float apply_loss_scalar(const GTensor &Yhat, const GTensor &Y, Loss loss) {
     return apply_loss(Yhat, Y, loss).get_tensor().at({0});
 }
 
 // ---- sgd ----
 
 // ctor
-Sgd::Sgd(const vec<GTensor*> &params, double alpha) {
+Sgd::Sgd(const vec<GTensor*> &params, float alpha) {
     this->params = params;
     this->alpha = alpha;
 }
@@ -111,7 +111,7 @@ void Sgd::step() {
 // ---- adam ----
 
 // ctor
-Adam::Adam(const vec<GTensor*> &params, double alpha, double beta1, double beta2, double eps) {
+Adam::Adam(const vec<GTensor*> &params, float alpha, float beta1, float beta2, float eps) {
     this->params = params;
     this->alpha = alpha;
     this->beta1 = beta1;
@@ -130,16 +130,16 @@ Adam::Adam(const vec<GTensor*> &params, double alpha, double beta1, double beta2
 void Adam::step() {
     t++;
     // bias correction denominators
-    double bc1 = 1 - pow(beta1, t);
-    double bc2 = 1 - pow(beta2, t);
+    float bc1 = 1 - pow(beta1, (float)t);
+    float bc2 = 1 - pow(beta2, (float)t);
 
     for (int i = 0; i < sz(params); ++i) {
         const Tensor &g = params[i]->get_grad();
 
-        m[i] = m[i].apply(g, [&](double mm, double gg) { return beta1*mm + (1-beta1)*gg; });
-        v[i] = v[i].apply(g, [&](double vv, double gg) { return beta2*vv + (1-beta2)*gg*gg; });
+        m[i] = m[i].apply(g, [&](float mm, float gg) { return beta1*mm + (1-beta1)*gg; });
+        v[i] = v[i].apply(g, [&](float vv, float gg) { return beta2*vv + (1-beta2)*gg*gg; });
 
-        params[i]->get_tensor_ref() -= m[i].apply(v[i], [&](double mm, double vv) {
+        params[i]->get_tensor_ref() -= m[i].apply(v[i], [&](float mm, float vv) {
             return alpha * (mm/bc1) / (sqrt(vv/bc2) + eps);
         });
     }

@@ -29,7 +29,7 @@ struct GPT : nn::Module {
 
         // embedding + pos. enc
         vec<int> shape = Xp.get_tensor().shape;
-        GTensor P(shape, 0.);
+        GTensor P(shape, 0.f);
         for (int b = 0; b < shape[0]; ++b) {
             for (int t = 0; t < shape[1]; ++t) {
                 P.get_tensor_ref().at({b,t}) = t;
@@ -74,7 +74,7 @@ const int h = 4;
 const int N = 4;
 const int d_ff = 4*d;
 const int B = 32;
-const double lr = 1e-3;
+const float lr = 1e-3f;
 const int Mtrain = 4096*5; // # train windows
 const int Mtest = 256; // # test windows
 int V;
@@ -98,7 +98,7 @@ void train(const string &out_path, int epochs, const string &model_path = "") {
     vec<int> corpus_toks = tokz.encode(corpus);
 
     // split corpus into 90% train 10% test
-    int split_ind = 0.9 * sz(corpus_toks);
+    int split_ind = 0.9f * sz(corpus_toks);
     vec<int> toks_train(begin(corpus_toks), begin(corpus_toks) + split_ind);
     vec<int> toks_test(begin(corpus_toks) + split_ind, end(corpus_toks));
 
@@ -119,9 +119,9 @@ void train(const string &out_path, int epochs, const string &model_path = "") {
             }
         }
     };
-    Tensor Xtrain({Mtrain,Tmax}, 0.), Ytrain({Mtrain,Tmax}, 0.);
+    Tensor Xtrain({Mtrain,Tmax}, 0.f), Ytrain({Mtrain,Tmax}, 0.f);
     populate_examples(Xtrain, Ytrain, Mtrain, toks_train);
-    Tensor Xtest({Mtest,Tmax}, 0.), Ytest({Mtest,Tmax}, 0.);
+    Tensor Xtest({Mtest,Tmax}, 0.f), Ytest({Mtest,Tmax}, 0.f);
     populate_examples(Xtest, Ytest, Mtest, toks_test);
 
     // build model
@@ -151,7 +151,7 @@ void inference(const string &in_path) {
     // generation
     string prompt = "ROMEO: ";
     int gen_count = 500;
-    double temp = 0.8;
+    float temp = 0.8f;
     vec<int> toks = tokz.encode(prompt);
     std::mt19937 rng(std::random_device{}());
 
@@ -160,7 +160,7 @@ void inference(const string &in_path) {
         int ctx_len = min(Tmax, sz(toks));
         int ctx_start = sz(toks) - ctx_len;
 
-        Tensor X({1, ctx_len}, 0.);
+        Tensor X({1, ctx_len}, 0.f);
         for (int t = 0; t < ctx_len; ++t) {
             X.at({0, t}) = toks[ctx_start + t];
         }
@@ -171,7 +171,7 @@ void inference(const string &in_path) {
         // to prob distribution
         logits.ediv(Tensor({1}, temp));
         Tensor S = logits.softmax(2);
-        vec<double> weights(V);
+        vec<float> weights(V);
         for (int i = 0; i < V; ++i) {
             weights[i] = S.at({0, ctx_len - 1, i});
         }

@@ -14,15 +14,15 @@ struct Tensor {
     // stride is how we index by sub-shapes as we go left in axes instead of individual entries;
     // individual entries are only sub-shapes for the least significant axis (the rightmost one).
     vec<int> shape, stride;
-    vec<double> data;
+    vec<float> data;
 
     // ---- ctors ----
 
     Tensor() = default;
 
-    Tensor(const vec<double> &data_1d);
-    Tensor(const vec2<double> &data_2d);
-    Tensor(const vec<int> &shape, double value);
+    Tensor(const vec<float> &data_1d);
+    Tensor(const vec2<float> &data_2d);
+    Tensor(const vec<int> &shape, float value);
 
     // ---- shape ops ----
 
@@ -44,9 +44,9 @@ struct Tensor {
     // ---- element access ----
 
     // lvalue ref
-    double &at(const vec<int> &ind);
+    float &at(const vec<int> &ind);
     // rvalue
-    double at(const vec<int> &ind) const;
+    float at(const vec<int> &ind) const;
 
     // ---- arithmetic / operations ----
 
@@ -72,7 +72,7 @@ struct Tensor {
     Tensor argmax(int axis) const;
     // replace self with index mapping: new[ind] = this[I[ind]]. Requires I.shape = output shape + rank(this.shape).
     Tensor gather(const Tensor &I) const;
-    // gather, except if this is 1D, we exclude the redundant trailing axis of length 1.
+    // gather, except if this is 1D, we exclude the redundant trailing axis of length 1
     Tensor gather_flat(const Tensor &I) const;
     // softmax across specified axis
     Tensor softmax(int axis) const;
@@ -80,13 +80,13 @@ struct Tensor {
     // ---- functionals ----
 
     // apply to copy of this
-    Tensor apply(const std::function<double(double)> &f) const;
+    Tensor apply(const std::function<float(float)> &f) const;
     // applies function between two tensors, auto-broadcasts both tensors as needed
-    Tensor apply(const Tensor &o, const std::function<double(double, double)> &f) const;
+    Tensor apply(const Tensor &o, const std::function<float(float, float)> &f) const;
     // apply to this, return ref to this
-    Tensor &apply_inplace(const std::function<double(double)> &f);
+    Tensor &apply_inplace(const std::function<float(float)> &f);
     // applies function between two tensors, store result in this, auto-broadcast both tensors as needed
-    Tensor &apply_inplace(const Tensor &o, const std::function<double(double, double)> &f);
+    Tensor &apply_inplace(const Tensor &o, const std::function<float(float, float)> &f);
 
     // ---- getters ----
 
