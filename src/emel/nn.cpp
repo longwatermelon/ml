@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <chrono>
 
 namespace nn {
 
@@ -43,6 +44,8 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
     int m = X.shape[0];
     std::mt19937 g(0);
 
+    auto st = std::chrono::high_resolution_clock::now();
+
     for (int epoch = 0; epoch < epochs; ++epoch) {
         // minibatching - process in chunks of batch_size
         // shuffle data order first
@@ -81,6 +84,9 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
         fflush(stdout);
     }
     putchar('\n');
+
+    int diff = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - st).count();
+    printf("%dh %dm elapsed\n", diff/3600, (diff%3600)/60);
 }
 
 // ---- model save/load ----
