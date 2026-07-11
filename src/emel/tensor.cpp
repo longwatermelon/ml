@@ -494,102 +494,103 @@ Tensor Tensor::softmax(int axis) const {
 
 // apply to copy of this
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
-    Tensor out = materialize();
-
-    // apply function
-    vec<double> &data = out.data;
-    for (int i = 0; i < sz(data); ++i) {
-        data[i] = f(data[i]);
-    }
-
+    Tensor out = *this;
+    out.apply_inplace(f);
     return out;
 }
 
 // applies function between two tensors, auto-broadcasts both tensors as needed
 Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)> &f) const {
-    Tensor out = *this, oth = o;
-
-    // check if one's shape is the suffix of the other
-    auto suffix_match_apply = [&f](Tensor &lhs, Tensor &rhs, bool left_is_suffix) {
-        Tensor &big = left_is_suffix ? rhs : lhs;
-        Tensor &suffix = left_is_suffix ? lhs : rhs;
-
-        if (lhs.is_contiguous() && rhs.is_contiguous() &&
-                   sz(big.shape) > sz(suffix.shape)) {
-            // rhs matches suffix of lhs's shape?
-            bool match = true;
-            int offset = sz(big.shape) - sz(suffix.shape);
-            for (int i = 0; i < sz(suffix.shape); ++i) {
-                if (big.shape[offset + i] != suffix.shape[i]) {
-                    match = false;
-                    break;
-                }
-            }
-
-            // matches, run periodic read
-            if (match) {
-                int period = suffix.num_el();
-                int big_numel = big.num_el();
-                for (int i = 0; i < big_numel; ++i) {
-                    if (left_is_suffix) {
-                        big.data[i] = f(suffix.data[i % period], big.data[i]);
-                    } else {
-                        big.data[i] = f(big.data[i], suffix.data[i % period]);
-                    }
-                }
-                return true;
-            }
-        }
-
-        return false;
-    };
-
-    if (suffix_match_apply(out, oth, true)) {
-        return oth;
-    }
-    if (suffix_match_apply(out, oth, false)) {
-        return out;
-    }
-
-    // broadcast to match shapes
-    vec<int> parent = parent_shape(out.shape, oth.shape);
-    out.broadcast(parent);
-    oth.broadcast(parent);
-
-    // apply function: both contiguous; optimized raw indexing
-    if (out.is_contiguous() && oth.is_contiguous()) {
-        vec<double> &data_out = out.data;
-        vec<double> &data_oth = oth.data;
-        for (int i = 0; i < sz(data_out); ++i) {
-            data_out[i] = f(data_out[i], data_oth[i]);
-        }
-
-        return out;
-    }
-
-    // apply function: non-special case, just do it unoptimized
-    out = out.materialize();
-    vec<int> cur(sz(out.shape), 0);
-    vec<int> lim = out.shape;
-    do {
-        out.at(cur) = f(out.at(cur), oth.at(cur));
-    } while (advance_ind(cur, lim));
+    Tensor out = *this;
+    out.apply_inplace(o, f);
     return out;
 }
 
 // apply to this, return ref to this
 Tensor &Tensor::apply_inplace(const std::function<double(double)> &f) {
-    *this = materialize();
-    vec<int> cur(sz(shape), 0);
-    do {
-        at(cur) = f(at(cur));
-    } while (advance_ind(cur, shape));
+    // must materialize before directly operating on logical entries
+    if (!is_contiguous()) {
+        *this = materialize();
+    }
+
+    for (double &value : data) {
+        value = f(value);
+    }
 
     return *this;
 }
 
 // applies function between two tensors, store result in this, auto-broadcast both tensors as needed
 Tensor &Tensor::apply_inplace(const Tensor &o, const std::function<double(double, double)> &f) {
+    // avoid copies and indexed access for the common equal-shape case
+    if (shape == o.shape && is_contiguous() && o.is_contiguous()) {
+        for (int i = 0; i < sz(data); ++i) {
+            data[i] = f(data[i], o.data[i]);
+        }
+        return *this;
+    }
+
+    // scalar and exact-suffix broadcasting optimizations
+    if (is_contiguous() && o.is_contiguous()) {
+        // rhs is scalar
+        if (o.num_el() == 1) {
+            vec<int> parent = parent_shape(shape, o.shape);
+            double scalar = o.data[0];
+            for (double &value : data) {
+                value = f(value, scalar);
+            }
+            shape = parent;
+            stride = shape2stride(parent);
+            return *this;
+        }
+
+        // lhs is scalar
+        if (num_el() == 1) {
+            vec<int> parent = parent_shape(shape, o.shape);
+            double scalar = data[0];
+            Tensor expanded(parent, 0.);
+            for (int i = 0; i < sz(expanded.data); ++i) {
+                expanded.data[i] = f(scalar, o.data[i]);
+            }
+            *this = std::move(expanded);
+            return *this;
+        }
+
+        auto is_suffix = [](const vec<int> &big, const vec<int> &suffix) {
+            if (sz(big) <= sz(suffix)) return false;
+
+            int offset = sz(big) - sz(suffix);
+            for (int i = 0; i < sz(suffix); ++i) {
+                if (big[offset + i] != suffix[i]) return false;
+            }
+            return true;
+        };
+
+        // lhs is suffix of rhs
+        if (is_suffix(shape, o.shape)) {
+            int period = o.num_el();
+            for (int base = 0; base < sz(data); base += period) {
+                for (int i = 0; i < period; ++i) {
+                    data[base + i] = f(data[base + i], o.data[i]);
+                }
+            }
+            return *this;
+        }
+
+        // rhs is suffix of lhs
+        if (is_suffix(o.shape, shape)) {
+            int period = num_el();
+            Tensor expanded(o.shape, 0.);
+            for (int base = 0; base < sz(expanded.data); base += period) {
+                for (int i = 0; i < period; ++i) {
+                    expanded.data[base + i] = f(data[i], o.data[base + i]);
+                }
+            }
+            *this = std::move(expanded);
+            return *this;
+        }
+    }
+
     Tensor oth = o;
 
     // broadcast to match shapes
@@ -661,4 +662,3 @@ Tensor Tensor::deserialize(const vec<uint8_t> &bytes, size_t &pos) {
 
     return out;
 }
-

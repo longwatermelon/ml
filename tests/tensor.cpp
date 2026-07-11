@@ -69,9 +69,33 @@ TEST_CASE("tensor arithmetic and functionals") {
     inplace -= row;
     check_tensor(inplace, {2, 3}, {1., 2., 3., 4., 5., 6.});
 
+    Tensor expanding_inplace = row;
+    expanding_inplace -= matrix;
+    check_tensor(expanding_inplace, {2, 3}, {0., 0., 0., -3., -3., -3.});
+
+    Tensor equal_shape = matrix;
+    equal_shape += Tensor(vec2<double>{{1., 1., 1.}, {2., 2., 2.}});
+    check_tensor(equal_shape, {2, 3}, {2., 3., 4., 6., 7., 8.});
+
+    Tensor scalar_rhs = matrix;
+    scalar_rhs += Tensor({1}, 2.);
+    check_tensor(scalar_rhs, {2, 3}, {3., 4., 5., 6., 7., 8.});
+
+    Tensor scalar_lhs({1}, 2.);
+    scalar_lhs -= matrix;
+    check_tensor(scalar_lhs, {2, 3}, {1., 0., -1., -2., -3., -4.});
+
+    Tensor leading_scalar_rhs = matrix;
+    leading_scalar_rhs += Tensor({1, 1, 1}, 2.);
+    check_tensor(leading_scalar_rhs, {1, 2, 3}, {3., 4., 5., 6., 7., 8.});
+
     check_tensor(row.apply([](double value) { return value * value; }), {3}, {1., 4., 9.});
     row.apply_inplace([](double value) { return value + 0.5; });
     check_tensor(row, {3}, {1.5, 2.5, 3.5});
+
+    Tensor transposed = matrix.transpose();
+    transposed.apply_inplace([](double value) { return value * 2.; });
+    check_tensor(transposed, {3, 2}, {2., 8., 4., 10., 6., 12.});
 }
 
 TEST_CASE("tensor matrix multiplication") {
