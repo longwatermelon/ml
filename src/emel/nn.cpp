@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cstdlib>
 #include <chrono>
-#include <iomanip>
 
 namespace nn {
 
@@ -38,9 +37,31 @@ static Tensor select_minibatch(int st, int cnt, const Tensor &X, vec<int> ord) {
     return Xb;
 }
 
-// train a model
-void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size) {
+// evaluate average loss in minibatches to limit memory use
+static float eval_loss(Module &model, const Tensor &X, const Tensor &Y,
+                       Loss loss, int batch_size) {
+    int m = X.shape[0];
+    vec<int> inds(m);
+    iota(all(inds), 0);
+
+    float total_loss = 0.f;
+    for (int st = 0; st < m; st += batch_size) {
+        int cur_batch = min(batch_size, m-st);
+        Tensor Xb = select_minibatch(st, cur_batch, X, inds);
+        Tensor Yb = select_minibatch(st, cur_batch, Y, inds);
+        total_loss += apply_loss_scalar(model.forward(Xb), Yb, loss) * cur_batch;
+    }
+    return total_loss / m;
+}
+
+// train a model and optionally report test loss after each epoch
+void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss,
+           Optimizer &opt, int batch_size, const Tensor *Xtest, const Tensor *Ytest) {
     assert(batch_size > 0);
+    assert((Xtest == nullptr) == (Ytest == nullptr));
+    if (Xtest != nullptr) {
+        assert(Xtest->shape[0] > 0 && Xtest->shape[0] == Ytest->shape[0]);
+    }
 
     int m = X.shape[0];
     std::mt19937 g(0);
@@ -69,7 +90,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
             GTensor Yhatb = model.forward(Xb);
 
             // diagnostic loss for reporting later
-            avg_loss += apply_loss_scalar(Yhatb, Yb, loss) * ((float)cur_batch / batch_size);
+            avg_loss += apply_loss_scalar(Yhatb, Yb, loss) * cur_batch;
 
             // backward pass
             GTensor g_loss = apply_loss(Yhatb, Yb, loss);
@@ -78,12 +99,16 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
 
             minibatch_ind++;
         }
-        avg_loss /= tot_minibatches;
+        avg_loss /= m;
 
         // eval
-        std::cout << '\r' << "epoch " << epoch+1 << '/' << epochs
-                  << " done | avg minibatch loss = " << std::fixed << std::setprecision(6)
-                  << avg_loss << '\n' << std::flush;
+        printf("\repoch %d/%d done | train loss = %.6f", epoch+1, epochs, avg_loss);
+        if (Xtest != nullptr) {
+            float test_loss = eval_loss(model, *Xtest, *Ytest, loss, batch_size);
+            printf(" | test loss = %.6f", test_loss);
+        }
+        putchar('\n');
+        fflush(stdout);
     }
     putchar('\n');
 

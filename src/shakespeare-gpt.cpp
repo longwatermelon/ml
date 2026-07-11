@@ -68,11 +68,11 @@ struct GPT : nn::Module {
     }
 };
 
-const int T = 128;
-const int Tmax = 128;
+const int T = 256;
+const int Tmax = 256;
 const int d = 128;
 const int h = 4;
-const int N = 4;
+const int N = 6;
 const int d_ff = 4*d;
 const int B = 32;
 const float lr = 1e-3f;
@@ -132,7 +132,8 @@ void train(const string &out_path, int epochs, const string &model_path = "") {
     }
 
     Adam opt(model.params(), lr);
-    nn::train(model, Xtrain, Ytrain, epochs, Loss::CrossEntropyLogitsSparse, opt, B);
+    nn::train(model, Xtrain, Ytrain, epochs, Loss::CrossEntropyLogitsSparse,
+              opt, B, &Xtest, &Ytest);
 
     // save
     vec<uint8_t> bytes = nn::save(model);

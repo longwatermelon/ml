@@ -16,8 +16,10 @@ struct Module {
     virtual vec<GTensor*> params() = 0;
 };
 
-// train a model
-void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss, Optimizer &opt, int batch_size = 32);
+// train a model and optionally report test loss after each epoch
+void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss loss,
+           Optimizer &opt, int batch_size = 32,
+           const Tensor *Xtest = nullptr, const Tensor *Ytest = nullptr);
 
 // serialize model params (state-dict style: params only, no architecture) to bytes
 vec<uint8_t> save(Module &model);

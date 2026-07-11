@@ -1,7 +1,7 @@
 .PHONY: all test
 
 CXX ?= g++
-CXXFLAGS ?= -std=c++17 -Wall -O2
+CXXFLAGS ?= -std=c++17 -Wall -O3 -DNDEBUG -mcpu=native
 
 # apple: accelerate provides cblas_sgemm for the matmul fast path
 ifeq ($(shell uname -s),Darwin)
