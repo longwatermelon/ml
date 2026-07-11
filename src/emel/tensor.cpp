@@ -494,12 +494,13 @@ Tensor Tensor::softmax(int axis) const {
 
 // apply to copy of this
 Tensor Tensor::apply(const std::function<double(double)> &f) const {
-    Tensor out = *this;
-    vec<int> cur(sz(shape), 0);
-    out = out.materialize();
-    do {
-        out.at(cur) = f(out.at(cur));
-    } while (advance_ind(cur, shape));
+    Tensor out = materialize();
+
+    // apply function
+    vec<double> &data = out.data;
+    for (int i = 0; i < sz(data); ++i) {
+        data[i] = f(data[i]);
+    }
 
     return out;
 }
@@ -508,18 +509,71 @@ Tensor Tensor::apply(const std::function<double(double)> &f) const {
 Tensor Tensor::apply(const Tensor &o, const std::function<double(double, double)> &f) const {
     Tensor out = *this, oth = o;
 
+    // check if one's shape is the suffix of the other
+    auto suffix_match_apply = [&f](Tensor &lhs, Tensor &rhs, bool left_is_suffix) {
+        Tensor &big = left_is_suffix ? rhs : lhs;
+        Tensor &suffix = left_is_suffix ? lhs : rhs;
+
+        if (lhs.is_contiguous() && rhs.is_contiguous() &&
+                   sz(big.shape) > sz(suffix.shape)) {
+            // rhs matches suffix of lhs's shape?
+            bool match = true;
+            int offset = sz(big.shape) - sz(suffix.shape);
+            for (int i = 0; i < sz(suffix.shape); ++i) {
+                if (big.shape[offset + i] != suffix.shape[i]) {
+                    match = false;
+                    break;
+                }
+            }
+
+            // matches, run periodic read
+            if (match) {
+                int period = suffix.num_el();
+                int big_numel = big.num_el();
+                for (int i = 0; i < big_numel; ++i) {
+                    if (left_is_suffix) {
+                        big.data[i] = f(suffix.data[i % period], big.data[i]);
+                    } else {
+                        big.data[i] = f(big.data[i], suffix.data[i % period]);
+                    }
+                }
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    if (suffix_match_apply(out, oth, true)) {
+        return oth;
+    }
+    if (suffix_match_apply(out, oth, false)) {
+        return out;
+    }
+
     // broadcast to match shapes
     vec<int> parent = parent_shape(out.shape, oth.shape);
     out.broadcast(parent);
     oth.broadcast(parent);
 
-    // apply function, compute result
+    // apply function: both contiguous; optimized raw indexing
+    if (out.is_contiguous() && oth.is_contiguous()) {
+        vec<double> &data_out = out.data;
+        vec<double> &data_oth = oth.data;
+        for (int i = 0; i < sz(data_out); ++i) {
+            data_out[i] = f(data_out[i], data_oth[i]);
+        }
+
+        return out;
+    }
+
+    // apply function: non-special case, just do it unoptimized
     out = out.materialize();
-    vec<int> cur(sz(parent), 0);
+    vec<int> cur(sz(out.shape), 0);
+    vec<int> lim = out.shape;
     do {
         out.at(cur) = f(out.at(cur), oth.at(cur));
-    } while (advance_ind(cur, parent));
-
+    } while (advance_ind(cur, lim));
     return out;
 }
 
