@@ -75,7 +75,7 @@ const int N = 4;
 const int d_ff = 4*d;
 const int B = 8;
 const double lr = 3e-4;
-const int Mtrain = 4096; // # train windows
+const int Mtrain = 4096*5; // # train windows
 const int Mtest = 256; // # test windows
 int V;
 
@@ -138,7 +138,7 @@ void train(const string &out_path) {
 // load model from path, run inference
 void inference(const string &in_path) {
     // build tokenizer
-    CharTokenizer tokz(read_file("data/shakespeare/input.txt"));
+    CharTokenizer tokz = build_tokenizer("data/shakespeare/input.txt");
 
     // load model
     GPT model(Tmax, d, h, N, d_ff, V);
@@ -166,10 +166,10 @@ void inference(const string &in_path) {
 
         // to prob distribution
         logits.ediv(Tensor({1}, temp));
-        Tensor S = logits.softmax(1);
+        Tensor S = logits.softmax(2);
         vec<double> weights(ctx_len);
         for (int i = 0; i < ctx_len; ++i) {
-            weights[i] = S.at({0,i});
+            weights[i] = S.at({0, ctx_len - 1, i});
         }
 
         // sample from prob distribution
@@ -181,6 +181,6 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
-    // train("shakespeare.bin");
-    inference("shakespeare.bin");
+    train("shakespeare.bin");
+    // inference("shakespeare.bin");
 }
