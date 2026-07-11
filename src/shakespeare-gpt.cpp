@@ -2,6 +2,7 @@
 #include "emel/nn.h"
 #include "emel/tokenizer.h"
 #include <random>
+#include <filesystem>
 
 struct GPT : nn::Module {
     // hyperparams
@@ -185,14 +186,18 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
+    string model_path = "shakespeare.bin";
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
         // train
-        train("shakespeare.bin", 1);
-        for (int i = 0; i < 3; ++i) {
-            train("shakespeare.bin", 1, "shakespeare.bin");
+        for (int i = 0; i < 4; ++i) {
+            string load_path;
+            if (std::filesystem::exists(model_path)) {
+                load_path = model_path;
+            }
+            train(model_path, 1, load_path);
         }
     } else {
         // inference
-        inference("shakespeare.bin");
+        inference(model_path);
     }
 }
