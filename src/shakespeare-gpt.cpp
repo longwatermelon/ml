@@ -151,7 +151,7 @@ void inference(const string &in_path) {
     nn::load(model, read_file_bytes(in_path));
 
     // generation
-    string prompt = "ROMEO: ";
+    string prompt = "ROMEO:\n";
     int gen_count = 500;
     float temp = 0.8f;
     vec<int> toks = tokz.encode(prompt);
