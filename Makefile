@@ -1,7 +1,7 @@
 .PHONY: all test
 
 CXX ?= g++
-CXXFLAGS ?= -std=c++17 -Wall -O3 -DNDEBUG -mcpu=native
+CXXFLAGS ?= -std=c++17 -Wall -O3 -DNDEBUG
 
 # apple: accelerate provides cblas_sgemm for the matmul fast path
 ifeq ($(shell uname -s),Darwin)
@@ -18,7 +18,7 @@ TEST_OBJECTS := $(patsubst %.cpp,$(TEST_OBJECT_DIR)/%.o,$(EMEL_SOURCES) $(TEST_S
 TEST_DEPENDENCIES := $(TEST_OBJECTS:.o=.d)
 TEST_ARGS ?=
 
-all: shakespeare-gpt
+all: chatgpt
 
 %: src/%.cpp
 	$(CXX) $< $(EMEL_SOURCES) $(CXXFLAGS) $(LDLIBS)
