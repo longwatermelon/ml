@@ -4,14 +4,14 @@
 #include <random>
 #include <filesystem>
 
-const int T = 256;
-const int Tmax = 256;
-const int d = 128;
-const int h = 4;
-const int N = 6;
+const int T = 384;
+const int Tmax = 384;
+const int d = 192;
+const int h = 6;
+const int N = 4;
 const int d_ff = 4*d;
-const int B = 32;
-const float lr = 1e-3f;
+const int B = 16;
+const float lr = 5e-4f;
 const int Mtrain = 24000; // # train windows
 const int Mtest = 1024; // # test windows
 int V;
@@ -29,7 +29,7 @@ CharTokenizer build_tokenizer(const string &filename) {
 // train model
 void train(const string &out_path, int epochs, const string &model_path = "") {
     // tokenize corpus
-    string input_path = "data/dailydialog/input.txt";
+    string input_path = "data/tinystories/input.txt";
     CharTokenizer tokz = build_tokenizer(input_path);
     string corpus = read_file(input_path);
     vec<int> corpus_toks = tokz.encode(corpus);
@@ -108,7 +108,32 @@ int next_token(GPT &model, const vec<int> &toks, double temp) {
 // load model from path, run inference
 void inference(const string &in_path) {
     // build tokenizer
-    CharTokenizer tokz = build_tokenizer("data/dailydialog/input.txt");
+    CharTokenizer tokz = build_tokenizer("data/tinystories/input.txt");
+
+    // load model
+    GPT model(Tmax, d, h, N, d_ff, V);
+    nn::load(model, read_file_bytes(in_path));
+
+    // generate story
+    vec<int> context = tokz.encode("Once upon a time, ");
+    float temp = 0.7f;
+    for (int step = 0; step < 500; ++step) {
+        int next_tok = next_token(model, context, temp);
+        context.push_back(next_tok);
+
+        char ch = tokz.decode({next_tok})[0];
+        putchar(ch);
+        fflush(stdout);
+        // if (ch == '\n') {
+        //     break;
+        // }
+    }
+}
+
+// load model from path, run inference
+void inference_chat(const string &in_path) {
+    // build tokenizer
+    CharTokenizer tokz = build_tokenizer("data/tinystories/input.txt");
 
     // load model
     GPT model(Tmax, d, h, N, d_ff, V);
@@ -146,10 +171,13 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
+    srand(time(0));
+
     string model_path = "chatgpt.bin";
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
         // train
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 20; ++i) {
+            printf("==== ROUND %d ====\n", i+1);
             string load_path;
             if (std::filesystem::exists(model_path)) {
                 load_path = model_path;

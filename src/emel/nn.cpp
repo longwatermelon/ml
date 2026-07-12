@@ -79,7 +79,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
         int minibatch_ind = 0;
         int tot_minibatches = (m+batch_size-1) / batch_size;
         for (int st = 0; st < m; st += batch_size) {
-            printf("\repoch %d: minibatch %d/%d...", epoch, minibatch_ind+1, tot_minibatches);
+            printf("\repoch %d: minibatch %d/%d...", epoch+1, minibatch_ind+1, tot_minibatches);
             fflush(stdout);
 
             int cur_batch = min(batch_size, m-st);
