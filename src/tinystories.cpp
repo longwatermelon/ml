@@ -14,23 +14,26 @@ const int B = 16;
 const float lr = 5e-4f;
 const int Mtrain = 24000; // # train windows
 const int Mtest = 1024; // # test windows
+const string input_path = "data/tinystories/input.txt";
+const string model_path = "models/tinystories.bin";
+const string tokz_path = "models/tinystories.tokz";
 int V;
 
-CharTokenizer build_tokenizer(const string &filename) {
+BPETokenizer build_tokenizer(const string &filename) {
     string corpus = read_file(filename);
 
     // tokenize corpus
-    CharTokenizer tokz(corpus);
+    BPETokenizer tokz(corpus, 256);
     V = tokz.vocab_size(); // vocab size
 
     return tokz;
 }
 
 // train model
-void train(const string &out_path, int epochs, const string &model_path = "") {
+void train(int epochs, bool load_checkpoint, bool randomize_windows) {
     // tokenize corpus
-    string input_path = "data/tinystories/input.txt";
-    CharTokenizer tokz = build_tokenizer(input_path);
+    BPETokenizer tokz = BPETokenizer::load(read_file(tokz_path));
+    V = tokz.vocab_size();
     string corpus = read_file(input_path);
     vec<int> corpus_toks = tokz.encode(corpus);
 
@@ -63,18 +66,28 @@ void train(const string &out_path, int epochs, const string &model_path = "") {
 
     // build model
     GPT model(Tmax, d, h, N, d_ff, V);
-    if (model_path != "") {
+    if (load_checkpoint) {
         nn::load(model, read_file_bytes(model_path));
     }
 
     Adam opt(model.params(), lr);
-    nn::train(model, Xtrain, Ytrain, epochs, Loss::CrossEntropyLogitsSparse,
-              opt, B, &Xtest, &Ytest);
 
-    // save
-    vec<uint8_t> bytes = nn::save(model);
-    write_file_bytes(out_path, bytes);
-    printf("saved model to path '%s'\n", out_path.c_str());
+    // train
+    for (int i = 0; i < epochs; ++i) {
+        printf("==== ROUND %d/%d ====\n", i+1, epochs);
+        nn::train(model, Xtrain, Ytrain, 1, Loss::CrossEntropyLogitsSparse,
+                  opt, B, &Xtest, &Ytest);
+
+        // save checkpoint
+        vec<uint8_t> bytes = nn::save(model);
+        write_file_bytes(model_path, bytes);
+        printf("saved model to path '%s'\n", model_path.c_str());
+
+        // randomize windows in training data?
+        if (randomize_windows && i+1 < epochs) {
+            populate_examples(Xtrain, Ytrain, Mtrain, toks_train);
+        }
+    }
 }
 
 int next_token(GPT &model, const vec<int> &toks, double temp) {
@@ -106,13 +119,14 @@ int next_token(GPT &model, const vec<int> &toks, double temp) {
 }
 
 // load model from path, run inference
-void inference(const string &in_path) {
-    // build tokenizer
-    CharTokenizer tokz = build_tokenizer("data/tinystories/input.txt");
+void inference() {
+    // load tokenizer
+    BPETokenizer tokz = BPETokenizer::load(read_file(tokz_path));
+    V = tokz.vocab_size();
 
     // load model
     GPT model(Tmax, d, h, N, d_ff, V);
-    nn::load(model, read_file_bytes(in_path));
+    nn::load(model, read_file_bytes(model_path));
 
     // generate story
     string prefill = "Once upon a time, ";
@@ -124,71 +138,34 @@ void inference(const string &in_path) {
         int next_tok = next_token(model, context, temp);
         context.push_back(next_tok);
 
-        char ch = tokz.decode({next_tok})[0];
-        putchar(ch);
+        string s = tokz.decode({next_tok});
+        printf("%s", s.c_str());
         fflush(stdout);
-        // if (ch == '\n') {
-        //     break;
-        // }
-    }
-}
-
-// load model from path, run inference
-void inference_chat(const string &in_path) {
-    // build tokenizer
-    CharTokenizer tokz = build_tokenizer("data/tinystories/input.txt");
-
-    // load model
-    GPT model(Tmax, d, h, N, d_ff, V);
-    nn::load(model, read_file_bytes(in_path));
-
-    // generation
-    vec<int> context;
-    while (true) {
-        // get user prompt
-        string user_prompt;
-        std::cout << "> ";
-        std::getline(std::cin, user_prompt);
-
-        // insert user tag + prompt to context
-        vec<int> user_tag = tokz.encode("USER:\n");
-        context.insert(end(context), all(user_tag));
-        vec<int> toks = tokz.encode(user_prompt);
-        context.insert(end(context), all(toks));
-        vec<int> bot_tag = tokz.encode("\nBOT:\n");
-        context.insert(end(context), all(bot_tag));
-
-        // generate response
-        float temp = 0.7f;
-        for (int step = 0; step < 1000; ++step) {
-            int next_tok = next_token(model, context, temp);
-            context.push_back(next_tok);
-
-            char ch = tokz.decode({next_tok})[0];
-            putchar(ch);
-            if (ch == '\n') {
-                break;
-            }
-        }
     }
 }
 
 int main(int argc, char **argv) {
     srand(time(0));
 
-    string model_path = "models/tinystories.bin";
+    // tokenizer first; if not built, build it and save it
+    if (!std::filesystem::exists(tokz_path)) {
+        printf("generating tokenizer...\n");
+        BPETokenizer tokz = build_tokenizer(input_path);
+        string contents = tokz.save();
+
+        std::ofstream ofs(tokz_path);
+        ofs << contents;
+        ofs.close();
+        printf("tokenizer built!\n");
+    }
+
+    // train model or inference on existing model?
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
         // train
-        for (int i = 0; i < 20; ++i) {
-            printf("==== ROUND %d ====\n", i+1);
-            string load_path;
-            if (std::filesystem::exists(model_path)) {
-                load_path = model_path;
-            }
-            train(model_path, 1, load_path);
-        }
+        bool load_checkpoint = std::filesystem::exists(model_path);
+        train(20, load_checkpoint, true);
     } else {
         // inference
-        inference(model_path);
+        inference();
     }
 }
