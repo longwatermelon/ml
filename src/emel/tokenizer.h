@@ -24,9 +24,19 @@ private:
     vec<string> vocab; // vocab[i] = s ---> string s has token id i
     map<string, int> rev_vocab; // vocab[s] = i ---> string s has token id i
 
+    // rebuild vocab from the learned steps
+    void rebuild_vocab();
+
 public:
+    // construct an empty tokenizer for loading
+    BPETokenizer() = default;
     // construct vocab from text in corpus
     BPETokenizer(const string &corpus, int steps);
+
+    // serialize learned steps as quoted string pairs
+    string save() const;
+    // deserialize learned steps from quoted string pairs
+    static BPETokenizer load(const string &text);
 
     // return text processed into token ids
     vec<int> encode(const string &text) const;

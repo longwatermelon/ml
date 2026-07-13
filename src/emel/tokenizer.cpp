@@ -1,6 +1,8 @@
 #include "tokenizer.h"
 #include <cctype>
 #include <stdexcept>
+#include <iomanip>
+#include <sstream>
 
 // ---- char tokenizer ----
 
@@ -112,6 +114,24 @@ static vec<string> pretokenize(const string &text) {
     return chunks;
 }
 
+// rebuild vocab from the learned steps
+void BPETokenizer::rebuild_vocab() {
+    set<string> all_runs;
+    for (int c = 0; c < 256; ++c) {
+        all_runs.insert(string(1, c));
+    }
+    for (const auto &[left, right] : steps) {
+        all_runs.insert(left + right);
+    }
+
+    vocab.clear();
+    rev_vocab.clear();
+    for (const string &run : all_runs) {
+        vocab.push_back(run);
+        rev_vocab[run] = sz(vocab) - 1;
+    }
+}
+
 // construct vocab from text in corpus
 BPETokenizer::BPETokenizer(const string &corpus, int steps) {
     // count chunk occurrences
@@ -129,13 +149,6 @@ BPETokenizer::BPETokenizer(const string &corpus, int steps) {
             split_chunk.push_back(string(1,c));
         }
         chunks.push_back({split_chunk, count});
-    }
-
-    // track all existing merged character runs as we learn bpe
-    // start with individual characters
-    set<string> all_runs;
-    for (int c = 0; c < 256; ++c) {
-        all_runs.insert(string(1,c));
     }
 
     // learn merges per chunk (contained between pretoken boundaries)
@@ -166,16 +179,44 @@ BPETokenizer::BPETokenizer(const string &corpus, int steps) {
             chunk = merge_lr(chunk, best_p.first, best_p.second);
         }
         this->steps.push_back(best_p);
-
-        // track in all runs that have existed
-        all_runs.insert(best_p.first + best_p.second);
     }
 
-    // populate vocab with all runs we've encountered through learning bpe
-    for (auto &s : all_runs) {
-        vocab.push_back(s);
-        rev_vocab[s] = sz(vocab) - 1;
+    rebuild_vocab();
+}
+
+// serialize learned steps as quoted string pairs
+string BPETokenizer::save() const {
+    std::ostringstream out;
+    for (const auto &[left, right] : steps) {
+        out << std::quoted(left) << ' ' << std::quoted(right) << '\n';
     }
+    return out.str();
+}
+
+// deserialize learned steps from quoted string pairs
+BPETokenizer BPETokenizer::load(const string &text) {
+    BPETokenizer tokenizer;
+    std::istringstream in(text);
+
+    while (true) {
+        in >> std::ws;
+        if (in.eof()) {
+            break;
+        }
+
+        string left, right;
+        if (in.peek() != '"' || !(in >> std::quoted(left))) {
+            throw std::runtime_error("invalid bpe tokenizer data");
+        }
+        in >> std::ws;
+        if (in.peek() != '"' || !(in >> std::quoted(right))) {
+            throw std::runtime_error("invalid bpe tokenizer data");
+        }
+        tokenizer.steps.push_back({left, right});
+    }
+
+    tokenizer.rebuild_vocab();
+    return tokenizer;
 }
 
 // return text processed into token ids
