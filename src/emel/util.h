@@ -4,6 +4,8 @@
 #include <initializer_list>
 #include <cassert>
 #include <fstream>
+#include <map>
+#include <set>
 using std::vector;
 using std::initializer_list;
 using std::string;
@@ -13,6 +15,9 @@ using std::swap;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::make_shared;
+using std::pair;
+using std::map;
+using std::set;
 using ll=long long;
 #define sign(x) (x<0?-1:1)
 #define sz(x) ((int)size(x))
