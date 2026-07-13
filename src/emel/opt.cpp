@@ -15,62 +15,57 @@ static GTensor mean_all(const GTensor &values) {
     return sum.ediv(GTensor({1}, cnt));
 }
 
+// compute numerically stable log-softmax along an axis; positions values as Q in H(P,Q)
+static GTensor log_softmax(const GTensor &values, int axis) {
+    GTensor shifted = values - values.max_reduce(axis, true);
+    return shifted - shifted.exp().sum_reduce(axis, true).log();
+}
+
 // compute cross entropy from probabilities
 static GTensor cross_entropy_probs(const GTensor &Yhat, const GTensor &Y) {
-    GTensor log_Yhat = Yhat.log();
-    GTensor YlogYhat = Y.hadamard(log_Yhat);
     int last_axis = sz(Y.get_tensor().shape) - 1;
-    GTensor sum_per_example = YlogYhat.sum_reduce(last_axis, false);
-
-    return -mean_all(sum_per_example);
+    return -mean_all(Y.hadamard(Yhat.log()).sum_reduce(last_axis, false));
 }
 
 // compute cross entropy from logits
 static GTensor cross_entropy_logits(const GTensor &Yhat, const GTensor &Y) {
     int last_axis = sz(Y.get_tensor().shape) - 1;
-    GTensor row_max = Yhat.max_reduce(last_axis, false);
-    vec<int> new_shape = Y.get_tensor().shape;
-    new_shape.back() = 1;
-    GTensor shifted = Yhat - row_max.reshape(new_shape);
-    GTensor log_sum_exp = shifted.exp().sum_reduce(last_axis, false).log() + row_max;
-    GTensor true_logits = Y.hadamard(Yhat).sum_reduce(last_axis, false);
-    GTensor loss_per_example = log_sum_exp - true_logits;
-
-    return mean_all(loss_per_example);
+    GTensor log_probs = log_softmax(Yhat, last_axis);
+    return -mean_all(Y.hadamard(log_probs).sum_reduce(last_axis, false));
 }
 
 // compute cross entropy from logits, where Y holds class indices (one axis fewer than Yhat)
 static GTensor cross_entropy_logits_sparse(const GTensor &Yhat, const GTensor &Y) {
-    const Tensor &Yi = Y.get_tensor();
     const vec<int> &yhat_shape = Yhat.get_tensor().shape;
-    assert(sz(Yi.shape) + 1 == sz(yhat_shape));
+    const vec<int> &y_shape = Y.get_tensor().shape;
+    int logits_axis = sz(yhat_shape) - 1;
+    GTensor logprobs = log_softmax(Yhat, logits_axis);
 
-    // logsumexp over the class axis, max-shifted for stability
-    int last_axis = sz(yhat_shape) - 1;
-    GTensor row_max = Yhat.max_reduce(last_axis, false);
-    vec<int> keep_shape = yhat_shape;
-    keep_shape.back() = 1;
-    GTensor shifted = Yhat - row_max.reshape(keep_shape);
-    GTensor log_sum_exp = shifted.exp().sum_reduce(last_axis, false).log() + row_max;
-
-    // gather the true-class logits: I[ind] = {ind..., Yi[ind]}
-    vec<int> I_shape = Yi.shape;
-    I_shape.push_back(sz(yhat_shape));
-    Tensor I(I_shape, 0.f);
-    vec<int> cur(sz(Yi.shape), 0);
+    // source distribution probs should be one-hot on target logits
+    // so just run logprobs.gather using class indices in Y
+    // flatten because non-logit axis is the same for both
+    int logit_count = yhat_shape.back();
+    int numel = Yhat.get_tensor().num_el();
+    GTensor flat_logprobs = logprobs.reshape({numel});
+    Tensor I(y_shape, 0.);
+    vec<int> cur(sz(y_shape), 0);
     do {
-        vec<int> icur = cur;
-        icur.push_back(0);
-        for (int a = 0; a < sz(cur); ++a) {
-            icur.back() = a;
-            I.at(icur) = cur[a];
+        int prod = 1;
+        for (int i = 0; i < sz(cur); ++i) {
+            prod *= y_shape[i];
         }
-        icur.back() = sz(cur);
-        I.at(icur) = Yi.at(cur);
-    } while (advance_ind(cur, Yi.shape));
-    GTensor true_logits = Yhat.gather(I);
+        prod *= logit_count;
 
-    return mean_all(log_sum_exp - true_logits);
+        int block_st = 0;
+        for (int i = 0; i < sz(cur); ++i) {
+            prod /= y_shape[i];
+            block_st += prod * cur[i];
+        }
+
+        I.at(cur) = block_st + Y.get_tensor().at(cur);
+    } while (advance_ind(cur, y_shape));
+
+    return -mean_all(flat_logprobs.gather_flat(I));
 }
 
 // apply loss to nn output
