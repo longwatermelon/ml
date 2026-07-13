@@ -2,4 +2,5 @@
 compile_commands.json
 /.cache
 data/mnist-digits/*.tensor
-data/tinystories
+data/tinystories/input.txt
+__pycache__
