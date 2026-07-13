@@ -115,7 +115,10 @@ void inference(const string &in_path) {
     nn::load(model, read_file_bytes(in_path));
 
     // generate story
-    vec<int> context = tokz.encode("Once upon a time, ");
+    string prefill = "Once upon a time, ";
+    vec<int> context = tokz.encode(prefill);
+    printf("%s", prefill.c_str());
+    fflush(stdout);
     float temp = 0.7f;
     for (int step = 0; step < 500; ++step) {
         int next_tok = next_token(model, context, temp);
@@ -173,7 +176,7 @@ void inference_chat(const string &in_path) {
 int main(int argc, char **argv) {
     srand(time(0));
 
-    string model_path = "chatgpt.bin";
+    string model_path = "models/tinystories.bin";
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
         // train
         for (int i = 0; i < 20; ++i) {

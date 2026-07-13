@@ -20,4 +20,5 @@ File structure:
     - `ref/tf2gpt.tex`: from transformers to gpt
   * `data/`: relevant training/test/etc data to be used by the code
   * `tests/`: library tests
+  * `models/`: saved model weights; results of the demo training runs in top-level `src/`.
   * `Makefile`: makefile

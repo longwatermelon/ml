@@ -18,7 +18,7 @@ TEST_OBJECTS := $(patsubst %.cpp,$(TEST_OBJECT_DIR)/%.o,$(EMEL_SOURCES) $(TEST_S
 TEST_DEPENDENCIES := $(TEST_OBJECTS:.o=.d)
 TEST_ARGS ?=
 
-all: chatgpt
+all: tinystories
 
 %: src/%.cpp
 	$(CXX) $< $(EMEL_SOURCES) $(CXXFLAGS) $(LDLIBS)

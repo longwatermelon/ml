@@ -123,7 +123,7 @@ void inference(const string &in_path) {
 }
 
 int main(int argc, char **argv) {
-    string model_path = "shakespeare.bin";
+    string model_path = "models/shakespeare.bin";
     if (argc > 1 && strcmp(argv[1], "train") == 0) {
         // train
         for (int i = 0; i < 4; ++i) {
