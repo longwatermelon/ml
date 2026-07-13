@@ -1,4 +1,5 @@
 #include "tokenizer.h"
+#include <cctype>
 #include <stdexcept>
 
 // ---- char tokenizer ----
@@ -77,68 +78,124 @@ static vec<string> merge_lr(const vec<string> &text, const string &left, const s
     return out;
 }
 
+// split text into maximal-length chunks whose characters are of same byte class
+static vec<string> pretokenize(const string &text) {
+    vec<string> chunks;
+    string cur;
+    int last_class = -1;
+
+    // iter over chars
+    for (char c : text) {
+        // identify char class
+        unsigned char byte = c;
+        int cls = std::isalpha(byte) ? 0
+            : std::isdigit(byte) ? 1
+            : std::isspace(byte) ? 2
+            : 3;
+
+        // push chunk if class mismatch
+        if (!cur.empty() && cls != last_class) {
+            chunks.push_back(cur);
+            cur.clear();
+        }
+
+        // append to current chunk
+        cur.push_back(c);
+        last_class = cls;
+    }
+
+    // push last untracked chunk
+    if (!cur.empty()) {
+        chunks.push_back(cur);
+    }
+
+    return chunks;
+}
+
 // construct vocab from text in corpus
 BPETokenizer::BPETokenizer(const string &corpus, int steps) {
-    set<string> all_chunks;
-    for (int c = 0; c < 256; ++c) {
-        all_chunks.insert(string(1,c));
+    // count chunk occurrences
+    map<string, int> counts;
+    vec<string> pretok_chunks = pretokenize(corpus);
+    for (const string &chunk : pretok_chunks) {
+        counts[chunk]++;
     }
 
-    // construct char-split string
-    vec<string> split_str;
-    for (char c : corpus) {
-        split_str.push_back(string(1,c));
-    }
-
-    // run bpe steps
-    for (int step = 0; step < steps; ++step) {
-        // track occurrences of every pair
-        map<pair<string, string>, int> occ;
-        for (int i = 0; i < sz(split_str) - 1; ++i) {
-            occ[{split_str[i], split_str[i+1]}]++;
+    // run bpe on chunks: split into character-length runs initially
+    vec<pair<vec<string>, int>> chunks; // list of [split string, # occurrences]
+    for (const auto &[chunk, count] : counts) {
+        vec<string> split_chunk;
+        for (char c : chunk) {
+            split_chunk.push_back(string(1,c));
         }
-        if (occ.empty()) break;
+        chunks.push_back({split_chunk, count});
+    }
 
-        // get pair with max occurrences
-        int mx_cnt = 0;
+    // track all existing merged character runs as we learn bpe
+    // start with individual characters
+    set<string> all_runs;
+    for (int c = 0; c < 256; ++c) {
+        all_runs.insert(string(1,c));
+    }
+
+    // learn merges per chunk (contained between pretoken boundaries)
+    for (int step = 0; step < steps; ++step) {
+        // count all occurrences of all adjacent run pairs [left, right] across all pretokens
+        map<pair<string, string>, int> occ;
+        for (auto &[chunk, cnt] : chunks) {
+            for (int i = 0; i+1 < sz(chunk); ++i) {
+                occ[{chunk[i], chunk[i+1]}] += cnt;
+            }
+        }
+        if (occ.empty()) {
+            break;
+        }
+
+        // find highest count of [left, right] run pairs
+        int best_cnt = -1;
         pair<string, string> best_p;
         for (auto &[p, cnt] : occ) {
-            if (cnt > mx_cnt) {
-                mx_cnt = cnt;
+            if (cnt > best_cnt) {
+                best_cnt = cnt;
                 best_p = p;
             }
         }
 
-        // merge pair & record
-        split_str = merge_lr(split_str, best_p.first, best_p.second);
-        all_chunks.insert(best_p.first + best_p.second);
+        // merge [left, right] in all chunks that it exists in
+        for (auto &[chunk, cnt] : chunks) {
+            chunk = merge_lr(chunk, best_p.first, best_p.second);
+        }
         this->steps.push_back(best_p);
+
+        // track in all runs that have existed
+        all_runs.insert(best_p.first + best_p.second);
     }
 
-    // build vocab with whatever we end up with
-    vocab = vec<string>(all(all_chunks));
-    for (int i = 0; i < sz(vocab); ++i) {
-        rev_vocab[vocab[i]] = i;
+    // populate vocab with all runs we've encountered through learning bpe
+    for (auto &s : all_runs) {
+        vocab.push_back(s);
+        rev_vocab[s] = sz(vocab) - 1;
     }
 }
 
 // return text processed into token ids
 vec<int> BPETokenizer::encode(const string &text) const {
-    // construct char-split string
-    vec<string> split_str;
-    for (char c : text) {
-        split_str.push_back(string(1,c));
-    }
-
-    // run learned merges
-    for (auto &[left, right] : steps) {
-        split_str = merge_lr(split_str, left, right);
-    }
-
-    // convert to token ids
     vec<int> ids;
-    for (const string &s : split_str) {
-        ids.push_back(rev_vocab.at(s));
+    for (const string &chunk : pretokenize(text)) {
+        // split the chunk into byte tokens
+        vec<string> split_chunk;
+        for (char c : chunk) {
+            split_chunk.push_back(string(1, c));
+        }
+
+        // apply learned merges within this chunk
+        for (const auto &[left, right] : steps) {
+            split_chunk = merge_lr(split_chunk, left, right);
+        }
+
+        for (const string &token : split_chunk) {
+            ids.push_back(rev_vocab.at(token));
+        }
     }
 
     return ids;
