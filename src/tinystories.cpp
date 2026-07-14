@@ -35,7 +35,9 @@ void train(int epochs, bool load_checkpoint, bool randomize_windows) {
     BPETokenizer tokz = BPETokenizer::load(read_file(tokz_path));
     V = tokz.vocab_size();
     string corpus = read_file(input_path);
+    printf("tokenizing corpus...\n");
     vec<int> corpus_toks = tokz.encode(corpus);
+    printf("tokenized!\n");
 
     // split corpus into 90% train 10% test
     int split_ind = 0.9f * sz(corpus_toks);
