@@ -118,7 +118,7 @@ void train(Module &model, const Tensor &X, const Tensor &Y, int epochs, Loss los
 
 // ---- model save/load ----
 
-// serialize model params (state-dict style: params only, no architecture) to bytes
+// serialize model params (params only, no architecture) to bytes
 vec<uint8_t> save(Module &model) {
     vec<uint8_t> bytes;
 
@@ -142,9 +142,7 @@ void load(Module &model, const vec<uint8_t> &bytes) {
 
     for (GTensor *p : ps) {
         Tensor t = Tensor::deserialize(bytes, pos);
-        // shape check doubles as an architecture-mismatch check
         assert(t.shape == p->get_tensor().shape);
-        // assign in place so the autograd Leaf node (and anything pointing at it) stays intact
         p->get_tensor_ref() = t;
     }
     assert(pos == bytes.size());

@@ -6,12 +6,12 @@
 
 const int T = 384;
 const int Tmax = 384;
-const int d = 192;
-const int h = 6;
-const int N = 4;
+const int d = 256;
+const int h = 8;
+const int N = 6;
 const int d_ff = 4*d;
 const int B = 16;
-const float lr = 5e-4f;
+const float lr = 1e-3f;
 const int Mtrain = 24000; // # train windows
 const int Mtest = 1024; // # test windows
 const string input_path = "data/tinystories/input.txt";
@@ -23,7 +23,7 @@ BPETokenizer build_tokenizer(const string &filename) {
     string corpus = read_file(filename);
 
     // tokenize corpus
-    BPETokenizer tokz(corpus, 256);
+    BPETokenizer tokz(corpus, 2000);
     V = tokz.vocab_size(); // vocab size
 
     return tokz;
