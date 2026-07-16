@@ -114,7 +114,6 @@ Adam::Adam(const vec<GTensor*> &params, float alpha, float beta1, float beta2, f
     this->eps = eps;
     this->t = 0;
 
-    // zero-init moment estimates matching param shapes
     for (GTensor *p : params) {
         m.push_back(Tensor(p->get_tensor().shape, 0));
         v.push_back(Tensor(p->get_tensor().shape, 0));

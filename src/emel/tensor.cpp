@@ -5,14 +5,14 @@
 #include <Accelerate/Accelerate.h>
 #endif
 
-// row-major matmul C = A*B where A is n*m, B is m*k, C is n*k. C must be zeroed.
+// matmul C = A*B where A is n*m, B is m*k, C is n*k. C must be zeroed.
 static void sgemm(const float *A, const float *B, float *C, int n, int m, int k) {
     if (n == 0 || m == 0 || k == 0) return;
 #ifdef __APPLE__
     cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
                 n, k, m, 1.f, A, m, B, k, 0.f, C, k);
 #else
-    // portable fallback: naive loops, accumulate into zeroed C
+    // portable cpu fallback
     for (int i = 0; i < n; ++i) {
         float *Crow = C + i*k;
         for (int x = 0; x < m; ++x) {
@@ -141,7 +141,7 @@ void Tensor::pad_shape(const vec<int> &target) {
 
 // consolidate data, become contiguous again
 Tensor Tensor::materialize() const {
-    // skip materialize if already materialized
+    // skip this function if already materialized
     if (is_contiguous()) {
         return *this;
     }
@@ -243,13 +243,11 @@ Tensor Tensor::operator*(const Tensor &o) const {
     int m = lhs.shape[sz(lhs.shape)-1];
     int k = rhs.shape[sz(rhs.shape)-1];
 
-    // materialize before broadcasting: guarantees each matrix is row-major
-    // contiguous (row stride m/k, col stride 1) so the hot loop can run on raw
-    // pointers.
+    // ensure matrices are contiguous, so hot loops can run on raw pointers
     lhs = lhs.materialize();
     rhs = rhs.materialize();
 
-    // fast path: 2d rhs means every batch matrix multiplies the same rhs, so
+    // special fast path: 2d rhs means every batch matrix multiplies the same rhs, so
     // just stack all batch matrices sequentially vertically, all the rows in it
     // process in parallel. output shape [batch*n, m]
     if (sz(rhs.shape) == 2) {
@@ -257,7 +255,7 @@ Tensor Tensor::operator*(const Tensor &o) const {
         out_shape.back() = k;
         Tensor out(out_shape, 0.f);
         vec<int> row_shape = lhs.shape;
-        row_shape.pop_back(); // total rows across all batches, safe when m=0
+        row_shape.pop_back();
         sgemm(lhs.data.data(), rhs.data.data(), out.data.data(),
               numel(row_shape), m, k);
         return out;
@@ -392,7 +390,7 @@ Tensor Tensor::max(int axis, bool keepdims) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
 
-    // fast path: contiguous data reduces with flat loops
+    // special fast path: raw flat ptr iter for contiguous data
     if (is_contiguous()) {
         vec<int> new_shape = shape;
         if (keepdims) new_shape[axis] = 1;
@@ -462,7 +460,7 @@ Tensor Tensor::argmax(int axis) const {
     int n = sz(shape);
     assert(0 <= axis && axis < n);
 
-    // fast path: contiguous data scans with flat loops
+    // special fast path: raw flat ptr iter for contiguous data
     if (is_contiguous()) {
         int outer, len, inner;
         axis_split(shape, axis, outer, len, inner);
