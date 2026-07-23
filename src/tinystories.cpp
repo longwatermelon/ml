@@ -110,9 +110,22 @@ int next_token(GPT &model, const vec<int> &toks, double temp) {
     // to prob distribution
     logits = logits.ediv(Tensor({1}, temp));
     Tensor S = logits.softmax(2);
-    vec<float> weights(V);
+    vec<float> probs(V);
     for (int i = 0; i < V; ++i) {
-        weights[i] = S.at({0, ctx_len - 1, i});
+        probs[i] = S.at({0, ctx_len - 1, i});
+    }
+
+    // top-p sampling
+    const float p = 0.9f;
+    vec<int> ord(V);
+    iota(all(ord), 0);
+    sort(all(ord), [&](int a, int b) { return probs[a] > probs[b]; });
+    vec<float> weights(V, 0.f);
+    float cum = 0.f;
+    for (int i = 0; i < V; ++i) {
+        weights[ord[i]] = probs[ord[i]];
+        cum += probs[ord[i]];
+        if (cum >= p) break;
     }
 
     // sample from prob distribution
